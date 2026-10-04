@@ -57,6 +57,17 @@ def rng(recs, key):
             "last": round(vals[-1], 2)}
 
 
+ET = ZoneInfo("America/New_York")
+
+
+def ts_et_hhmm(ts):
+    """Render a record ts as ET HH:MM for axis labels (F11)."""
+    try:
+        return datetime.fromisoformat(ts).astimezone(ET).strftime("%H:%M")
+    except Exception:
+        return (ts or "")[11:16]
+
+
 def main():
     day = sys.argv[1] if len(sys.argv) > 1 else date.today().isoformat()
     if "--force" not in sys.argv and not market_open_now_pt():
@@ -64,6 +75,9 @@ def main():
         return
     recs = [r for r in load_jsonl(LOG_PATH) if r.get("expiry") == day]
     snaps = [s for s in load_jsonl(GEX_PATH) if s.get("expiry") == day]
+    # F11: order by ts, not file order (backfills/appends can be out of order)
+    recs.sort(key=lambda r: r.get("ts") or "")
+    snaps.sort(key=lambda s: s.get("ts") or "")
 
     data = {
         "date": day,
@@ -147,7 +161,8 @@ def main():
              "direction": last.get("hedge_1pct_dir")},
         ]
 
-    # heatmap: strike x time matrix of per-strike net GEX ($m)
+    # heatmap: strike x time matrix of per-strike net GEX ($m).
+    # F11: missing cells are null (gaps), never 0 — 0.0 is a real reading.
     if snaps:
         strikes = sorted({float(k) for s in snaps for k in s.get("gex_m", {})})
         # downsample time to <= 48 columns
@@ -156,18 +171,24 @@ def main():
         times, values = [], []
         for s in cols:
             gm = s.get("gex_m", {})
-            times.append(s["ts"][11:16])
-            values.append([round(gm.get(str(k), 0.0), 1) for k in strikes])
-        data["heatmap"] = {"strikes": strikes, "times": times, "values": values}
+            times.append(ts_et_hhmm(s.get("ts", "")))
+            values.append([round(gm[str(k)], 1) if str(k) in gm else None
+                           for k in strikes])
+        data["heatmap"] = {"strikes": strikes, "times": times, "values": values,
+                           "time_zone": "America/New_York"}
     else:
         data["data_quality"].append(
             "GEX heatmap starts collecting Monday — per-strike snapshots "
             "were added after this session")
 
-    # honesty notes
-    n_rtd_note = ("3 live RTD strikes + Nasdaq-delayed wings (~15 min); "
-                  "walls/flip can flicker on mixed snapshots")
-    data["data_quality"].append(n_rtd_note)
+    # honesty notes (F11: source note derived from the record's src_mix)
+    src_mix = last.get("src_mix") or "source mix unknown"
+    data["data_quality"].append(
+        f"{src_mix}; Nasdaq wings ~15 min delayed; "
+        "walls/flip can flicker on mixed snapshots")
+    data["data_quality"].append(
+        "GEX $m units changed 2026-10-05 (v2 = USD per 1% move, canonical); "
+        "records before that date are v1 and read 100x larger")
     data["data_quality"].append(
         "GEX/charm/vanna dollar magnitudes swing on feed mixing — "
         "treat levels as signal, dollar sizes as rough")
