@@ -9,10 +9,15 @@ through the day/week and to hunt for leading indicators.
 Log: ~/workspace/goals/0dte-tape-alert-watch/hidden_files/maxpain_history.jsonl
 """
 
+import fcntl
 import json
 import os
+import sys
 import urllib.request
 from datetime import datetime, timezone
+
+LOCK_PATH = os.path.expanduser(
+    "~/workspace/goals/0dte-tape-alert-watch/hidden_files/maxpain_log.lock")
 
 FEED_URL = "http://localhost:8787/feed/all"
 LOG_PATH = os.path.expanduser(
@@ -57,8 +62,8 @@ def main():
     buckets = {b.get("shock_bp"): b for b in (p.get("hedge_buckets") or [])}
 
     top_gamma = g.get("top_strikes") or []
-    top_vol = f.get("top_volume_strikes") or []
-    unusual = f.get("unusual_volume") or []
+    top_vol = f.get("top_volume_activity") or []
+    unusual = f.get("elevated_volume_activity") or []
     top_un = unusual[0] if unusual else None
     smile = iv.get("smile_2pct") or {}
 
@@ -67,12 +72,18 @@ def main():
         "market_open": d.get("market_open"),
         "expiry": d.get("expiry"),
         "spot": d.get("spot"),
+        # provenance (F03): source times + mix survive into history
+        "quote_as_of": d.get("quote_as_of"),
+        "nasdaq_as_of": ((d.get("sources") or {}).get("nasdaq") or {}).get("as_of"),
+        "src_mix": (f"{d.get('n_strikes_rtd_live')} rtd + "
+                    f"{d.get('n_strikes_nasdaq_delayed')} nasdaq_delayed"),
         # max pain + gamma structure
         "max_pain": g.get("max_pain"),
         "call_wall": g.get("call_wall"),
         "put_wall": g.get("put_wall"),
         "gamma_flip": g.get("gamma_flip"),
         "net_gex_m": g.get("net_gex_m"),
+        "gex_formula": g.get("gex_formula", "v1"),
         "gamma_regime": g.get("regime"),
         "top_gamma": [{"strike": r.get("strike"),
                        "net_gex_m": r.get("net_gex_m")} for r in top_gamma[:3]],
@@ -123,21 +134,7 @@ def main():
         "events": load_events().get(d.get("expiry"), []),
     }
     os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
-    with open(LOG_PATH, "a") as fh:
-        fh.write(json.dumps(rec) + "\n")
-
-    # mirror into the queryable SQLite DB (best-effort; JSONL is the raw archive)
-    try:
-        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-        import tape_db
-        con = tape_db.connect()
-        tape_db.init_db(con)
-        tape_db.insert_snapshot(rec, con)
-        con.close()
-    except Exception as e:
-        print(f"db mirror skipped: {e}", file=sys.stderr)
-
-    # compact per-strike GEX snapshot for the strike x time heatmap
+    gex, gex_line = {}, None
     try:
         spot = d.get("spot") or 0
         snap_rows = (g.get("by_strike") or [])
@@ -145,23 +142,57 @@ def main():
                if spot and abs(r["strike"] - spot) / spot <= 0.04
                and isinstance(r.get("net_gex_m"), (int, float))}
         if gex:
-            with open(GEX_SNAP_PATH, "a") as fh:
-                fh.write(json.dumps({
-                    "ts": rec["ts"], "expiry": rec["expiry"], "spot": spot,
-                    "gex_m": gex}) + "\n")
-            try:
-                sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-                import tape_db
-                con = tape_db.connect()
-                tape_db.init_db(con)
-                tape_db.insert_gex_snapshot(rec["ts"], rec["expiry"], gex, con)
-                con.close()
-            except Exception as e:
-                print(f"gex db mirror skipped: {e}", file=sys.stderr)
+            gex_line = json.dumps({"ts": rec["ts"], "expiry": rec["expiry"],
+                                   "spot": spot, "gex_m": gex})
     except Exception:
         pass  # heatmap snapshot is best-effort; the main record is what matters
 
+    # F10: single-flight + reconcile. DB mirror runs in one transaction first;
+    # JSONL appends land only after. Re-running the same invocation converges
+    # both stores without duplicates or partial mirrors.
+    lock_fh = open(LOCK_PATH, "w")
+    try:
+        fcntl.flock(lock_fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        print("another logger run in flight; skipping")
+        return
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import tape_db
+        con = tape_db.connect()
+        tape_db.init_db(con)
+        in_db = tape_db.has_snapshot(con, rec["ts"], rec["expiry"])
+        in_jsonl = _jsonl_has_ts(LOG_PATH, rec["ts"])
+        if in_db and in_jsonl:
+            print(f"already logged | ts={rec['ts']}")
+            return
+        if not in_db:
+            tape_db.mirror_record(rec, gex or {}, con)
+        if not in_jsonl:
+            with open(LOG_PATH, "a") as fh:
+                fh.write(json.dumps(rec) + "\n")
+            if gex_line:
+                with open(GEX_SNAP_PATH, "a") as fh:
+                    fh.write(gex_line + "\n")
+    finally:
+        fcntl.flock(lock_fh, fcntl.LOCK_UN)
+        lock_fh.close()
+
     print(f"logged | spot={rec['spot']} max_pain={rec['max_pain']} expiry={rec['expiry']}")
+
+
+def _jsonl_has_ts(path, ts):
+    """Tail-scan for a record ts (F10 reconcile)."""
+    try:
+        with open(path, "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            size = fh.tell()
+            fh.seek(max(0, size - 65536))
+            tail = fh.read().decode("utf-8", "replace")
+        needle = f'"ts": "{ts}"'
+        return needle in tail
+    except FileNotFoundError:
+        return False
 
 
 if __name__ == "__main__":
