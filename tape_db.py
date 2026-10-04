@@ -27,7 +27,9 @@ GEX_PATH = os.path.join(HIDDEN, "gex_history.jsonl")
 
 SNAP_COLS = [
     "ts", "market_open", "expiry", "spot",
-    "max_pain", "call_wall", "put_wall", "gamma_flip", "net_gex_m", "gamma_regime",
+    "quote_as_of", "nasdaq_as_of", "src_mix",
+    "max_pain", "call_wall", "put_wall", "gamma_flip", "net_gex_m", "gex_formula",
+    "gamma_regime",
     "charm_k", "vanna_k",
     "call_volume", "put_volume", "call_oi", "put_oi", "pc_volume", "pc_oi",
     "hottest_strike", "hottest_call_vol", "hottest_put_vol",
@@ -60,8 +62,10 @@ def init_db(con=None):
             market_open INTEGER,
             expiry TEXT NOT NULL,
             spot REAL,
+            quote_as_of TEXT, nasdaq_as_of TEXT, src_mix TEXT,
             max_pain REAL, call_wall REAL, put_wall REAL, gamma_flip REAL,
             net_gex_m REAL, gamma_regime TEXT,
+            gex_formula TEXT,
             charm_k REAL, vanna_k REAL,
             call_volume INTEGER, put_volume INTEGER, call_oi INTEGER, put_oi INTEGER,
             pc_volume REAL, pc_oi REAL,
@@ -98,6 +102,16 @@ def init_db(con=None):
         )""")
     con.execute("CREATE INDEX IF NOT EXISTS idx_snap_expiry ON snapshots(expiry)")
     con.execute("CREATE INDEX IF NOT EXISTS idx_snap_ts ON snapshots(ts)")
+    # dedup guard for DBs created before the UNIQUE constraint (F10)
+    con.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_snap_ts_expiry "
+                "ON snapshots(ts, expiry)")
+    # migrations for pre-existing DBs (F04/F03): add columns if absent
+    for coldef in ("gex_formula TEXT", "quote_as_of TEXT",
+                   "nasdaq_as_of TEXT", "src_mix TEXT"):
+        try:
+            con.execute(f"ALTER TABLE snapshots ADD COLUMN {coldef}")
+        except Exception:
+            pass  # column already exists
     con.commit()
 
 
@@ -133,6 +147,30 @@ def insert_gex_snapshot(ts, expiry, gex_m, con=None):
     con.commit()
 
 
+def has_snapshot(con, ts, expiry):
+    return con.execute(
+        "SELECT 1 FROM snapshots WHERE ts = ? AND expiry = ?",
+        (ts, expiry)).fetchone() is not None
+
+
+def mirror_record(rec, gex_m, con=None):
+    """Insert a logger record + its gex rows in ONE transaction (F10).
+    INSERT OR IGNORE on (ts, expiry): re-running the same invocation is a
+    no-op, never a duplicate."""
+    con = con or connect()
+    cols = ", ".join(SNAP_COLS)
+    qs = ", ".join("?" * len(SNAP_COLS))
+    with con:  # single transaction; auto-rollback on error (F10)
+        con.execute(f"INSERT OR IGNORE INTO snapshots ({cols}) VALUES ({qs})",
+                    _norm(rec))
+        if gex_m:
+            rows = [(rec["ts"], rec["expiry"], float(k), v)
+                    for k, v in gex_m.items()]
+            con.executemany(
+                "INSERT OR IGNORE INTO gex_strikes (ts, expiry, strike, net_gex_m)"
+                " VALUES (?,?,?,?)", rows)
+
+
 def insert_alert(ts, alert_type, detail="", con=None):
     con = con or connect()
     con.execute("INSERT INTO alerts (ts, alert_type, detail) VALUES (?,?,?)",
@@ -140,9 +178,12 @@ def insert_alert(ts, alert_type, detail="", con=None):
     con.commit()
 
 
-def backfill(con=None):
+def backfill(con=None, dry_run=False):
+    """Additive backfill: never deletes rows; INSERT OR IGNORE makes re-runs
+    idempotent (F10). Returns dict with accepted/rejected/ignored counts."""
     con = con or connect()
-    n_snap = n_gex = 0
+    counts = {"snap_accepted": 0, "snap_ignored": 0, "snap_rejected": 0,
+              "gex_accepted": 0, "gex_ignored": 0, "gex_rejected": 0}
     if os.path.exists(LOG_PATH):
         with open(LOG_PATH) as fh:
             for line in fh:
@@ -150,10 +191,23 @@ def backfill(con=None):
                 if not line:
                     continue
                 try:
-                    insert_snapshot(json.loads(line), con)
-                    n_snap += 1
+                    rec = json.loads(line)
+                    ts, expiry = rec.get("ts"), rec.get("expiry")
+                    if not ts or not expiry:
+                        counts["snap_rejected"] += 1
+                        continue
+                    if dry_run:
+                        counts["snap_ignored" if has_snapshot(con, ts, expiry)
+                               else "snap_accepted"] += 1
+                        continue
+                    before = con.total_changes
+                    insert_snapshot(rec, con)
+                    if con.total_changes > before:
+                        counts["snap_accepted"] += 1
+                    else:
+                        counts["snap_ignored"] += 1
                 except Exception:
-                    pass
+                    counts["snap_rejected"] += 1
     if os.path.exists(GEX_PATH):
         with open(GEX_PATH) as fh:
             for line in fh:
@@ -162,11 +216,23 @@ def backfill(con=None):
                     continue
                 try:
                     d = json.loads(line)
-                    insert_gex_snapshot(d["ts"], d["expiry"], d.get("gex_m") or {}, con)
-                    n_gex += 1
+                    ts, expiry = d.get("ts"), d.get("expiry")
+                    gex_m = d.get("gex_m") or {}
+                    if not ts or not expiry or not gex_m:
+                        counts["gex_rejected"] += 1
+                        continue
+                    if dry_run:
+                        counts["gex_accepted"] += 1
+                        continue
+                    before = con.total_changes
+                    insert_gex_snapshot(ts, expiry, gex_m, con)
+                    if con.total_changes > before:
+                        counts["gex_accepted"] += 1
+                    else:
+                        counts["gex_ignored"] += 1
                 except Exception:
-                    pass
-    return n_snap, n_gex
+                    counts["gex_rejected"] += 1
+    return counts
 
 
 def stats(con=None):
@@ -190,8 +256,9 @@ if __name__ == "__main__":
     if cmd == "init":
         print(f"db ready at {DB_PATH}")
     elif cmd == "backfill":
-        n_snap, n_gex = backfill(con)
-        print(f"backfilled {n_snap} snapshot lines, {n_gex} gex snapshots")
+        dry = "--dry-run" in sys.argv
+        counts = backfill(con, dry_run=dry)
+        print(f"backfill{' DRY RUN' if dry else ''}: {json.dumps(counts)}")
         print(json.dumps(stats(con), indent=1))
     elif cmd == "stats":
         print(json.dumps(stats(con), indent=1))
