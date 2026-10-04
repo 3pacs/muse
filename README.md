@@ -4,6 +4,13 @@ Intraday 0DTE options positioning stack: live gamma interpreter, max-pain
 tracker, alert watcher, append-only history, queryable tape database, and a
 dashboard data builder. Built with Muse.
 
+## Development handoff
+
+Start with the [staged red-team and dashboard challenge](docs/MUSE-CHALLENGE.md).
+It defines source-trust gates, reproducible failures, research evaluation, and a
+professional Muse dashboard brief. Existing feed labels are provisional until
+verified; this handoff does not establish deployment or trading readiness.
+
 ## Components
 
 - `interpreter.py` — polls the live RTD inputs at `gex.stepdad.finance`
