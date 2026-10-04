@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+*.log
+watcher_state.json
+.DS_Store
