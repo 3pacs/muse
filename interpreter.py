@@ -8,7 +8,7 @@ Polls the live inputs at gex.stepdad.finance (thinkorswim RTD collector):
 
 ...and emits four derived interpretation feeds:
   - /feed/gamma       net GEX by strike, gamma flip, call/put walls
-  - /feed/flow        put/call ratios, unusual volume, top flow strikes
+  - /feed/flow        put/call ratios, elevated volume activity, top volume activity
   - /feed/vanna-charm dealer vanna/charm exposure (BS-derived)
   - /feed/iv          skew, 25-delta risk reversal, smile shape
   - /feed/all         everything in one payload
@@ -84,14 +84,16 @@ def _num(x, default=0.0):
         return default
 
 def charm(S, K, T, r, q, sigma, is_call=True):
-    """dDelta/dT in years (per 1.0 year)."""
+    """Trader's charm: delta decay per 1.0 year of clock time (=-dDelta/dT,
+    T in years). Positive = delta rises as clock time passes (e.g. ITM
+    long call pinning toward 1). Hedge with the opposite sign."""
     d1, d2 = bs_d1_d2(S, K, T, r, q, sigma)
     if d1 is None:
         return 0.0
     e_qrt = math.exp(-q * T)
     n1 = norm_pdf(d1)
     term = n1 * (2.0 * (r - q) * T - d2 * sigma * math.sqrt(T)) / (2.0 * T * sigma * math.sqrt(T))
-    term += (r - q) * (norm_cdf(d1) if is_call else (norm_cdf(d1) - 1.0))
+    term += -q * (norm_cdf(d1) if is_call else (norm_cdf(d1) - 1.0))
     return -e_qrt * term
 
 # ---------------------------------------------------------------- fetch
@@ -101,12 +103,26 @@ def fetch_json(url, timeout=12):
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
-_NQ = {"at": 0.0, "rows": []}
+_NQ = {"at": 0.0, "as_of": None, "label": None, "rows": [], "stale": False}
+NQ_TTL = 300        # refresh wings every 5 min
+NQ_MAX_STALE = 1800  # on failure, serve same-label cache at most 30 min
+
+
+def _nasdaq_label(now):
+    et = now.astimezone(ET)
+    return et.strftime("%b ") + str(et.day)  # e.g. "Sep 28"
+
 
 def fetch_nasdaq_0dte(now):
-    """Wide 0DTE chain from Nasdaq public API (~15min delayed). Cached 5 min;
-    keeps serving stale wings if a refresh fails (transient blocks happen)."""
-    if time.time() - _NQ["at"] < 300 and _NQ["rows"]:
+    """Wide 0DTE chain from Nasdaq public API (~15min delayed).
+    Cached 5 min; on refresh failure the previous rows are served for at
+    most 30 min and only when they belong to today's expiry label. Older
+    or foreign-label cache is discarded -> wings reported unavailable
+    (never relabelled across dates)."""
+    label = _nasdaq_label(now)
+    age = time.time() - _NQ["at"]
+    if _NQ["rows"] and _NQ["label"] == label and age < NQ_TTL:
+        _NQ["stale"] = False
         return _NQ["rows"]
     try:
         url = "https://api.nasdaq.com/api/quote/SPY/option-chain?assetclass=etf"
@@ -114,8 +130,6 @@ def fetch_nasdaq_0dte(now):
                                                    "Accept": "application/json"})
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8"))["data"]
-        et = now.astimezone(ET)
-        label = et.strftime("%b ") + str(et.day)  # e.g. "Sep 28"
         out = []
         for row in data["table"]["rows"]:
             if row.get("expiryDate") != label or not row.get("strike"):
@@ -129,10 +143,26 @@ def fetch_nasdaq_0dte(now):
                         "volume": _num(row["p_Volume"]), "oi": _num(row["p_Openinterest"])},
             })
         if out:
-            _NQ.update(at=time.time(), rows=out)
+            _NQ.update(at=time.time(),
+                       as_of=datetime.now(timezone.utc).isoformat(),
+                       label=label, rows=out, stale=False)
+            return out
     except Exception:
-        pass  # serve stale cache below
-    return _NQ["rows"]
+        pass
+    # refresh failed (or returned no rows for this label): serve stale
+    # only within policy; otherwise wings are unavailable
+    if _NQ["rows"] and _NQ["label"] == label and age < NQ_MAX_STALE:
+        _NQ["stale"] = True
+        return _NQ["rows"]
+    _NQ.update(rows=[], stale=False, as_of=None, label=None)
+    return []
+
+
+def nasdaq_provenance():
+    """Source metadata for the Nasdaq wing cache (F01/F03)."""
+    return {"as_of": _NQ["as_of"], "label": _NQ["label"],
+            "delay": "~15min", "stale": _NQ["stale"],
+            "n_rows": len(_NQ["rows"])}
 
 def market_open_now(now_utc):
     pt = now_utc.astimezone(PT)
@@ -184,14 +214,17 @@ def compute_positioning(by_strike, strikes, S, sec_to_exp, flip=None, regime=Non
         frac = math.sqrt(max(sec_to_exp, 60.0) / 23400.0)  # 6.5h session
         pos["expected_move"] = {
             "dollars": round(straddle, 2),
+            "dollars_kind": "quoted",  # ATM straddle mid: the market's own price (F07)
             "pct": round(100.0 * straddle / S, 3),
             "remaining_dollars": round(straddle * frac, 2),
+            "remaining_kind": "modeled",  # one sqrt(time-left/6.5h) scale, never re-scaled (F07)
             "remaining_pct": round(100.0 * straddle * frac / S, 3),
             "atm_strike": atm_k,
-            "note": "ATM straddle mid; remaining scaled by sqrt(time left / 6.5h)",
+            "note": ("dollars = quoted ATM straddle mid (market-implied full-session move); "
+                     "remaining = that quote scaled once by sqrt(time left / 6.5h)"),
         }
 
-    # ---- dealer hedge buckets: shares dealers must trade for a spot shock ----
+    # ---- dealer hedge buckets: shares dealers would need to trade (scenario) ----
     # dealer gamma (shares per $1 move) = +(cust call gamma - cust put gamma) * 100
     # standard GEX convention: dealers long calls / short puts
     dg_by_strike = {}
@@ -212,6 +245,11 @@ def compute_positioning(by_strike, strikes, S, sec_to_exp, flip=None, regime=Non
             "direction": "buy" if hedge_shares > 0 else "sell",
         })
     pos["hedge_buckets"] = buckets
+    # F08: inventory scenarios, not observed executions
+    pos["hedge_buckets_note"] = (
+        "inventory scenarios: signed $m dealers would need to trade to re-hedge "
+        "each spot shock under standard dealer positioning (long calls/short puts); "
+        "model output, not observed executions")
     pos["dealer_gamma_notional_m_per_pt"] = round(total_dg * S / 1e6, 1)
 
     # ---- pin score 0-100: concentration + proximity to magnet + time elapsed ----
@@ -220,7 +258,7 @@ def compute_positioning(by_strike, strikes, S, sec_to_exp, flip=None, regime=Non
         dd = by_strike[k]
         cg = (dd.get("call", {}).get("gamma") or 0.0) * (dd.get("call", {}).get("oi") or 0.0)
         pg = (dd.get("put", {}).get("gamma") or 0.0) * (dd.get("put", {}).get("oi") or 0.0)
-        rows.append((k, (cg - pg) * S * S * CONTRACT_MULT / 1e6))
+        rows.append((k, (cg - pg) * S * S * CONTRACT_MULT * 0.01 / 1e6))
     abs_sum = sum(abs(v) for _, v in rows)
     if abs_sum > 0:
         sh = [abs(v) / abs_sum for _, v in rows]
@@ -307,6 +345,7 @@ def build_snapshot():
             "oi": float(c.get("open_interest") or 0),
             "delta": c.get("delta"), "gamma": float(c.get("gamma") or 0),
             "theta": c.get("theta"), "iv": c.get("iv"),
+            "greeks": "observed",  # from the upstream RTD payload (F07)
         }
         if prev:  # aggregate duplicate roots: sum flow, keep busiest quote
             rec["volume"] += prev["volume"]
@@ -344,6 +383,7 @@ def build_snapshot():
                     "volume": s["volume"], "oi": s["oi"],
                     "delta": round(bs_delta(spot, k, T, RISK_FREE, DIV_YIELD, atm_iv, is_call), 4),
                     "gamma": round(gam, 4), "theta": None, "iv": None,
+                    "greeks": "modeled_atm_iv",  # BS at ATM IV; not vendor quotes (F07)
                 }
             by_strike[k] = d
             n_nasdaq += 1
@@ -352,6 +392,13 @@ def build_snapshot():
 
     strikes = sorted(by_strike)
     S = spot
+    nq_prov = nasdaq_provenance()
+    sources = {
+        "rtd": {"as_of": quote_as_of, "delay": "realtime",
+                "n_strikes": sum(1 for k in strikes if by_strike[k].get("src") == "rtd")},
+        "nasdaq": {"as_of": nq_prov["as_of"], "delay": nq_prov["delay"],
+                   "n_strikes": n_nasdaq, "stale": nq_prov["stale"]},
+    }
 
     # ---- gamma map ----
     rows = []
@@ -359,23 +406,59 @@ def build_snapshot():
         d = by_strike[k]
         cg = d.get("call", {}).get("gamma", 0.0) * d.get("call", {}).get("oi", 0.0)
         pg = d.get("put", {}).get("gamma", 0.0) * d.get("put", {}).get("oi", 0.0)
-        net_gex = (cg - pg) * S * S * CONTRACT_MULT  # $ ; dealers long calls / short puts (std GEX convention)
-        rows.append({"strike": k, "src": d.get("src", "?"),
+        net_gex = (cg - pg) * S * S * CONTRACT_MULT * 0.01  # $m per 1% spot move
+        # (v2 units; dealers long calls / short puts = std GEX convention)
+        rows.append({"strike": k, "src": d.get("src", "unknown"),
+                     "greeks": d.get("call", {}).get("greeks", "unknown"),
                      "net_gex_m": round(net_gex / 1e6, 2),
-                     "call_gex_m": round(cg * S * S * CONTRACT_MULT / 1e6, 2),
-                     "put_gex_m": round(-pg * S * S * CONTRACT_MULT / 1e6, 2)})
+                     "call_gex_m": round(cg * S * S * CONTRACT_MULT * 0.01 / 1e6, 2),
+                     "put_gex_m": round(-pg * S * S * CONTRACT_MULT * 0.01 / 1e6, 2)})
     total_gex_m = round(sum(r["net_gex_m"] for r in rows), 2)
 
-    flip = None
-    cum = 0.0
-    prev_k, prev_cum = None, None
-    for r, k in zip(rows, strikes):
-        cum += r["net_gex_m"]
-        if prev_cum is not None and prev_cum != 0 and (prev_cum < 0) != (cum < 0):
-            flip = round(prev_k + (k - prev_k) * abs(prev_cum) / (abs(prev_cum) + abs(cum) or 1), 2)
-            break
-        if cum != 0:
-            prev_k, prev_cum = k, cum
+    # ---- gamma flip: TRUE spot root of net dealer gamma (F05) ----
+    # Recompute signed net dealer gamma over a hypothetical-spot domain
+    # with frozen IV/OI (scenario, not a prediction). The old cumulative
+    # strike-GEX zero crossing is retired: it was not a spot level where
+    # net gamma vanishes.
+    flip, flip_roots = None, []
+    if S > 0 and T > 0:
+        iv_by_strike = {}
+        for k in strikes:
+            d = by_strike[k]
+            ivs = [s.get("iv") for s in (d.get("call"), d.get("put"))
+                   if s and s.get("iv")]
+            iv_by_strike[k] = sum(ivs) / len(ivs) if ivs else atm_iv
+
+        def net_gamma_at(sp):
+            tot = 0.0
+            for k in strikes:
+                d = by_strike[k]
+                iv = iv_by_strike[k]
+                if iv <= 0:
+                    continue
+                cg = d.get("call", {}).get("oi", 0.0) * bs_gamma(sp, k, T, RISK_FREE, DIV_YIELD, iv)
+                pg = d.get("put", {}).get("oi", 0.0) * bs_gamma(sp, k, T, RISK_FREE, DIV_YIELD, iv)
+                tot += (cg - pg) * CONTRACT_MULT  # shares per $1; dealers long calls / short puts
+            return tot
+
+        lo, hi, N = 0.90 * S, 1.10 * S, 400
+        prev_sp, prev_v = lo, net_gamma_at(lo)
+        for i in range(1, N + 1):
+            sp = lo + (hi - lo) * i / N
+            v = net_gamma_at(sp)
+            if v == 0 and prev_v != 0:
+                flip_roots.append(round(sp, 2))
+            elif prev_v != 0 and v != 0 and (prev_v < 0) != (v < 0):
+                root = prev_sp + (sp - prev_sp) * abs(prev_v) / (abs(prev_v) + abs(v))
+                flip_roots.append(round(root, 2))
+            prev_sp, prev_v = sp, v
+        ded = []
+        for r_ in flip_roots:
+            if not ded or abs(r_ - ded[-1]) > 0.02:
+                ded.append(r_)
+        flip_roots = ded
+        if flip_roots:
+            flip = min(flip_roots, key=lambda r_: abs(r_ - S))
 
     pos = [r for r in rows if r["net_gex_m"] > 0]
     neg = [r for r in rows if r["net_gex_m"] < 0]
@@ -385,9 +468,15 @@ def build_snapshot():
 
     gamma = {
         "spot": S, "expiry": expiry,
+        "gex_formula": "v2",
+        "gex_units": "USD millions per 1% spot move",
         "net_gex_m": total_gex_m,
         "gamma_flip": flip,
-        "gamma_flip_note": ("no zero crossing in listed strikes" if flip is None else None),
+        "gamma_flip_method": "spot_root_frozen_iv_oi",
+        "gamma_flip_roots": flip_roots,
+        "gamma_flip_note": ("spot level(s) where net dealer gamma = 0 "
+                            "(frozen IV/OI scenario); None = no root in ±10% domain"
+                            if flip is None else None),
         "call_wall": call_wall, "put_wall": put_wall,
         "regime": ("positive-gamma (pinning)" if total_gex_m > 0 else
                    "negative-gamma (trending)" if total_gex_m < 0 else "neutral"),
@@ -421,7 +510,8 @@ def build_snapshot():
             if ratio >= 1.5:
                 mid = ((s["bid"] or 0) + (s["ask"] or 0)) / 2
                 unusual.append({"strike": k, "side": side,
-                                "src": by_strike[k].get("src", "?"),
+                                "src": by_strike[k].get("src", "unknown"),
+                                "unsigned": True,  # activity, not executions (F08)
                                 "volume": s["volume"], "oi": s["oi"],
                                 "vol_oi": round(ratio, 2),
                                 "notional_k": round(mid * s["volume"] * CONTRACT_MULT / 1e3, 1)})
@@ -439,8 +529,11 @@ def build_snapshot():
         "pc_oi": round(put_oi / call_oi, 3) if call_oi else None,
         "call_volume": call_vol, "put_volume": put_vol,
         "call_oi": call_oi, "put_oi": put_oi,
-        "unusual_volume": unusual[:12],
-        "top_volume_strikes": top_vol,
+        # F08: unsigned activity, never executions; no aggressor/open-close inferred
+        "elevated_volume_activity": unusual[:12],
+        "top_volume_activity": top_vol,
+        "activity_note": ("unsigned volume activity (vol/OI>=1.5, >=500 contracts); "
+                          "not executed flow; no aggressor side or open/close inferred"),
     }
 
     # ---- vanna / charm ----
@@ -458,10 +551,13 @@ def build_snapshot():
             vn = vanna(S, k, T, RISK_FREE, DIV_YIELD, iv)
             ch = charm(S, k, T, RISK_FREE, DIV_YIELD, iv, is_call)
             shares = s["oi"] * CONTRACT_MULT
-            # $ delta-hedge flow per 1pt IV move / per 1hr time decay; dealers long calls / short puts (std GEX convention)
+            # Hedge flow: opposes the position's delta change.
+            # dealers long calls / short puts (std GEX convention).
+            # vanna: delta change per +1 vol point = vn*0.01
+            # charm: delta decay per clock hour = ch/(365.25*24)
             sign = 1.0 if is_call else -1.0
-            sv += sign * shares * vn * S * 0.01
-            sh += sign * shares * ch * S / 24.0
+            sv += -sign * shares * vn * S * 0.01
+            sh += -sign * shares * ch * S / (365.25 * 24.0)
         total_vanna += sv
         total_charm += sh
         if abs(sv) > 1 or abs(sh) > 1:
@@ -470,9 +566,9 @@ def build_snapshot():
     vanna_charm = {
         "spot": S, "expiry": expiry, "T_years": round(T, 6),
         "assumptions": {"r": RISK_FREE, "q": DIV_YIELD,
-                        "dealer_position": "short calls / long puts",
-                        "vanna_units": "$ delta-hedge flow per +1pt IV move",
-                        "charm_units": "$ delta-hedge flow per 1hr time decay"},
+                        "dealer_position": "long calls / short puts",
+                        "vanna_units": "$ delta-hedge flow per +1pt IV move (hedge opposes position change)",
+                        "charm_units": "$ delta-hedge flow per 1hr clock decay (hedge opposes position change)"},
         "total_vanna_k": round(total_vanna / 1e3, 1),
         "total_charm_k": round(total_charm / 1e3, 1),
         "by_strike": v_rows[:12],
@@ -489,7 +585,9 @@ def build_snapshot():
     atm_k = min(strikes, key=lambda k: abs(k - S)) if strikes else None
     atm_iv = next((r for r in iv_rows if r["strike"] == atm_k), None)
 
-    def closest_delta(target):
+    def closest_delta(target, tol=0.05):
+        # nearest strike delta to target; None when the best available is
+        # farther than `tol` delta points away (F07: no far-away "25d" relabel)
         best = None
         for k in strikes:
             for side in ("call", "put"):
@@ -497,6 +595,8 @@ def build_snapshot():
                 if s and s.get("delta") is not None and s.get("iv"):
                     if best is None or abs(s["delta"] - target) < abs(best[1] - target):
                         best = (s["iv"], s["delta"], k, side)
+        if best is None or abs(best[1] - target) > tol:
+            return None
         return best
 
     c25 = closest_delta(0.25)
@@ -537,6 +637,7 @@ def build_snapshot():
         "n_strikes": len(strikes),
         "n_strikes_rtd_live": sum(1 for k in strikes if by_strike[k].get("src") == "rtd"),
         "n_strikes_nasdaq_delayed": n_nasdaq,
+        "sources": sources,
         "gamma": gamma, "flow": flow,
         "vanna_charm": vanna_charm, "iv": iv,
         "positioning": positioning,
