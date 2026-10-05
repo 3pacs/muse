@@ -4,6 +4,676 @@
 
 
 
+## 2026-10-05 16:26 UTC — J1-C verified; J1-D recovery and separate UI-G1 lane
+
+**New response:** [PR #2 comment 5998349399](https://github.com/3pacs/muse/pull/2#issuecomment-5998349399), created16:10:58UTC, pins [`c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba`](https://github.com/3pacs/muse/tree/c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba), branch `redteam/fixes-j1c`, sole parent `08f2ed54`. The four changed files are the two scoped Python files, committed replay tests and existing policy. Source blobs, five retargeted harness ASTs, Python parsing and source diff whitespace were checked; no old checkout was reset.
+
+**All reported narrow controls reproduce:** original **21/21**, prior solver probes **5/5**, required J1 **8/8**, J1-B boundaries **10/10**, J1-C continuity **8/8**, committed replay tests **27/27** pass. The previous 20-case adversarial extension remains **8 pass / 12 fail**, with numerical/admission/dashboard failures open. Map status persists, direct-mirror units changes conflict, single legacy alias lookup works, primary changed-map values conflict, missing-row replay repairs and divergent snapshot-header repair all improve on the exact reported fixtures.
+
+**A separate eight-case repair-policy extension yields 2 pass / 6 fail.** Passing old fixtures do not establish full immutable-event recovery. Counts overlap and are not summed into a project-suite verdict or six regression claims.
+
+| Executed contract | Observed at c3a0a4b1 | PASS requirement |
+| --- | --- | --- |
+| `superset_replay_is_conflict_not_repair` | First journal map100=.02, later same-core map100=.02/101=.03: later line becomes duplicate and inserts101=.03, zero conflicts. Pinned parent08f2ed54 kept only100=.02 on the same input (also lacked a conflict receipt). | A later payload cannot prove projection loss by being larger. Repair must match the original accepted content/digest, not map shape. This exact extra-row mutation is newly reproduced relative to the parent. |
+| `empty_primary_replay_cannot_grow` | First accepted embedded`{}`, later100=.02: DB still says explicit_empty but contains100=.02. | Known-empty primary payload cannot grow through the superset exception. |
+| `divergent_strike_projection_not_complete` | Fault-inject DB strike value .5 while accepted journal retains .02; fresh logger says already logged and DB remains .5. | Validate strike values/formula/units as well as header and missing keys; repair from accepted content or explicitly quarantine. |
+| `legacy_alias_missing_journal_keeps_accepted` | Create legacy DB through actual old writer; journal missing; retry revised spot101/GEX.5. Logger prints `mirror=conflict` but appends101/.5 to main and strike history, while DB retains100/.02. | All reconstruction/hash/writer lookups must resolve the same alias; a rejected mirror result must never become accepted history. |
+| `logger_carries_units_lineage` | Feed gamma units change from millions/1% to millions/$1: logger records no units, returns duplicate, zero conflicts. | Carry actual units into the accepted core and validate all caller/secondary lineage consistently. Direct-mirror passing units test alone does not cover logger. |
+| `ambiguous_legacy_alias_quarantined` | Actual old writer creates equivalent canonical/offset identities with spot100 and200; current mirror validates one as duplicate, zero ambiguity receipts. | Resolve all equivalent aliases and quarantine conflicting accepted payloads; do not arbitrarily select a canonical or first row. |
+| `direct_superset_conflict_control` (PASS) | Direct mirror rejects added101 with distinct full hashes, accepted map unchanged. | Preserve this behavior while making backfill consistent. |
+| `genuine_missing_projection_repair_control` (PASS) | Full original accepted map100/.02+101/.03; delete projection101; replay original repairs101 correctly. | Preserve genuine repair while rejecting a changed later superset payload. |
+
+All stores are disposable, network calls blocked, inputs synthetic, and logger cases use real fresh processes/POSIX locks. Projection loss/divergence are deliberate fault injections, not claims of live corruption. The alias fixtures use actual pinned `ed3b8741` insertion code. Complete script and machine receipt follow.
+
+| Receipt at c3a0a4b1 | SHA-256 |
+| --- | --- |
+| Original21 | `71e4e3c8dfca857ccc0287762f5117871e39af1d7a95548c2472e1f8de54633e` |
+| Five probes | `b867c3a784129eb6fe88a233027e72607d2f532abdff938c0361334752effe69` |
+| Prior extension8/20 | `c97d0a5435d53b021cebef2469a521aa6d3664c1df8524f343bc9225b33d3ed0` |
+| J1-B10/10 | `3d16b8cacd325a8cc506efcaf9e02f2547eeb3a20e62773013718f2493248287` |
+| J1-C8/8 | `7626802d2fb6a164bc435c3d5462b723dc63a7a2c1d6f25fb340fdb79109cf78` |
+| Committed27/27 stdout | `9d2e50186249845f421cb292661f3e9d978fde1fb0e94b1bff02ff5a7f30ec81` |
+| New repair-policy script | `f4117e24fd411d3f0c4243894aa7d4bb5c977c333cbc756b80d7c5fc9c45b0ad` |
+| New repair-policy receipt | `cb572c477a78f7d05ff15f66f264e2ac32e8b5093baabd75876ed4fc1594096b` |
+
+Source anchors: [superset heuristic](https://github.com/3pacs/muse/blob/c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba/tape_db.py#L602), [backfill repair](https://github.com/3pacs/muse/blob/c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba/tape_db.py#L737), [alias resolver](https://github.com/3pacs/muse/blob/c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba/tape_db.py#L185), [DB-to-journal reconstruction](https://github.com/3pacs/muse/blob/c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba/tape_db.py#L253), [logger acceptance/reconstruction](https://github.com/3pacs/muse/blob/c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba/maxpain_log.py#L195).
+
+### Backend next task J1-D — prove accepted content before repair
+
+J1-D replaces the completed narrow J1-C dispatch. **Backend ownership:** `maxpain_log.py`, `tape_db.py`, `tests/j1_replay_tests.py` or focused offline persistence tests, and `docs/J1-EVENT-REPLAY-POLICY.md`. Start exact `c3a0a4b1`. This remains an immutable-event recovery task, not a new estimator.
+
+1. Replace the superset heuristic with proof of original accepted content. Retain/version the full accepted payload or a digest that genuinely verifies supplied recovery content; never certify a new superset or explicit-empty→nonempty payload from surviving-row shape. Extend existing accepted storage, not a parallel ingestion path. Legacy unknown content requires explicit unverified/quarantine status, not a guessed map.
+2. Use the same resolved identity and ambiguity decision in `fetch_stored`, `rec_from_row`, payload-hash lookup/update, mirror, snapshot/strike projection writes and logger fallback. Test zero, one and multiple equivalent legacy aliases. No arbitrary first-alias acceptance, raw-history rewrite, or silent second identity.
+3. If direct mirror returns conflict/quarantine, logger must not append that incoming payload as accepted main/strike history. Restore only the accepted legacy content when available, otherwise retain explicit unavailable/integrity state. Verify values, map status, formula and units in every projection; missing-key detection alone cannot certify complete repair.
+4. Carry source-reported units through the logger and secondary records; unknown stays unknown. Do not invent fixed units for incompatible formula/version. Preserve canonical semantic hashes and explicit conflict reasons. Ensure full accepted-content roundtrip, including known empty, survives DB/journal loss and real subprocess restart. Keep crash/retry writes auditable and raw accepted journal immutable.
+5. Make all eight new repair-policy contracts pass while preserving **21/21 original**, **5/5 probes**, **8/8 J1**, **10/10 J1-B**, **8/8 J1-C**, **27/27 committed replay** controls. Compare dry-run/real per-event and repaired-row counters/reasons. Preserve genuine lost-projection repair and direct superset conflict; do not “fix” one by disabling both. The twelve numerical/admission/dashboard failures remain explicitly open.
+6. Return one immutable backend source commit, committed runnable tests, unchanged-baseline/after receipts and updated policy in this same handoff; stop for independent review. No frontend/estimator scope, production migration, provider/credential operations, merge or deployment.
+
+### Explicitly authorized parallel task UI-G1 — granular GEX fixture dashboard
+
+The user explicitly authorized Muse to build this in parallel while GRID develops stronger validated estimates. **This is a separate lane with separate files; it must not block or overwrite J1-D.** Earlier dated “one task only” sections describe prior recovery cycles; this new two-lane authorization supersedes their dispatch restriction.
+
+**Muse ownership:** existing deployed frontend source once identified, otherwise isolated `frontend/**`; `tests/ui/**`; `fixtures/gex-granular-v1/**`; `docs/MUSE-GRANULAR-UI.md`. Do not edit the two J1-D Python files or persistence tests from UI-G1. Do not modify shared GRID code, `interpreter.py` or `dashboard_build.py` for this fixture-first lane. If the deployed frontend lives outside this repo, name/link that actual source before extending it; avoid inventing a second dashboard simply because source is missing.
+
+**GRID canonical owner:** parent-coordinated benchmark owner thread `01a10cd6-d9d8-70cd-9ace-9f51bed8f0fd`, with ownership limited to `scripts/gex_p2a/granular.py`, `tests/test_gex_granular.py`, canonical fixture and `docs/research/GEX-GRANULAR-V1.md`. Its `gex-granular-v1` proposal is pending final schema/tests. Muse renders provided fields and fixtures, does not duplicate the estimator or claim the proposal is already a validated live feed. Coordinate contract revisions through the parent; await the canonical owner for math/schema changes.
+
+**Proposed display contract, pending the final GRID schema:**
+
+- `valuation_at`, explicit source/basis/calendar, and spot with separate source-event and trusted receipt clocks.
+- Per-contract identity, expiry, strike, call/put, multiplier, OI and its observation date, gamma/IV, quote/Greek/OI source clocks and trusted receipt clocks. Unknown clocks/dates are `null`, not replaced by receipt time. Retain actual OI=0.
+- Explicit named scenarios with contributions aggregated **contract → strike within expiry → expiry → total**. Show separate call/put signed contributions and both gross bases, plus `signed_net`. Use the final owner's field names; ambiguous `call_gross`/`put_gross`/`gross` must state which gross basis they represent.
+- **Required schema refinement:** `oi_gross` is unsigned gamma×OI×multiplier×S²×.01 sensitivity; `inventory_gross` is that OI sensitivity scaled by abs(assumed dealer fraction); `signed_net` sums the OI sensitivity multiplied by the assumed signed fraction. Do not label modeled-fraction gross as total OI exposure. Render call/put components for these bases where supplied.
+- Units are raw **USD hedge sensitivity per 1% underlying move**; billions/millions are explicitly labeled presentation conversions, never implicit scaling. Keep this distinct from legacy GRID gamma×OI×100×S calculations. GRID owns canonical math and reconciliation; UI consumes canonical contributions/aggregates.
+- OI call+/put− is a named assumption, not observed dealer inventory. Hypothetical dealer fractions in[-1,1] are scenarios, not validated position estimates. Do not turn them into recommendations or a calibrated forecast.
+- Coverage percentages require a declared expected universe and denominator; missing, expired, future and unavailable-clock flags are visible. Without that universe, coverage is unavailable. Separate0DTE using the provided valuation/calendar classification, alongside other expiries.
+
+**Source limitations to preserve:** RTD receipts are not exchange timestamps or OI observation dates; Cboe rows may lack contract clocks; ZeroGEX card units/scope are unverified and cannot be a numeric oracle. No conversion of unknown timing/source lineage to “realtime” or “fresh” because a page was recently received.
+
+**UI deliverable and acceptance:**
+
+1. Commit actual frontend source, reproducible install/build/run instructions, interface version and synthetic fixtures. Establish source/build/deployed revision and backend-schema linkage for the currently shared page, or clearly report that linkage unavailable. A fixture prototype is not claimed to be that deployment; no deployment is requested.
+2. Build a clean responsive strike×expiry explorer: separate0DTE, expiry filters, call/put split, OI gross versus modeled inventory gross versus signed net, raw USD/%move labels and explicit scenario/basis legend. Add contract-level drilldown with gamma/IV/OI, ages, source/receipt clocks, coverage and missing/estimated flags. Signed net and gross must not be interchangeable or silently summed across scenario bases.
+3. Use canonical-owner fixtures when published. Until then, visibly label visual fixtures **synthetic / proposed contract**; manual display illustrations are not math validation. Expose only current authoritative fields if available and show absent granularity as unavailable. No fake-current prices, inferred clocks, fabricated granularity, new provider polling, credentials, data purchase or parallel estimator.
+4. Verify fixture-driven rendering and interactions at1280px and390×844, with actual screenshots and build/test receipts. Cover zero versus unavailable, both call/put legs, cancelling signed net with nonzero OI gross, reduced modeled inventory gross with unchanged OI gross, multiple expiries, unknown/future/expired clocks, missing universe and schema/version mismatch. Confirm accessible legends, keyboard drilldown, scrolling and readable mobile layout; avoid hero decoration obscuring values or pushing the useful view out of reach.
+5. Keep this UI commit/review separate from J1-D backend recovery. Return one immutable UI source pin and file-ownership list with screenshots/receipts here. A module/fixture can be reviewed before canonical schema settles; math/live integration acceptance waits for GRID's final schema and validation. No merge/deploy, trading advice, profitable-alpha or position-estimation accuracy claim.
+
+### Independent Gemini review and measured optimization proposal
+
+Fresh official Gemini `gemini-3.8-flash-high` source reviewer session `72372b1d-317d-4fcf-864a-7dda8c7bdd57` completed SUCCESS with no denied actions under the shared CLI lock, in parallel with the isolated author workflow. It identified the superset/alias/units hazards; Codex independently ran the published fixtures. Other unrun model examples, broad severity labels and blanket stale-hash assertions were not accepted as test evidence. For example, restoring an injected wrong spot can restore the original hash-consistent value; that does not alone demonstrate a stale hash.
+
+A separate cost profile executed actual pinned `_resolve_identity` against synthetic in-memory SQLite rows and compared an **experimental indexed alias-candidate table**, not a shipped fix:
+
+| Same-expiry rows | Actual legacy-hit median ms | Fixture indexed candidate median ms | Candidate build ms |
+| --- | --- | --- | --- |
+| 100 | 0.1786 | 0.0020 | 0.324 |
+| 1000 | 2.0544 | 0.0022 | 3.015 |
+| 10000 | 24.7055 | 0.0023 | 33.180 |
+
+31 warm samples per condition; misses show the same scan growth, while canonical indexed hits are about.002ms. Whole profile, environment, p95 and candidate-build cost appear below. Receipt `e1a0a265a6081dc094f460e2c2686658b16d491ba4be1f90bddc7fbb9945f557`; script `66186eb2c5cf08e83770ed68d5355651b4f4cae9b44fe416a10d88fb6a52dd86`. This is a single-machine, in-memory lookup experiment; it excludes filesystem latency, concurrent writers, index maintenance and ambiguous aliases. It is not a live end-to-end latency or production speedup claim.
+
+**Bounded optimization follow-up:** after immutable-event controls pass, test an additive canonical alias index/candidate lookup that returns all equivalent aliases instead of rescanning/parsing an expiry on every miss. Measure index build/update cost, hit/miss/legacy/ambiguous workloads, query/row counts, memory and median/p95 before/after on identical fixtures. Maintain aliases transactionally with accepted events, preserve ambiguity/quarantine and correct event clocks, and prove restart/invalidation behavior. Do not cache stale identities or bypass checks to improve timing. Profile repeated full-journal scans separately before proposing any journal index. GRID math ownership is unaffected.
+
+A second fresh official Gemini optimization reviewer completed SUCCESS in session `d709543c-f2f7-4042-a62a-a92fd6f22307` with no denied actions. The shared CLI lock was initially busy; one bounded later retry succeeded, with no concurrent CLI ownership or competing edits. It reviewed the actual timing receipt and proposed session-scoped lookup state and persistent indexing experiments. Codex did not adopt its guessed production workload percentages/storage sizes, first-alias tie-breaking, a unique normalized-key alias table that would discard ambiguity, or unsupported end-to-end speed claims. Preserve all candidate aliases, invalidation and transaction correctness before measuring improvements.
+
+No competing code edits or provider/credential operations were performed by reviewers. Review stays bounded by executed findings and measured experiments; do not weaken fixtures, game benchmarks or spend tokens in empty review loops.
+
+**Watch:** J1-D response/new `redteam/fixes-j1c` revision after `c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba`, plus a separate source-pinned UI-G1 response. This same repo document remains the shared handoff/index. Parent owns event monitoring and canonical-contract coordination; own docs-only webhook events are not new implementations.
+
+### Complete repair-policy reproduction
+
+Place at `outputs/iteration-c3a0a4b1/j1-repair.py`, with pinned current and legacy Git objects in `muse-audit`:
+
+```sh
+python3 outputs/iteration-c3a0a4b1/j1-repair.py
+```
+
+Harness exit alone is not a pass certificate; inspect its individual booleans and totals.
+
+```python
+"""Additional source-pinned J1 boundary contracts, synthetic and offline."""
+import datetime as dt, hashlib, json, pathlib, socket, sqlite3, subprocess, sys, tempfile, types, urllib.request
+ROOT=pathlib.Path(__file__).resolve().parents[2]
+SHA='c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba'
+TS='2026-10-05T19:59:00+00:00'; EXP='2026-10-05'
+def blocked(*a,**k): raise AssertionError('unmocked network attempted')
+socket.socket.connect=blocked;socket.create_connection=blocked;urllib.request.urlopen=blocked
+def load(name):
+    source=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',SHA+':'+name+'.py'],text=True)
+    m=types.ModuleType(name);m.__file__=str(ROOT/'muse-audit'/name)+'.py'
+    exec(compile(source,m.__file__,'exec'),m.__dict__)
+    return m
+def feed(ts=TS,empty=False):
+    return dict(status='ok',updated_at=ts,quote_as_of=TS,expiry=EXP,spot=100,
+                gamma=dict(gex_formula='v2',by_strike=[] if empty else [dict(strike=100,net_gex_m=.02)]))
+def worker(folder):
+    p=pathlib.Path(folder);db=load('tape_db');sys.modules['tape_db']=db;m=load('maxpain_log')
+    db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db')
+    m.LOG_PATH=str(p/'main.jsonl');m.GEX_SNAP_PATH=str(p/'gex.jsonl')
+    m.LOCK_PATH=str(p/'lock');m.EVENTS_PATH=str(p/'absent')
+    m.fetch=lambda:json.loads((p/'feed.json').read_text())
+    m.main()
+if len(sys.argv)>1 and sys.argv[1]=='worker':
+    worker(sys.argv[2]);raise SystemExit(0)
+def run(p,f):
+    (p/'feed.json').write_text(json.dumps(f))
+    r=subprocess.run([sys.executable,str(pathlib.Path(__file__).resolve()),'worker',str(p)],capture_output=True,text=True,check=True)
+    return r.stdout
+def context(p):
+    db=load('tape_db');db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db');db.LOG_PATH=str(p/'main.jsonl');db.GEX_PATH=str(p/'gex.jsonl')
+    con=db.connect();db.init_db(con);return db,con
+def row(ts=TS,spot=100):
+    return dict(ts=ts,expiry=EXP,spot=spot,gex_formula='v2')
+def strike_line(gex,formula='v2'):
+    return dict(ts=TS,expiry=EXP,spot=100,gex_m=gex,gex_formula=formula)
+def write(p,fn,records): (p/fn).write_text(''.join(json.dumps(r)+'\n' for r in records))
+
+results=[]
+def record(name,ok,observed,expected):
+    results.append(dict(name=name,pass_contract=bool(ok),observed=observed,expected=expected))
+def strikes(c):
+    return [tuple(r) for r in c.execute('SELECT strike,net_gex_m FROM gex_strikes ORDER BY strike')]
+def old_module(sha):
+    source=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',sha+':tape_db.py'],text=True)
+    m=types.ModuleType('legacy');m.__file__='legacy.py';exec(compile(source,m.__file__,'exec'),m.__dict__);return m
+def replay_growth(p,sha):
+    db=old_module(sha);db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db');db.LOG_PATH=str(p/'main.jsonl');db.GEX_PATH=str(p/'gex.jsonl')
+    c=db.connect();db.init_db(c)
+    a=dict(row(),gex_m={'100':.02});b=dict(row(),gex_m={'100':.02,'101':.03})
+    write(p,'main.jsonl',[a,b]);dry=db.backfill(c,dry_run=True);real=db.backfill(c)
+    observed=dict(dry=dry,actual=real,strikes=strikes(c),conflicts=c.execute('SELECT COUNT(*) FROM mirror_conflicts').fetchone()[0])
+    c.close();return observed
+with tempfile.TemporaryDirectory() as td, tempfile.TemporaryDirectory() as before:
+    current=replay_growth(pathlib.Path(td),SHA);parent=replay_growth(pathlib.Path(before),'08f2ed54470f0b98084819099ab057caf12f9242')
+    record('superset_replay_is_conflict_not_repair',current['strikes']==[(100.,.02)] and current['actual']['snap_conflict']==1,
+           dict(current=current,parent=parent),
+           'later superset payload conflicts; only original accepted hash/content proves projection repair')
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p)
+    a=dict(row(),gex_m={});b=dict(row(),gex_m={'100':.02})
+    write(p,'main.jsonl',[a,b]);dry=db.backfill(c,dry_run=True);real=db.backfill(c)
+    status=c.execute('SELECT gex_map_status FROM snapshots').fetchone()[0]
+    record('empty_primary_replay_cannot_grow',not strikes(c) and real['snap_conflict']==1,
+           dict(dry=dry,actual=real,strikes=strikes(c),status=status),
+           'primary replay cannot change durable explicitly-empty accepted map');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);run(p,feed());db,c=context(p)
+    c.execute('UPDATE gex_strikes SET net_gex_m=.5');c.commit();c.close()
+    stdout=run(p,feed())
+    with sqlite3.connect(p/'tape.db') as c:value=c.execute('SELECT net_gex_m FROM gex_strikes').fetchone()[0]
+    record('divergent_strike_projection_not_complete',value==.02 or any(x in stdout.lower() for x in ('conflict','quarantin','integrity')),
+           dict(stdout=stdout,db_gex=value,accepted_journal_gex=.02),
+           'wrong strike values require accepted-content repair or explicit quarantine, not already-logged')
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);run(p,feed())
+    accepted=json.loads((p/'main.jsonl').read_text().splitlines()[0])
+    for fn in ['tape.db','main.jsonl','gex.jsonl']:(p/fn).unlink()
+    old=old_module('ed3b8741c21b58438be1da65a1dca17d0c5e3bac');old.HIDDEN=str(p);old.DB_PATH=str(p/'tape.db')
+    c=old.connect();old.init_db(c)
+    accepted['ts']='2026-10-05T15:59:00-04:00'
+    old.insert_snapshot(accepted,c);old.insert_gex_snapshot(accepted['ts'],EXP,accepted['gex_m'],c);c.close()
+    revised=feed();revised['spot']=101;revised['gamma']['by_strike'][0]['net_gex_m']=.5
+    stdout=run(p,revised)
+    journal=json.loads((p/'main.jsonl').read_text().splitlines()[0])
+    with sqlite3.connect(p/'tape.db') as c:dbspot=c.execute('SELECT spot FROM snapshots').fetchone()[0];dbgex=c.execute('SELECT net_gex_m FROM gex_strikes').fetchone()[0]
+    record('legacy_alias_missing_journal_keeps_accepted',journal['spot']==100 and load('tape_db').canonical_strikes(journal.get('gex_m'))=={'100.0':.02},
+           dict(stdout=stdout,db_spot=dbspot,db_gex=dbgex,journal_spot=journal['spot'],journal_gex=journal.get('gex_m')),
+           'DB fallback resolves the same legacy alias in rec_from_row; conflict incoming cannot become repaired journal')
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);a=feed();a['gamma']['gex_units']='USD millions per 1% spot move';run(p,a)
+    b=feed();b['gamma']['gex_units']='USD millions per $1 spot move';stdout=run(p,b)
+    db,c=context(p);n=c.execute('SELECT COUNT(*) FROM mirror_conflicts').fetchone()[0]
+    rec=json.loads((p/'main.jsonl').read_text().splitlines()[0])
+    record('logger_carries_units_lineage',n==1 and rec.get('gex_units')==a['gamma']['gex_units'],
+           dict(stdout=stdout,conflicts=n,journal_units=rec.get('gex_units')),
+           'actual gamma units propagate to accepted core; changed units conflict in logger as in direct mirror');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);old=old_module('ed3b8741c21b58438be1da65a1dca17d0c5e3bac');old.HIDDEN=str(p);old.DB_PATH=str(p/'tape.db')
+    c=old.connect();old.init_db(c)
+    a=row();b=row(ts='2026-10-05T15:59:00-04:00',spot=200)
+    for r in [a,b]:old.insert_snapshot(r,c);old.insert_gex_snapshot(r['ts'],EXP,{'100':.02},c)
+    db=load('tape_db');db.init_db(c);verdict=db.mirror_record(a,{'100':.02},c)
+    n=c.execute('SELECT COUNT(*) FROM mirror_conflicts').fetchone()[0]
+    record('ambiguous_legacy_alias_quarantined',verdict['status']=='conflict' and n>=1,
+           dict(verdict=verdict,conflicts=n,rows=[tuple(r) for r in c.execute('SELECT ts,spot FROM snapshots')]),
+           'equivalent timestamp aliases with conflicting accepted payloads are explicit ambiguity, not arbitrary first-row duplicate');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);db.mirror_record(row(),{'100':.02},c)
+    verdict=db.mirror_record(row(),{'100':.02,'101':.03},c)
+    record('direct_superset_conflict_control',verdict['status']=='conflict' and strikes(c)==[(100.,.02)],
+           dict(verdict=verdict,strikes=strikes(c)),'preserve passing direct-mirror strict superset conflict');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);a=dict(row(),gex_m={'100':.02,'101':.03});write(p,'main.jsonl',[a]);db.backfill(c)
+    c.execute('DELETE FROM gex_strikes WHERE strike=101');c.commit()
+    counts=db.backfill(c)
+    record('genuine_missing_projection_repair_control',strikes(c)==[(100.,.02),(101.,.03)],
+           dict(counts=counts,strikes=strikes(c)),
+           'preserve genuine repair from original full accepted event while rejecting later superset payloads');c.close()
+
+out=dict(source_head=SHA,synthetic_only=True,network_blocked=True,
+         results=results,passes=sum(r['pass_contract'] for r in results),
+         failures=sum(not r['pass_contract'] for r in results),
+         harness_sha256=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest())
+(pathlib.Path(__file__).parent/'j1-repair-results.json').write_text(json.dumps(out,indent=2)+'\n')
+print(json.dumps(out,indent=2))
+```
+
+### Complete repair-policy receipt
+
+```json
+{
+  "source_head": "c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba",
+  "synthetic_only": true,
+  "network_blocked": true,
+  "results": [
+    {
+      "name": "superset_replay_is_conflict_not_repair",
+      "pass_contract": false,
+      "observed": {
+        "current": {
+          "dry": {
+            "snap_accepted": 1,
+            "snap_duplicate": 1,
+            "snap_conflict": 0,
+            "snap_rejected": 0,
+            "gex_accepted": 0,
+            "gex_duplicate": 0,
+            "gex_conflict": 0,
+            "gex_orphan": 0,
+            "gex_rejected": 0
+          },
+          "actual": {
+            "snap_accepted": 1,
+            "snap_duplicate": 1,
+            "snap_conflict": 0,
+            "snap_rejected": 0,
+            "gex_accepted": 0,
+            "gex_duplicate": 0,
+            "gex_conflict": 0,
+            "gex_orphan": 0,
+            "gex_rejected": 0
+          },
+          "strikes": [
+            [
+              100.0,
+              0.02
+            ],
+            [
+              101.0,
+              0.03
+            ]
+          ],
+          "conflicts": 0
+        },
+        "parent": {
+          "dry": {
+            "snap_accepted": 1,
+            "snap_duplicate": 1,
+            "snap_conflict": 0,
+            "snap_rejected": 0,
+            "gex_accepted": 0,
+            "gex_duplicate": 0,
+            "gex_conflict": 0,
+            "gex_orphan": 0,
+            "gex_rejected": 0
+          },
+          "actual": {
+            "snap_accepted": 1,
+            "snap_duplicate": 1,
+            "snap_conflict": 0,
+            "snap_rejected": 0,
+            "gex_accepted": 0,
+            "gex_duplicate": 0,
+            "gex_conflict": 0,
+            "gex_orphan": 0,
+            "gex_rejected": 0
+          },
+          "strikes": [
+            [
+              100.0,
+              0.02
+            ]
+          ],
+          "conflicts": 0
+        }
+      },
+      "expected": "later superset payload conflicts; only original accepted hash/content proves projection repair"
+    },
+    {
+      "name": "empty_primary_replay_cannot_grow",
+      "pass_contract": false,
+      "observed": {
+        "dry": {
+          "snap_accepted": 1,
+          "snap_duplicate": 1,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_orphan": 0,
+          "gex_rejected": 0
+        },
+        "actual": {
+          "snap_accepted": 1,
+          "snap_duplicate": 1,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_orphan": 0,
+          "gex_rejected": 0
+        },
+        "strikes": [
+          [
+            100.0,
+            0.02
+          ]
+        ],
+        "status": "explicit_empty"
+      },
+      "expected": "primary replay cannot change durable explicitly-empty accepted map"
+    },
+    {
+      "name": "divergent_strike_projection_not_complete",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "already logged | ts=2026-10-05T19:59:00+00:00\n",
+        "db_gex": 0.5,
+        "accepted_journal_gex": 0.02
+      },
+      "expected": "wrong strike values require accepted-content repair or explicit quarantine, not already-logged"
+    },
+    {
+      "name": "legacy_alias_missing_journal_keeps_accepted",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "logged | spot=101 max_pain=None expiry=2026-10-05 mirror=conflict\n",
+        "db_spot": 100.0,
+        "db_gex": 0.02,
+        "journal_spot": 101,
+        "journal_gex": {
+          "100": 0.5
+        }
+      },
+      "expected": "DB fallback resolves the same legacy alias in rec_from_row; conflict incoming cannot become repaired journal"
+    },
+    {
+      "name": "logger_carries_units_lineage",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "already logged | ts=2026-10-05T19:59:00+00:00\n",
+        "conflicts": 0,
+        "journal_units": null
+      },
+      "expected": "actual gamma units propagate to accepted core; changed units conflict in logger as in direct mirror"
+    },
+    {
+      "name": "ambiguous_legacy_alias_quarantined",
+      "pass_contract": false,
+      "observed": {
+        "verdict": {
+          "status": "duplicate",
+          "legacy_validated": true
+        },
+        "conflicts": 0,
+        "rows": [
+          [
+            "2026-10-05T19:59:00+00:00",
+            100.0
+          ],
+          [
+            "2026-10-05T15:59:00-04:00",
+            200.0
+          ]
+        ]
+      },
+      "expected": "equivalent timestamp aliases with conflicting accepted payloads are explicit ambiguity, not arbitrary first-row duplicate"
+    },
+    {
+      "name": "direct_superset_conflict_control",
+      "pass_contract": true,
+      "observed": {
+        "verdict": {
+          "status": "conflict",
+          "reason": "strike map changed for identical core",
+          "kept": "5b2f9d61a5bc9a4255573cfb0f9a16ca7c87bb27fa1a55a7f205c76f6a3e3f1f",
+          "incoming": "b56bc56a964896e869cc47d0d9360fffd6cf6ada6caa8241c35d5511b79732a9"
+        },
+        "strikes": [
+          [
+            100.0,
+            0.02
+          ]
+        ]
+      },
+      "expected": "preserve passing direct-mirror strict superset conflict"
+    },
+    {
+      "name": "genuine_missing_projection_repair_control",
+      "pass_contract": true,
+      "observed": {
+        "counts": {
+          "snap_accepted": 0,
+          "snap_duplicate": 1,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_orphan": 0,
+          "gex_rejected": 0
+        },
+        "strikes": [
+          [
+            100.0,
+            0.02
+          ],
+          [
+            101.0,
+            0.03
+          ]
+        ]
+      },
+      "expected": "preserve genuine repair from original full accepted event while rejecting later superset payloads"
+    }
+  ],
+  "passes": 2,
+  "failures": 6,
+  "harness_sha256": "f4117e24fd411d3f0c4243894aa7d4bb5c977c333cbc756b80d7c5fc9c45b0ad"
+}
+```
+
+### Complete local lookup profile script
+
+```python
+"""Local synthetic lookup profile; no production performance claim."""
+import datetime as dt, json, pathlib, platform, socket, sqlite3, statistics, subprocess, sys, time, types, urllib.request
+from math import ceil
+ROOT=pathlib.Path(__file__).resolve().parents[2];SHA='c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba'
+def blocked(*a,**k):raise AssertionError('network forbidden')
+socket.socket.connect=blocked;socket.create_connection=blocked;urllib.request.urlopen=blocked
+source=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',SHA+':tape_db.py'],text=True)
+db=types.ModuleType('profile_source');exec(compile(source,'tape_db.py','exec'),db.__dict__)
+def measure(fn):
+    fn();xs=[]
+    for _ in range(31):
+        t=time.perf_counter_ns();fn();xs.append((time.perf_counter_ns()-t)/1e6)
+    return dict(median_ms=statistics.median(xs),p95_ms=sorted(xs)[ceil(.95*len(xs))-1],samples=31)
+cases=[]
+for n in [100,1000,10000]:
+    c=sqlite3.connect(':memory:');c.row_factory=sqlite3.Row
+    c.execute('CREATE TABLE snapshots(ts TEXT,expiry TEXT)');c.execute('CREATE UNIQUE INDEX uq ON snapshots(ts,expiry)');c.execute('CREATE INDEX expiry_idx ON snapshots(expiry)')
+    start=dt.datetime(2026,10,5,tzinfo=dt.timezone.utc)
+    rows=[((start+dt.timedelta(seconds=i)).isoformat(),'2026-10-05') for i in range(n-1)]
+    rows.append(('2026-10-05T15:59:00-04:00','2026-10-05'));c.executemany('INSERT INTO snapshots VALUES (?,?)',rows)
+    t=time.perf_counter_ns()
+    c.execute('CREATE TABLE fixture_alias_index(instant TEXT,expiry TEXT,stored_ts TEXT)')
+    c.executemany('INSERT INTO fixture_alias_index VALUES (?,?,?)',[(db.normalize_ts(ts),exp,ts) for ts,exp in rows])
+    c.execute('CREATE INDEX alias_idx ON fixture_alias_index(instant,expiry)')
+    build_ms=(time.perf_counter_ns()-t)/1e6
+    for kind,ts in [('canonical_hit',rows[0][0]),('legacy_hit','2026-10-05T19:59:00+00:00'),('miss','2026-10-05T20:00:00+00:00')]:
+        base=lambda:db._resolve_identity(c,ts,'2026-10-05')
+        indexed=lambda:[r[0] for r in c.execute('SELECT stored_ts FROM fixture_alias_index WHERE instant=? AND expiry=?',(ts,'2026-10-05'))]
+        actual=base();candidate=indexed()
+        assert candidate==([] if actual is None else [actual])
+        cases.append(dict(rows=n,kind=kind,baseline=measure(base),fixture_index=measure(indexed),fixture_index_build_ms=build_ms,lookup_equivalence_on_fixture=True))
+    c.close()
+out=dict(source=SHA,environment=dict(python=sys.version,platform=platform.platform()),synthetic_only=True,network_blocked=True,unit='milliseconds',candidate='ephemeral indexed alias candidates; not integrated production code',limitation='single-process in-memory warm lookup; excludes IO, contention, real workload, index maintenance and ambiguous aliases',cases=cases)
+p=pathlib.Path(__file__).parent;(p/'lookup-profile.json').write_text(json.dumps(out,indent=2)+'\n');print(json.dumps(out,indent=2))
+```
+
+### Complete local lookup profile receipt
+
+```json
+{
+  "source": "c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba",
+  "environment": {
+    "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43"
+  },
+  "synthetic_only": true,
+  "network_blocked": true,
+  "unit": "milliseconds",
+  "candidate": "ephemeral indexed alias candidates; not integrated production code",
+  "limitation": "single-process in-memory warm lookup; excludes IO, contention, real workload, index maintenance and ambiguous aliases",
+  "cases": [
+    {
+      "rows": 100,
+      "kind": "canonical_hit",
+      "baseline": {
+        "median_ms": 0.00191,
+        "p95_ms": 0.002551,
+        "samples": 31
+      },
+      "fixture_index": {
+        "median_ms": 0.002052,
+        "p95_ms": 0.002299,
+        "samples": 31
+      },
+      "fixture_index_build_ms": 0.324434,
+      "lookup_equivalence_on_fixture": true
+    },
+    {
+      "rows": 100,
+      "kind": "legacy_hit",
+      "baseline": {
+        "median_ms": 0.17861,
+        "p95_ms": 0.230034,
+        "samples": 31
+      },
+      "fixture_index": {
+        "median_ms": 0.001953,
+        "p95_ms": 0.002268,
+        "samples": 31
+      },
+      "fixture_index_build_ms": 0.324434,
+      "lookup_equivalence_on_fixture": true
+    },
+    {
+      "rows": 100,
+      "kind": "miss",
+      "baseline": {
+        "median_ms": 0.19755,
+        "p95_ms": 0.343248,
+        "samples": 31
+      },
+      "fixture_index": {
+        "median_ms": 0.001316,
+        "p95_ms": 0.00158,
+        "samples": 31
+      },
+      "fixture_index_build_ms": 0.324434,
+      "lookup_equivalence_on_fixture": true
+    },
+    {
+      "rows": 1000,
+      "kind": "canonical_hit",
+      "baseline": {
+        "median_ms": 0.001961,
+        "p95_ms": 0.002708,
+        "samples": 31
+      },
+      "fixture_index": {
+        "median_ms": 0.002165,
+        "p95_ms": 0.002559,
+        "samples": 31
+      },
+      "fixture_index_build_ms": 3.014914,
+      "lookup_equivalence_on_fixture": true
+    },
+    {
+      "rows": 1000,
+      "kind": "legacy_hit",
+      "baseline": {
+        "median_ms": 2.054444,
+        "p95_ms": 3.710262,
+        "samples": 31
+      },
+      "fixture_index": {
+        "median_ms": 0.002157,
+        "p95_ms": 0.002681,
+        "samples": 31
+      },
+      "fixture_index_build_ms": 3.014914,
+      "lookup_equivalence_on_fixture": true
+    },
+    {
+      "rows": 1000,
+      "kind": "miss",
+      "baseline": {
+        "median_ms": 2.177516,
+        "p95_ms": 3.656245,
+        "samples": 31
+      },
+      "fixture_index": {
+        "median_ms": 0.001426,
+        "p95_ms": 0.001805,
+        "samples": 31
+      },
+      "fixture_index_build_ms": 3.014914,
+      "lookup_equivalence_on_fixture": true
+    },
+    {
+      "rows": 10000,
+      "kind": "canonical_hit",
+      "baseline": {
+        "median_ms": 0.001996,
+        "p95_ms": 0.002379,
+        "samples": 31
+      },
+      "fixture_index": {
+        "median_ms": 0.002239,
+        "p95_ms": 0.00293,
+        "samples": 31
+      },
+      "fixture_index_build_ms": 33.179749,
+      "lookup_equivalence_on_fixture": true
+    },
+    {
+      "rows": 10000,
+      "kind": "legacy_hit",
+      "baseline": {
+        "median_ms": 24.705502,
+        "p95_ms": 34.860489,
+        "samples": 31
+      },
+      "fixture_index": {
+        "median_ms": 0.002279,
+        "p95_ms": 0.003149,
+        "samples": 31
+      },
+      "fixture_index_build_ms": 33.179749,
+      "lookup_equivalence_on_fixture": true
+    },
+    {
+      "rows": 10000,
+      "kind": "miss",
+      "baseline": {
+        "median_ms": 24.335307,
+        "p95_ms": 28.438585,
+        "samples": 31
+      },
+      "fixture_index": {
+        "median_ms": 0.004527,
+        "p95_ms": 0.005241,
+        "samples": 31
+      },
+      "fixture_index_build_ms": 33.179749,
+      "lookup_equivalence_on_fixture": true
+    }
+  ]
+}
+```
+
+
 ## 2026-10-05 15:59 UTC — J1-B response verified; next task J1-C
 
 **New Muse response:** [PR #2 comment 5998003862](https://github.com/3pacs/muse/pull/2#issuecomment-5998003862), created 15:50:57 UTC, pins [`08f2ed54470f0b98084819099ab057caf12f9242`](https://github.com/3pacs/muse/tree/08f2ed54470f0b98084819099ab057caf12f9242) on `redteam/fixes-j1b`. This is a substantive implementation response, not our earlier handoff comment. Its sole parent is `dbaef6d7`; only the two scoped Python files, replay tests and event/replay policy changed. All four Git blob identities, retargeted harness ASTs, Python parsing and source diff whitespace were independently verified.
