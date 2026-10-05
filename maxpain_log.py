@@ -90,6 +90,8 @@ def main():
         "gamma_flip": g.get("gamma_flip"),
         "net_gex_m": g.get("net_gex_m"),
         "gex_formula": g.get("gex_formula", "v1"),
+        # J1-D: carry source-reported units lineage; unknown stays unknown.
+        "gex_units": g.get("gex_units"),
         "gamma_regime": g.get("regime"),
         "top_gamma": [{"strike": r.get("strike"),
                        "net_gex_m": r.get("net_gex_m")} for r in top_gamma[:3]],
@@ -171,7 +173,9 @@ def main():
             gex_dict = {"ts": rec["ts"], "expiry": rec["expiry"],
                         "spot": spot, "gex_m": rec["gex_m"],
                         "gex_formula": rec.get("gex_formula"),
-                        "gex_units": "USD millions per 1% spot move"}
+                        # J1-E: carry exact source-reported units, not a
+                        # hardcoded default.
+                        "gex_units": rec.get("gex_units")}
         elif gex_explicit:
             # Explicitly empty map: record it so deletion is detectable.
             rec["gex_m"] = {}
@@ -194,6 +198,17 @@ def main():
         ts_c, expiry = rec["ts"], rec["expiry"]
         accepted_rec = _journal_find_event(LOG_PATH, ts_c, expiry)
         if accepted_rec is not None:
+            # J1-F: even with journal present, check for DB alias ambiguity.
+            # Ambiguous DB aliases must be quarantined, not ignored.
+            db_core_check, _, _, _ = tape_db.fetch_stored(con, ts_c, expiry)
+            if db_core_check is tape_db._AMBIGUOUS:
+                tape_db.record_conflict(
+                    con, ts_c, expiry, None, None,
+                    "logger: ambiguous legacy timestamp aliases in DB; "
+                    "journal present, incoming not appended")
+                print(f"conflict quarantined | ts={ts_c} "
+                      f"reason=ambiguous_legacy_alias_journal_present")
+                return
             stored_core = tape_db.event_core(accepted_rec)
             if isinstance(accepted_rec.get("gex_m"), dict):
                 accepted_gex = accepted_rec["gex_m"]
@@ -201,11 +216,34 @@ def main():
             else:
                 # No embedded map; the DB projection is the fallback.
                 # J1-C: use the persisted map status, not just row presence.
-                _, db_strikes, db_status = tape_db.fetch_stored(con, ts_c, expiry)
+                _, db_strikes, db_status, _ = tape_db.fetch_stored(con, ts_c, expiry)
                 accepted_gex = db_strikes
                 acc_explicit = db_status in ("explicit", "explicit_empty")
         else:
-            stored_core, db_strikes, db_status = tape_db.fetch_stored(con, ts_c, expiry)
+            stored_core, db_strikes, db_status, stored_digest = tape_db.fetch_stored(con, ts_c, expiry)
+            # J1-E: ambiguous identity — quarantine, never append incoming.
+            if stored_core is tape_db._AMBIGUOUS:
+                tape_db.record_conflict(
+                    con, ts_c, expiry, None, None,
+                    "logger: ambiguous legacy timestamp aliases; "
+                    "incoming not appended")
+                print(f"conflict quarantined | ts={ts_c} "
+                      f"reason=ambiguous_legacy_alias")
+                return
+            # J1-E: verify DB projection against retained digest before
+            # accepting as fallback. A mismatch means the projection was
+            # tampered with — cannot be trusted.
+            if (stored_core is not None and stored_digest is not None
+                    and db_status in ("explicit", "explicit_empty")):
+                computed = tape_db.semantic_hash(stored_core, db_strikes)
+                if computed != stored_digest:
+                    tape_db.record_conflict(
+                        con, ts_c, expiry, stored_digest, computed,
+                        "logger: DB projection digest mismatch; "
+                        "projection untrusted, incoming not appended")
+                    print(f"conflict quarantined | ts={ts_c} "
+                          f"reason=db_projection_digest_mismatch")
+                    return
             accepted_rec = (tape_db.rec_from_row(con, ts_c, expiry)
                             if stored_core is not None else None)
             accepted_gex = db_strikes
@@ -253,13 +291,14 @@ def main():
                 # J1-C: verify the DB snapshot projection against the
                 # accepted event. On divergence, repair from accepted
                 # content — the journal is authoritative.
-                stored_core, _, _ = tape_db.fetch_stored(con, ts_c, expiry)
+                stored_core, _, _, _ = tape_db.fetch_stored(con, ts_c, expiry)
                 accepted_core = tape_db.event_core(accepted_rec)
                 if stored_core is not None and stored_core != accepted_core:
                     # Repair: update the divergent row to the accepted event.
                     # Use the resolved (possibly legacy-alias) ts.
                     stored_ts = tape_db._resolve_identity(con, ts_c, expiry)
-                    if stored_ts is not None:
+                    # J1-F: never pass _AMBIGUOUS sentinel to SQL.
+                    if stored_ts is not None and stored_ts is not tape_db._AMBIGUOUS:
                         rec_n = dict(accepted_rec)
                         rec_n["ts"] = stored_ts  # preserve raw stored ts
                         sets = ", ".join(f"{c} = ?" for c in tape_db.SNAP_COLS)
@@ -284,17 +323,85 @@ def main():
                     "ts": ts_c, "expiry": expiry,
                     "spot": accepted_rec.get("spot"), "gex_m": acc_map,
                     "gex_formula": accepted_rec.get("gex_formula"),
-                    "gex_units": "USD millions per 1% spot move"})
+                    # J1-F: use accepted units, not hardcoded default.
+                    "gex_units": accepted_rec.get("gex_units")})
             # J1-B: repair the DB strike projection from accepted content,
             # even when the snapshot row is present.
+            # J1-D: verify values too, not just missing keys. Divergent
+            # values are repaired from accepted content.
+            # J1-E: verify formula lineage alongside values.
             if acc_explicit and acc_gex:
-                _, db_map, _ = tape_db.fetch_stored(con, ts_c, expiry)
+                _, db_map, _, _ = tape_db.fetch_stored(con, ts_c, expiry)
+                # J1-F: handle None db_map (ambiguity) safely.
+                if db_map is None:
+                    db_map = {}
                 missing = {k: v for k, v in acc_gex.items()
                            if k not in db_map}
+                divergent = {k: v for k, v in acc_gex.items()
+                             if k in db_map and db_map[k] != v}
+                # J1-F: detect extra strikes in DB not in accepted map.
+                extra = {k: v for k, v in db_map.items()
+                         if k not in acc_gex}
+                # J1-E: check strike formula lineage.
+                accepted_formula = accepted_rec.get("gex_formula")
+                stored_ts = tape_db._resolve_identity(con, ts_c, expiry)
+                formula_divergent = False
+                if (stored_ts is not None and stored_ts is not tape_db._AMBIGUOUS
+                        and accepted_formula):
+                    # J1-F: check EVERY strike's formula, not just DISTINCT.
+                    rows = con.execute(
+                        "SELECT strike, gex_formula FROM gex_strikes "
+                        "WHERE ts = ? AND expiry = ?",
+                        (stored_ts, expiry)).fetchall()
+                    for r in rows:
+                        if r["gex_formula"] != accepted_formula:
+                            formula_divergent = True
+                            break
                 if missing:
+                    # J1-F: insert at resolved alias ts, not canonical,
+                    # to avoid orphan projections.
+                    insert_ts = (stored_ts if stored_ts is not None
+                                 and stored_ts is not tape_db._AMBIGUOUS
+                                 else ts_c)
                     tape_db.insert_gex_snapshot(
-                        ts_c, expiry, missing, con,
+                        insert_ts, expiry, missing, con,
                         formula=accepted_rec.get("gex_formula"))
+                if divergent:
+                    # Repair divergent values via UPDATE on the resolved
+                    # actual ts (J1-E: not the normalized ts, which may
+                    # miss legacy rows).
+                    if stored_ts is not None and stored_ts is not tape_db._AMBIGUOUS:
+                        for k, v in divergent.items():
+                            con.execute(
+                                "UPDATE gex_strikes SET net_gex_m = ? "
+                                "WHERE ts = ? AND expiry = ? AND strike = ?",
+                                (v, stored_ts, expiry, float(k)))
+                        con.commit()
+                        print(f"integrity repaired | ts={ts_c} "
+                              f"divergent_strike_values")
+                    else:
+                        # Cannot resolve; quarantine instead of false success.
+                        print(f"conflict quarantined | ts={ts_c} "
+                              f"reason=unresolvable_identity_for_repair")
+                # J1-E: repair divergent formula lineage.
+                if formula_divergent and stored_ts is not None:
+                    con.execute(
+                        "UPDATE gex_strikes SET gex_formula = ? "
+                        "WHERE ts = ? AND expiry = ?",
+                        (accepted_formula, stored_ts, expiry))
+                    con.commit()
+                    print(f"integrity repaired | ts={ts_c} "
+                          f"divergent_strike_formula")
+                # J1-F: remove extra strikes not in accepted map.
+                if extra and stored_ts is not None and stored_ts is not tape_db._AMBIGUOUS:
+                    for k in extra:
+                        con.execute(
+                            "DELETE FROM gex_strikes "
+                            "WHERE ts = ? AND expiry = ? AND strike = ?",
+                            (stored_ts, expiry, float(k)))
+                    con.commit()
+                    print(f"integrity repaired | ts={ts_c} "
+                          f"extra_strikes_removed")
 
         if decision == "duplicate" and strikes_agree:
             converge_missing()
