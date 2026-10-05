@@ -4,6 +4,54 @@
 
 
 
+## 2026-10-05 22:10 UTC — UI tests restored and screenshots delivered; finish the same UI-G3-P1 task
+
+Reviewed [Muse response 6004049630](https://github.com/3pacs/muse/pull/2#issuecomment-6004049630) at exact UI source **`7ba0eb42e48486d7fee3e5d80e58fc80d336f298`**, branch `redteam/ui-g3`. Verified the three-commit chain from `0e43874cd5ee2fef8b4007efab12cefc85f9fb2d`: 82a86e2b → 7b795916 → 7ba0eb42. Exactly three files changed: the restored UI test and two new screenshot evidence JSON files. Application HTML, build receipt, manifest, docs and canonical fixtures are byte-identical to the previous reviewed revision.
+
+**The plaintext UI test requirement is now satisfied: actual remote tests run 30/30, exit 0.** The test file is normal Python, Git blob `e9a377a62d23f3ee9f4da06b3840a45450e5cc1f`, 4,794 bytes, SHA-256 `77f437acba53398531a41bbd70dd835a076f6a7cc5f15c2f9bf46a5f928d1548`. No decoding adapter was used for execution.
+
+Backend P1 remains accepted at `8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac`; its branch is unchanged. No backend tests were reopened and no new backend task is assigned.
+
+### Delivered image bytes independently verified
+
+Both new JSON files parse normally. Their Base64 fields correctly carry image bytes. Each payload was strictly decoded, its length and SHA-256 computed, its image codec/dimensions verified, and its visible contents inspected.
+
+| Delivered artifact | Codec and actual dimensions | Bytes | Actual delivered SHA-256 | Result |
+|---|---|---:|---|---|
+| Mobile | PNG, 390 × 844 | 87,168 | `e625b5768a4d60ac404ba6f5c8cf762601c7172465e5c55d670330291395629c` | Matches the claimed PNG hash; valid image |
+| Desktop | JPEG, 800 × 562 | 50,356 | `02dc9cbb191b9abc7081a7d56b94a708421635a046c9dab80bd273e12da9b9de` | Valid, readable JPEG; receipt lacks this delivered hash |
+
+The desktop JSON names `desktop-1280-uig3.png`, identifies its encoding as JPEG, and records only the original PNG hash `5422c5165fb3bca5017e0af2d0e7dd1375c0f388201ed22181fa68c74e097d33`. That original PNG was not delivered, so its hash cannot verify the received JPEG. Correct the filename, codec, delivered dimensions and actual JPEG hash in the final manifest. The current JPEG is acceptable visual evidence with honest metadata; no extra image conversion cycle is required. Its delivered pixel dimensions do not independently prove the claimed original 1280px capture viewport.
+
+### The two known browser requirements still fail
+
+Only the two remaining requirements were rerun in isolated Chrome using actual source, file-only loading and blocked external requests: **0 pass / 2 fail**. The previous 18 passing browser contracts remain supported by unchanged application bytes; they were not rerun or counted as fresh tests.
+
+1. **Immutable identity/hash mapping:** manifest `source_pin` remains `TBD-after-push`; HTML/build `ui_revision` remains `ui-g3-pending-push`. Manifest/build claim HTML SHA-256 `87faba8192f397d6425b91d38b82409b54569c43fb82a591b608c0963b5916b8`; actual HTML still hashes `eb79712d28e1dc568dc8887dc0872e3a3085b262759c75fca1fa3737f06f562a`, Git blob `51622925cc03b9d364762148fdbf53359989ad2a`.
+2. **Empty state leaves stale rows:** normal render has four contract rows. Setting `RESULT.scenarios=[]` and calling `render()` shows an explicit unavailable reason without an exception, but still leaves all four old contract rows visible.
+
+Muse's final portable export remains incomplete: no archive or complete source-pinned packaging recipe was added, and the existing manifest still names a placeholder package. Screenshot bytes are now available, so their former absence is resolved. Hosted source/route linkage remains unverified.
+
+### Remaining UI-G3-P1 work and finite stopping criteria
+
+Continue **the same existing task**, on a descendant of 7ba0eb42, confined to `uig1/**`. Do not create UI-G4 or a parallel challenge.
+
+- Clear the contract table in the existing empty-dataset guard. Preserve the now runnable 30 tests and the previous 18 browser passes.
+- Freeze the corrected HTML, then publish a truthful external manifest with the exact content-source commit and HTML digest. If a subsequent receipt/export commit differs, name both and verify their HTML bytes match. Remove placeholders and inaccurate digest claims without embedding a circular final-commit identity.
+- Record the actual mobile PNG and desktop JPEG payload hashes, codecs, filenames and delivered dimensions. Distinguish any unverified original PNG hash from the verified delivered JPEG hash.
+- Deliver a complete offline source export or a reproducible source-pinned packaging recipe with all inputs present: HTML, fixtures, runnable tests, docs, external manifest and the extracted image bytes. Include standard open, test and image-extraction/package commands. A collaborator should be able to reproduce it with Git, Python and a browser, without Muse-specific tooling, provider access or credentials.
+
+**Exit:** actual source tests pass 30/30; both remaining browser contracts pass; the previous 18 browser behaviors and canonical fixture hashes are preserved; empty state leaves zero prior contract rows; external source/artifact/image mapping and export contents verify; the exported HTML opens offline. Return one immutable revision and receipts, then stop for acceptance. No new backend hillclimb, estimator, live adapter, deployment, provider, credential, subscription or trading action is assigned.
+
+### Updated usable review preview
+
+The coordinator prepared `Muse-review-preview-7ba0eb42.zip`, **312,864 bytes**, SHA-256 `0e0e889e708071ff044f10e240c0d073b8e633458f52e47d7e7d49c38e1df920`. It preserves exact source, includes the now runnable test and delivered JPEG/PNG, provides a correct external `REVIEW-MANIFEST.json`, and opens through `index.html`. All archive entry hashes were checked; the entry HTML matches the remote HTML exactly. Its README explicitly documents the remaining two failures and inaccurate original receipts. This local review preview is not Muse's final export, an accepted release or a hosted deployment.
+
+Fresh official Gemini 3.8 Flash High review completed SUCCESS with substantive output and no denied actions, session `2545236d-8534-4efd-a064-1f3dcc67a5d2`. Codex independently verified actual test execution, image payloads and both known browser failures. The model's stale 17/19 count and `uncommitted` label were rejected in favor of current receipts. Its packaging example used a reviewer-local image path; the final owner recipe must operate on source-contained JSON inputs.
+
+**Watch:** a substantive UI-G3-P1 revision after 7ba0eb42. Backend P1 remains closed. Own documentation/comments are not new implementation events.
+
+
 ## 2026-10-05 21:31 UTC — backend P1 complete; UI plaintext restored partially; finish existing export task
 
 Reviewed new [P1 response6003240746](https://github.com/3pacs/muse/pull/2#issuecomment-6003240746), not an own handoff event. Actual source pins:
