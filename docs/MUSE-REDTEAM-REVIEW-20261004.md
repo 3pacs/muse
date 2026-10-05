@@ -1,7 +1,53 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
+**Current status: finite offline UI-G3-P1 delivery accepted at e5a8a0ce; backend P1 complete at 8649ad54. The source export is reproduced and verified. No further task is pending for these slices. Hosted/live application acceptance remains unestablished.**
 
+**Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
+
+
+
+## 2026-10-05 23:20 UTC — finite offline delivery accepted; review/fix exchange complete
+
+Reviewed [Muse response 6005209422](https://github.com/3pacs/muse/pull/2#issuecomment-6005209422) at exact UI review revision **`e5a8a0ceb8391a124a8459fbe13e91bbbcdc161e`**, branch `redteam/ui-g3`. Verified four descendant commits after a99175b8: 5ac6d401 → 4fc19b0e → de7027e0 → e5a8a0ce. Only HTML, manifest and build receipt changed. Verification ran on the existing Dell `precision5520` runtime with the existing audit clone; no host switch or additional owner was used.
+
+**UI-G3-P1 is accepted for the finite standalone offline fixture explorer.** Actual source tests pass **30/30, exit 0**; the complete existing independent browser suite passes **20/20**. The two assigned failures are resolved: empty dataset leaves zero prior contract rows, and the footer truthfully labels the base revision while referring to the external manifest for exact content identity. All previous scenario/spot, keyboard, provenance, null/unavailable, synthetic labeling and responsive-layout checks retain passes. No further Muse implementation task is assigned for this slice.
+
+### Exact source and artifact identity
+
+| Identity | Verified value |
+|---|---|
+| Final review/export revision | `e5a8a0ceb8391a124a8459fbe13e91bbbcdc161e` |
+| Exact HTML content-source revision | `de7027e0346e4e8fda1fc3d049df2ce596ae7dfd` |
+| Explicitly labeled UI base revision | `7ba0eb42e48486d7fee3e5d80e58fc80d336f298` |
+| HTML SHA-256 | `0baf2049cbe23694b4ef9b90267369572088f83f358d8576caa5d43e47b46aa6` |
+| Final export | `Muse-offline-source-e5a8a0ce.zip` |
+| Export bytes | 312,609 |
+| Export SHA-256 | `0cac44dc988918341c3231abce52537c931322a8e2f6217de266bb8de338d221` |
+
+HTML at the content-source and final review commits is byte-identical. Its actual digest matches both manifest and build receipt. The footer now says “UI-G3 base” and “see MANIFEST.json for exact content identity,” avoiding a circular embedded final-commit claim.
+
+The historical owner UI-G3 docs retain an older shorthand claiming `ui_revision` is the content pin. Current authoritative fields and this acceptance receipt clarify the mapping: that field is the labeled base, while manifest `source_pin` identifies exact HTML content. This historical wording does not reopen the completed functional/identity slice.
+
+### Reproduced complete offline export
+
+The [published standard-library export helper](https://github.com/3pacs/muse/blob/841f63bc71b2b385119203b6d8fe88d48b202e36/docs/muse-ui-offline-export.py) independently produced the final archive from actual immutable Git source:
+```bash
+python3 docs/muse-ui-offline-export.py --repo . --revision e5a8a0ceb8391a124a8459fbe13e91bbbcdc161e --output Muse-offline-source-e5a8a0ce.zip
+```
+
+The archive contains direct-open HTML, all `uig1/**` source, runnable tests, docs, canonical fixtures, original receipts, extracted desktop JPEG/mobile PNG, an export README and an external export manifest. Every archive member was read back and compared byte-for-byte. Extracted tests pass **30/30, exit 0**. Exported contract/input/result SHA-256 values exactly match the canonical GRID hashes. Both image payload hashes match their delivered-image receipts, retaining truthful JPEG/PNG distinctions and dimensions. The archive's `index.html` equals the browser-reviewed HTML.
+
+Use `index.html` directly in a browser; run `python3 uig1/tests/ui/test_dashboard.py` from the extracted archive. Git is required to reproduce the archive from an already fetched source revision; opening and testing the extracted export require only a browser and standard Python. Provider access, credentials and Muse-specific tooling are unnecessary.
+
+### Closure and scope
+
+Backend P1 remains accepted and unchanged at **`8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac`**. Its prior 50 replay tests and required controls were accepted in the 21:31 receipt; they were not reopened or counted as fresh tests here. The twelve historical numerical/admission/dashboard failures outside these finite slices remain open. Main remains 43c2cd41; the published review branch is still a draft PR. No application source was merged or deployed.
+
+Acceptance covers a useful synthetic fixture explorer and a reproducible source export. It does not establish hosted dashboard source/build linkage, live provider integration, observed dealer positions, trading recommendations or profitable alpha. The hosted Muse page remains outside verified deployment/source linkage.
+
+Fresh official Gemini 3.8 Flash High source review completed SUCCESS with substantive output and no denied actions, session `c6c838fa-85a5-4386-9acd-43d6717750fe`. Codex independently verified runtime results, source/content mapping and export reproduction. No model execution claim substituted for actual receipts.
+
+**Stop condition reached:** close the finite UI-G3-P1 finish-and-export handoff. Preserve the source pins, export and evidence. Do not create another challenge, UI-G4 or backend review cycle without a new requested goal. No pending implementation response is required for this offline slice; own docs/comment events are not new source work. No provider, credential, subscription, trading, merge or deployment action was performed.
 
 
 ## 2026-10-05 22:44 UTC — stale rows fixed, source/hash verified, export recipe supplied; one label remains
