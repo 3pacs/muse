@@ -1,1 +1,34 @@
-ewogICJhcnRpZmFjdCI6ICJnZXgtZ3JhbnVsYXItZGFzaGJvYXJkIiwKICAiY2Fub25pY2FsX2ZpeHR1cmVzIjogewogICAgImNvbnRyYWN0X3NoYTI1NiI6ICI2MDViZjgzYzdjNWQzMDIwNjAzMWNmNDVlNDYyYzlhODkxOGRkNTU5N2QyYTkyNTQ2OWMwNDdjMmE0MWM5ZDc3IiwKICAgICJncmlkX29yaWdpbiI6ICJhZDIzMzA4ODZjZThmOTc3NThiZDRjNTk5ZmJmYzczMWFkYzFkNzQyIiwKICAgICJpbnB1dF9qc29uX3NoYTI1NiI6ICJmOTc5ZTk3ZWJjOGQ4NmIxNDQ3MmVkZDQwNDRmYzgzZmJlNDk1MzFjMDRkZGRlOWIyZWRiZjIyMzk2MmMzMjg1IiwKICAgICJvcmlnaW4iOiAiZml4dHVyZXMvZ2V4LWdyYW51bGFyLXYxLyIsCiAgICAicmVzdWx0X2pzb25fc2hhMjU2IjogIjcwYjEwYmJiZGQ2NWUyYjU0MGUxMjA0OWQyNzlkMTQ2ZjlmZjNhYmUwMjBjNmVkYTg0MTEzYTY0YmE2OTgzMWQiCiAgfSwKICAiY2hhbmdlc19mcm9tX3VpX2cyIjogWwogICAgIkVtcHR5L2Fic2VudCBkYXRhc2V0IGd1YXJkOiByZW5kZXJzIHVuYXZhaWxhYmxlIHN0YXRlLCBuZXZlciB0aHJvd3MiLAogICAgIkJ1aWxkIGlkZW50aXR5OiB1aV9yZXZpc2lvbiBzZXQgdG8gc291cmNlIHBpbiAobm8gbG9uZ2VyICd1bmNvbW1pdHRlZCcpIiwKICAgICJDb21wYWN0IG1vYmlsZSBwcm92ZW5hbmNlOiA8ZGV0YWlscz4gZXhwYW5kYWJsZSBwZXIgY29udHJhY3QsIGtleWJvYXJkLW9wZXJhYmxlIiwKICAgICJQb3J0YWJsZSBNQU5JRkVTVC5qc29uIHdpdGggZXhhY3QgZGlnZXN0cyIKICBdLAogICJkZXBsb3ltZW50X3N0YXR1cyI6ICJzdGFuZGFsb25lIGxvY2FsIHByZXZpZXcgb25seTsgbm8gaG9zdGVkIGRlcGxveW1lbnQ7IG5vdCBsaW5rZWQgdG8gTXVzZSBob3N0ZWQgcGFnZSIsCiAgInByb2R1Y2VkX2h0bWwiOiAiZnJvbnRlbmQvZ2V4LWdyYW51bGFyLWRhc2hib2FyZC5odG1sIiwKICAicHJvZHVjZWRfaHRtbF9zaGEyNTYiOiAiODdmYWJhODE5MmYzOTdkNjQyNWI5MWQzOGI4MjQwOWI1NDU2OWM0M2ZiODJhNTkxYjYwOGMwOTYzYjU5MTZiOCIsCiAgInJlcHJvZHVjaWJsZV9vcGVuIjogInB5dGhvbjMgLW0gaHR0cC5zZXJ2ZXIgODAwMCAtLWRpcmVjdG9yeSB+L3dvcmtzcGFjZS91aWcxL2Zyb250ZW5kICYmIG9wZW4gaHR0cDovL2xvY2FsaG9zdDo4MDAwL2dleC1ncmFudWxhci1kYXNoYm9hcmQuaHRtbCIsCiAgInJlcHJvZHVjaWJsZV90ZXN0IjogImNkIH4vd29ya3NwYWNlL3VpZzEgJiYgcHl0aG9uMyB0ZXN0cy91aS90ZXN0X2Rhc2hib2FyZC5weSIsCiAgInJldmlzaW9uIjogIlVJLUczIiwKICAic291cmNlX2JyYW5jaCI6ICJyZWR0ZWFtL3VpLWczIiwKICAic291cmNlX3BhcmVudCI6ICIwOWZjNDc0ZjFkNzc5NDZmNDhmMDFjYmU2Y2FhNWI1OGU5ZWUwYjRjIiwKICAic291cmNlX3BpbiI6ICJUQkQtYWZ0ZXItcHVzaCIsCiAgInZlcmlmaWNhdGlvbiI6IHsKICAgICJjb21taXR0ZWRfY2hlY2tzIjogIjMwLzMwIiwKICAgICJpbmRlcGVuZGVudF9icm93c2VyIjogIjE3LzE5ICgyIHByaW9yIGZhaWx1cmVzIGNsb3NlZCBieSBVSS1HMykiCiAgfSwKICAiaG9zdGVkX21hcHBpbmciOiB7CiAgICAic3RhdHVzIjogIm5vX2hvc3RlZF9zb3VyY2UiLAogICAgImRldGFpbCI6ICJUaGUgR0VYIGdyYW51bGFyIGRhc2hib2FyZCAodWlnMS8qKikgaXMgYSBzdGFuZGFsb25lIHJlZC10ZWFtIGRlbGl2ZXJhYmxlLiBJdCBpcyBub3QgbGlua2VkIHRvIHRoZSAwZHRlLWRhc2hib2FyZCBob3N0ZWQgYXJ0aWZhY3QgKGRpZmZlcmVudCBzY29wZTogdHJhZGluZyB0YXBlIHZzIHN5bnRoZXRpYyBHRVggZml4dHVyZSBleHBsb3JlcikuIE5vIGV4aXN0aW5nIGhvc3RlZCByb3V0ZSBzZXJ2ZXMgdGhpcyBmaWxlLiBSZWxlYXNlIGNhbmRpZGF0ZSBpcyB0aGUgc3RhbmRhbG9uZSBwcmV2aWV3IHBhY2thZ2UuIiwKICAgICJyZWxlYXNlX2NhbmRpZGF0ZSI6ICJNdXNlLUdFWC1vZmZsaW5lLXByZXZpZXctPHBpbj4uemlwIGNvbnRhaW5pbmcgZnJvbnRlbmQvZ2V4LWdyYW51bGFyLWRhc2hib2FyZC5odG1sICsgTUFOSUZFU1QuanNvbiArIGZpeHR1cmVzL2dleC1ncmFudWxhci12MS8gKyBzY3JlZW5zaG90cy8iCiAgfQp9
+{
+  "artifact": "gex-granular-dashboard",
+  "canonical_fixtures": {
+    "contract_sha256": "605bf83c7c5d30206031cf45e462c9a8918dd5597d2a925469c047c2a41c9d77",
+    "grid_origin": "ad2330886ce8f97758bd4c599fbfc731adc1d742",
+    "input_json_sha256": "f979e97ebc8d86b14472edd4044fc83fbe49531c04ddde9b2edbf223962c3285",
+    "origin": "fixtures/gex-granular-v1/",
+    "result_json_sha256": "70b10bbbdd65e2b540e12049d279d146f9ff3abe020c6eda84113a64ba69831d"
+  },
+  "changes_from_ui_g2": [
+    "Empty/absent dataset guard: renders unavailable state, never throws",
+    "Build identity: ui_revision set to source pin (no longer 'uncommitted')",
+    "Compact mobile provenance: <details> expandable per contract, keyboard-operable",
+    "Portable MANIFEST.json with exact digests"
+  ],
+  "deployment_status": "standalone local preview only; no hosted deployment; not linked to Muse hosted page",
+  "produced_html": "frontend/gex-granular-dashboard.html",
+  "produced_html_sha256": "87faba8192f397d6425b91d38b82409b54569c43fb82a591b608c0963b5916b8",
+  "reproducible_open": "python3 -m http.server 8000 --directory ~/workspace/uig1/frontend && open http://localhost:8000/gex-granular-dashboard.html",
+  "reproducible_test": "cd ~/workspace/uig1 && python3 tests/ui/test_dashboard.py",
+  "revision": "UI-G3",
+  "source_branch": "redteam/ui-g3",
+  "source_parent": "09fc474f1d77946f48f01cbe6caa5b58e9ee0b4c",
+  "source_pin": "TBD-after-push",
+  "verification": {
+    "committed_checks": "30/30",
+    "independent_browser": "17/19 (2 prior failures closed by UI-G3)"
+  },
+  "hosted_mapping": {
+    "status": "no_hosted_source",
+    "detail": "The GEX granular dashboard (uig1/**) is a standalone red-team deliverable. It is not linked to the 0dte-dashboard hosted artifact (different scope: trading tape vs synthetic GEX fixture explorer). No existing hosted route serves this file. Release candidate is the standalone preview package.",
+    "release_candidate": "Muse-GEX-offline-preview-<pin>.zip containing frontend/gex-granular-dashboard.html + MANIFEST.json + fixtures/gex-granular-v1/ + screenshots/"
+  }
+}
