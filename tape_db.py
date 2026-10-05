@@ -186,14 +186,13 @@ def _resolve_identity(con, ts_norm, expiry):
     """J1-C: additive legacy timestamp alias policy. Returns the actual
     stored ts for an identity, None if absent, or _AMBIGUOUS if multiple
     distinct rows normalize to the same instant (J1-D: ambiguous aliases
-    are quarantined, not arbitrarily resolved). First tries the canonical
-    normalized ts; on miss, scans for pre-normalization rows. J1-D: even
-    on direct hit, checks for conflicting aliases. Raw history is never
-    rewritten."""
+    are quarantined, not arbitrarily resolved). J1-E: compares the full
+    canonical core plus strike map/status — matching spot/formula alone
+    is insufficient. Raw history is never rewritten."""
     # J1-D: always scan for all matching aliases to detect ambiguity.
     try:
         rows = con.execute(
-            "SELECT ts, spot, gex_formula FROM snapshots WHERE expiry = ?",
+            "SELECT ts FROM snapshots WHERE expiry = ?",
             (expiry,)).fetchall()
     except Exception:
         return None
@@ -201,19 +200,41 @@ def _resolve_identity(con, ts_norm, expiry):
     for r in rows:
         try:
             if normalize_ts(r["ts"]) == ts_norm:
-                matches.append(r)
+                matches.append(r["ts"])
         except Exception:
             continue
     if not matches:
         return None
     if len(matches) == 1:
-        return matches[0]["ts"]
-    # J1-D: multiple aliases — check if they agree on content.
-    # If all match, return the first; if they differ, it's ambiguous.
-    first = (matches[0]["spot"], matches[0]["gex_formula"])
-    if all((m["spot"], m["gex_formula"]) == first for m in matches):
-        return matches[0]["ts"]
-    return _AMBIGUOUS
+        return matches[0]
+    # J1-E: multiple aliases — compare full canonical core + map.
+    # Fetch each candidate's full content.
+    def _content(ts):
+        row = con.execute(
+            "SELECT * FROM snapshots WHERE ts = ? AND expiry = ?",
+            (ts, expiry)).fetchone()
+        if row is None:
+            return None
+        rec = {c: row[c] for c in SNAP_COLS if c in row.keys()}
+        core = event_core(rec)
+        strikes = canonical_strikes(
+            {r["strike"]: r["net_gex_m"]
+             for r in con.execute(
+                 "SELECT strike, net_gex_m FROM gex_strikes WHERE ts = ? AND expiry = ?",
+                 (ts, expiry))})
+        try:
+            status = row["gex_map_status"]
+        except Exception:
+            status = "unavailable"
+        return (core, strikes, status)
+    first = _content(matches[0])
+    if first is None:
+        return _AMBIGUOUS
+    for ts in matches[1:]:
+        other = _content(ts)
+        if other != first:
+            return _AMBIGUOUS
+    return matches[0]
 
 
 # J1-D: sentinel for ambiguous legacy aliases (multiple distinct rows,
@@ -519,20 +540,28 @@ def mirror_record(rec, gex_m, con=None):
                 "ambiguous legacy timestamp aliases with conflicting "
                 "payloads; quarantined, not resolved", commit=False)
         if stored_core is not None:
-            row = con.execute(
-                "SELECT payload_hash FROM snapshots WHERE ts = ? AND expiry = ?",
-                (ts, expiry)).fetchone()
-            kept_hash = row["payload_hash"] if row else None
             # J1-B: full semantic hashes on receipts so a strike-only change
             # yields distinct kept/incoming hashes.
             kept_full = semantic_hash(stored_core, stored_strikes)
+            # J1-E: a present stored digest must match the incoming. A
+            # mismatch is proof of tampering, not a duplicate — even if
+            # core and strikes happen to match.
+            if stored_digest is not None and stored_digest != incoming_full:
+                return record_conflict(
+                    con, ts, expiry, stored_digest, incoming_full,
+                    "stored digest mismatch: retained accepted digest does "
+                    "not match incoming; quarantined, not adopted",
+                    commit=False)
             # J1: legacy NULL hashes are VALIDATED by reconstructing the
             # stored accepted content, never by adopting the incoming hash.
-            if kept_hash is None:
+            if stored_digest is None:
                 if stored_core == incoming_core and stored_strikes == incoming_strikes:
-                    con.execute("UPDATE snapshots SET payload_hash = ? "
-                                "WHERE ts = ? AND expiry = ?",
-                                (incoming_full, ts, expiry))
+                    # Use resolved ts for the UPDATE.
+                    stored_ts = _resolve_identity(con, ts, expiry)
+                    if stored_ts is not None and stored_ts is not _AMBIGUOUS:
+                        con.execute("UPDATE snapshots SET payload_hash = ? "
+                                    "WHERE ts = ? AND expiry = ?",
+                                    (incoming_full, stored_ts, expiry))
                     return {"status": "duplicate", "legacy_validated": True}
                 return record_conflict(
                     con, ts, expiry, kept_full, incoming_full,
@@ -663,14 +692,21 @@ def _classify_snapshot_line(state, rec):
         return "conflict"
     # Duplicate core: verify the embedded map against the accepted digest.
     embedded = _embedded_map(rec)
+    # J1-E: an unavailable stored map cannot silently adopt a new map.
+    # Without proof of original content, this is a conflict.
+    if embedded is not _MAP_UNAVAILABLE and not map_defined:
+        return "conflict"
     if embedded is _MAP_UNAVAILABLE or not map_defined:
         return "duplicate"
     # J1-D: compute the incoming full digest and compare with the stored
     # accepted digest. Match = original payload (repair allowed); differ =
     # changed payload (conflict).
     incoming_digest = semantic_hash(event_core(rec), embedded)
-    if stored_digest is not None and incoming_digest == stored_digest:
-        return "duplicate"
+    if stored_digest is not None:
+        # J1-E: a present digest must match. A mismatch is proof of
+        # tampering/divergence, not a legacy case. Do NOT fall through
+        # to map comparison.
+        return "duplicate" if incoming_digest == stored_digest else "conflict"
     # No stored digest (legacy): fall back to map comparison. An explicitly
     # empty stored map can never grow; otherwise require exact match.
     if embedded == stored_strikes:
@@ -792,11 +828,14 @@ def backfill(con=None, dry_run=False):
             # J1-C: reconcile a duplicate accepted journal event — verify
             # the DB strike projection against the embedded accepted map
             # and repair absent rows from accepted content only.
+            # J1-E: also repair divergent values, not just missing keys.
             embedded = _embedded_map(rec)
             if embedded is not _MAP_UNAVAILABLE and embedded:
                 _, db_strikes, _, _ = state.stored(ts, expiry)
                 missing = {k: v for k, v in embedded.items()
                            if k not in db_strikes}
+                divergent = {k: v for k, v in embedded.items()
+                             if k in db_strikes and db_strikes[k] != v}
                 if missing:
                     # Update the overlay so subsequent lines classify
                     # against the repaired projection.
@@ -804,6 +843,18 @@ def backfill(con=None, dry_run=False):
                     if not dry_run:
                         insert_gex_snapshot(ts, expiry, missing, con,
                                             formula=rec.get("gex_formula"))
+                if divergent and not dry_run:
+                    # J1-E: repair divergent values via UPDATE on the
+                    # resolved actual ts.
+                    stored_ts = _resolve_identity(con, ts, expiry)
+                    if stored_ts is not None and stored_ts is not _AMBIGUOUS:
+                        for k, v in divergent.items():
+                            con.execute(
+                                "UPDATE gex_strikes SET net_gex_m = ? "
+                                "WHERE ts = ? AND expiry = ? AND strike = ?",
+                                (v, stored_ts, expiry, float(k)))
+                        # Update overlay.
+                        state.accept_strikes(ts, expiry, divergent)
     for d in _lines(GEX_PATH):
         if d is None:
             counts["gex_rejected"] += 1

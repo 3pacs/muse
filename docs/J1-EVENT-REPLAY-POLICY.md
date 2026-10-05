@@ -238,3 +238,53 @@ unavailable/integrity state.
 8/8 J1-D fixtures, 10/10 J1-B, 8/8 J1, 21/21 original controls, 5/5
 probes, 35/35 committed replay tests (27 prior + 8 new J1-D). The twelve
 out-of-scope failures remain explicitly open.
+
+## J1-E — finish proof across every recovery path (2026-10-05)
+
+J1-E closes the ten proof-extension contracts.
+
+### Full alias comparison
+
+`_resolve_identity()` now compares the full canonical core plus strike
+map/status for every alias candidate. Matching spot/formula alone is
+insufficient — any difference in core fields or map values yields
+`_AMBIGUOUS`, which callers quarantine. Ambiguity propagates to reads,
+hash lookups, writers, and logger; the logger never appends incoming
+content after mirror conflict or unresolved ambiguity.
+
+### Digest proof
+
+A present stored digest must match the incoming full digest. A mismatch
+is proof of tampering — conflict, not a fallback to map comparison.
+The exact-map legacy fallback applies only when the digest is truly
+absent (NULL). `mirror_record`, backfill, and logger all enforce this.
+
+### DB-only recovery
+
+When the journal is missing and the DB is the fallback, the logger
+verifies the DB projection against the retained digest before accepting
+it. A digest mismatch quarantines; the tampered projection is never
+adopted and the incoming feed is not appended.
+
+### Value and formula repair
+
+Backfill and logger repair divergent strike values (not just missing
+keys) via UPDATE on the resolved actual ts — never a zero-row UPDATE
+with a false success message. Formula lineage is verified alongside
+values; divergent formulas are repaired from accepted proof.
+
+### Unavailable maps
+
+An unavailable accepted map cannot silently adopt a later map. Without
+proof of original content, the incoming is a conflict.
+
+### Units lineage
+
+Primary (journal) and secondary (gex.jsonl) projections both carry the
+exact source-reported `gex_units`. No hardcoded defaults.
+
+### Verification
+
+10/10 J1-E fixtures, 8/8 J1-D, 10/10 J1-B, 8/8 J1, 21/21 original
+controls, 5/5 probes, 45/45 committed replay tests (35 prior + 10 new
+J1-E). The twelve out-of-scope failures remain explicitly open.

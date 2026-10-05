@@ -555,6 +555,148 @@ record("j1d_digest_survives_restart",
        counts1["snap_accepted"] == 1 and counts2["snap_duplicate"] == 1,
        f"accepted={counts1['snap_accepted']} duplicates={counts2['snap_duplicate']}")
 
+# 34. J1-E: full core alias ambiguity (same spot/formula, different max_pain)
+c = Ctx()
+with c.con() as con:
+    for ts, mp in [(TS, 100), ("2026-10-05T15:59:00-04:00", 101)]:
+        con.execute(
+            "INSERT INTO snapshots (ts, expiry, spot, max_pain, gex_formula, payload_hash, gex_map_status) "
+            "VALUES (?, ?, 100, ?, 'v2', 'x', 'explicit')", (ts, EXPIRY, mp))
+        con.execute(
+            "INSERT INTO gex_strikes (ts, expiry, strike, net_gex_m, gex_formula) "
+            "VALUES (?, ?, 100, 0.02, 'v2')", (ts, EXPIRY))
+    con.commit()
+with c.con() as con:
+    v = tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                               "gex_formula": "v2", "max_pain": 100},
+                              {"100": 0.02}, con)
+record("j1e_full_core_alias_ambiguity", v["status"] == "conflict",
+       f"status={v['status']}")
+
+# 35. J1-E: full map alias ambiguity (same core, different map values)
+c = Ctx()
+with c.con() as con:
+    for ts, gv in [(TS, 0.02), ("2026-10-05T15:59:00-04:00", 0.05)]:
+        con.execute(
+            "INSERT INTO snapshots (ts, expiry, spot, gex_formula, payload_hash, gex_map_status) "
+            "VALUES (?, ?, 100, 'v2', 'x', 'explicit')", (ts, EXPIRY))
+        con.execute(
+            "INSERT INTO gex_strikes (ts, expiry, strike, net_gex_m, gex_formula) "
+            "VALUES (?, ?, 100, ?, 'v2')", (ts, EXPIRY, gv))
+    con.commit()
+with c.con() as con:
+    v = tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                               "gex_formula": "v2"}, {"100": 0.02}, con)
+record("j1e_full_map_alias_ambiguity", v["status"] == "conflict",
+       f"status={v['status']}")
+
+# 36. J1-E: stored digest mismatch is conflict, not duplicate
+c = Ctx()
+with c.con() as con:
+    tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                           "gex_formula": "v2"}, {"100": 0.02}, con)
+    con.execute("UPDATE snapshots SET payload_hash = 'wrong-digest'")
+    con.commit()
+with c.con() as con:
+    v = tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                               "gex_formula": "v2"}, {"100": 0.02}, con)
+record("j1e_digest_mismatch_conflict", v["status"] == "conflict",
+       f"status={v['status']}")
+
+# 37. J1-E: unavailable accepted map cannot adopt new map
+c = Ctx()
+with c.con() as con:
+    tape_db.insert_snapshot({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                             "gex_formula": "v2"}, con)
+    with open(c.p / "main.jsonl", "w") as f:
+        f.write(json.dumps({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                            "gex_formula": "v2", "gex_m": {"100": 0.02}}) + "\n")
+    counts = tape_db.backfill(con)
+record("j1e_unavailable_map_conflict", counts["snap_conflict"] >= 1,
+       f"conflicts={counts['snap_conflict']}")
+
+# 38. J1-E: backfill repairs divergent values
+c = Ctx()
+with c.con() as con:
+    with open(c.p / "main.jsonl", "w") as f:
+        f.write(json.dumps({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                            "gex_formula": "v2", "gex_m": {"100": 0.02}}) + "\n")
+    tape_db.backfill(con)
+    con.execute("UPDATE gex_strikes SET net_gex_m = 0.5")
+    con.commit()
+    tape_db.backfill(con)
+    val = con.execute("SELECT net_gex_m FROM gex_strikes").fetchone()[0]
+record("j1e_backfill_repairs_values", abs(val - 0.02) < 1e-9, f"val={val}")
+
+# 39. J1-E: logger repairs divergent formula
+c = Ctx()
+c.run()
+with c.con() as con:
+    con.execute("UPDATE gex_strikes SET gex_formula = 'v1'")
+    con.commit()
+c.run()
+with c.con() as con:
+    formula = con.execute("SELECT gex_formula FROM gex_strikes").fetchone()[0]
+record("j1e_logger_repairs_formula", formula == "v2", f"formula={formula}")
+
+# 40. J1-E: secondary projection preserves source units
+c = Ctx()
+f = feed()
+f["gamma"]["gex_units"] = "USD millions per $1 spot move"
+c.run(f)
+primary = json.loads(c.journal_lines()[0])
+secondary = json.loads(c.gex_lines()[0])
+record("j1e_secondary_units",
+       primary.get("gex_units") == secondary.get("gex_units") ==
+       "USD millions per $1 spot move",
+       f"primary={primary.get('gex_units')} secondary={secondary.get('gex_units')}")
+
+# 41. J1-E: DB-only digest mismatch quarantined
+c = Ctx()
+c.run()
+with c.con() as con:
+    con.execute("UPDATE gex_strikes SET net_gex_m = 0.5")
+    con.commit()
+# Delete journals, run with tampered feed
+import os
+for fn in ["history.jsonl", "gex.jsonl"]:
+    p = c.p / fn
+    if p.exists():
+        p.unlink()
+f2 = feed()
+f2["gamma"]["by_strike"][0]["net_gex_m"] = 0.5
+c.run(f2)
+record("j1e_db_digest_mismatch_quarantined", c.conflicts() >= 1,
+       f"conflicts={c.conflicts()}")
+
+# 42. J1-E: ambiguous logger does not append
+c = Ctx()
+with c.con() as con:
+    for ts, spot in [(TS, 100), ("2026-10-05T15:59:00-04:00", 200)]:
+        con.execute(
+            "INSERT INTO snapshots (ts, expiry, spot, gex_formula, payload_hash, gex_map_status) "
+            "VALUES (?, ?, ?, 'v2', 'x', 'explicit')", (ts, EXPIRY, spot))
+    con.commit()
+c.run()
+journal_lines = c.journal_lines()
+record("j1e_ambiguous_no_append", len(journal_lines) == 0 and c.conflicts() >= 1,
+       f"journal_lines={len(journal_lines)} conflicts={c.conflicts()}")
+
+# 43. J1-E: alias value repair uses resolved ts
+c = Ctx()
+c.run()
+with c.con() as con:
+    alias = "2026-10-05T15:59:00-04:00"
+    for table in ["snapshots", "gex_strikes"]:
+        con.execute(f"UPDATE {table} SET ts = ?", (alias,))
+    con.commit()
+    con.execute("UPDATE gex_strikes SET net_gex_m = 0.5")
+    con.commit()
+c.run()
+with c.con() as con:
+    val = con.execute("SELECT net_gex_m FROM gex_strikes").fetchone()[0]
+record("j1e_alias_repair_resolved_ts", abs(val - 0.02) < 1e-9, f"val={val}")
+
 failed = [n for n, ok, _ in results if not ok]
 print(f"\n{len(results) - len(failed)}/{len(results)} pass")
 sys.exit(1 if failed else 0)
