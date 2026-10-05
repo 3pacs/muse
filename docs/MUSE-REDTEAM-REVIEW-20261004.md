@@ -4,6 +4,50 @@
 
 
 
+## 2026-10-05 20:18 UTC — UI-G3 return is encoded; finite final delivery repair UI-G3-P1
+
+Reviewed [UI-G3 response6002140161](https://github.com/3pacs/muse/pull/2#issuecomment-6002140161), exactsource **`fe2d0a8171104e5427a06ec7fb776a485ad16f2c`**, branch`redteam/ui-g3`. Verified six commits from exact09fc474f:33fd9dc9 →1196bcea →5d4bfe31 →8e230e38 →63896d78 →fe2d0a81. Only six changed files under`uig1/**`; no estimator/backend edits. **This is a new frontend response, not the coordinator's20:09 docs synchronize event. Backend P1 stays pending afterdd63ab53.**
+
+**Actual UI publication is unusable:** all six changed remote Git blobs are one line of literal Base64. The actual HTML opens as encoded text with blank title and no scenario selector. Independent isolated Chrome raw-source check is0pass/1fail. Three new/changed JSON receipts fail normal JSON parsing; the raw Python test file compiles as a giant identifier but execution raises NameError. This repeats the known uploader-format failure. GitHub readback independently returned UTF-8 HTML starting`PCFET0NUWVBFIGh0bWw`, blob bfc1fc66, agreeing with immutable Git bytes. No decoded file was substituted into the source checkout.
+
+### Raw Git evidence and candidate hashes
+
+| Changed path | Actual raw Git blob | Raw bytes /lines | Once-decoded candidate SHA-256 |
+|---|---|---:|---|
+| `uig1/MANIFEST.json` |b40f1047ff3b30a3d6b0c041bdd2f35488f7c171|2796 /1|4e21a989afadbbd06515e6aa26da21965da63a9fcf1e1e7af26d9a44ca902bfe|
+| `uig1/build_receipt.json` |0399604eef590307493b2ae3597242c36473f4d9|612 /1|a6e7e085b480669b8e31d00f9942b4b8141581192455becc8d2d8ad67aa16445|
+| `uig1/docs/MUSE-GRANULAR-UI.md` |fece4fecfc85c8e8e8ebd3002ee389f3bde7b60c|4384 /1|944dd4f391c4137f14701549e1525a9c4e0b4c2659ec9d54233594d99af0e4cc|
+| `uig1/frontend/gex-granular-dashboard.html` |bfc1fc6671fd7ad9bcce5623a5e602d0fb96dff4|118060 /1|eb79712d28e1dc568dc8887dc0872e3a3085b262759c75fca1fa3737f06f562a|
+| `uig1/screenshot_receipt_uig3.json` |a443c9c3411817e525be18f7ce179c466cf9ee48|780 /1|696a41ed2ee73ef8274ce97e1afd88d27a69f573eb141a09e9b170973e879e6c|
+| `uig1/tests/ui/test_dashboard.py` |f41030ab99ac90dc05c1701a29f67c7b70847e56|6392 /1|77f437acba53398531a41bbd70dd835a076f6a7cc5f15c2f9bf46a5f928d1548|
+
+### Decoded diagnostics: useful visual improvement, delivery still incomplete
+
+Once-decoded candidate only:30/30 committed string checks pass. Independent browser receipt is **18pass/2fail** (the prior19 contracts plus one directly assigned stale-contract requirement). All17 prior independent passes are preserved, all9scenario×spot values and actual Enter/Space drilldown operations pass, canonical embedded payload/fixtures are unchanged, and the former empty-dataset exception is fixed. Desktop and390px mobile screenshots were captured and inspected. Compact expandable provenance visibly reduces contract-table height; the page fits390px with tables in contained scroll regions. These are useful offline explorer improvements, not a hosted fix or validated trading tool.
+
+Two known delivery requirements remain:
+1. **Immutable identity FAIL.** Manifest`source_pin="TBD-after-push"`; build receipt and HTML`ui_revision="ui-g3-pending-push"`. The manifest/build claim HTML SHA-256`87faba8192f397d6425b91d38b82409b54569c43fb82a591b608c0963b5916b8`, while the actual once-decoded HTML hashes`eb79712d28e1dc568dc8887dc0872e3a3085b262759c75fca1fa3737f06f562a`. Changing a placeholder spelling does not establish immutable identity.
+2. **Empty dataset stale DOM FAIL.** After normal render there are4 contract rows. Set`RESULT.scenarios=[]` and call`render()`: unavailable appears without exception, but all4 prior contract rows remain visible. Clear those rows; they are stale observations after the dataset becomes unavailable.
+
+The returned manifest describes a`Muse-GEX-offline-preview-<pin>.zip` releasecandidate, but no package or PNG bytes are in the returned tree; screenshot receipt says PNG bytes are local. A named package is not a delivered export. Owner reports this fixture UI is separate from the hosted0dte-dashboard; actual hosted route/source mapping remains unverified. Do not infer a deployed-page repair from standalone success.
+
+Fresh official Gemini3.8 Flash High source review session`0617e552-47fe-4144-943b-656b30048007` completed SUCCESS, substantive and no denied actions. Codex independently checked raw publication, candidate behavior, hashes and screenshots. No model-reported execution is accepted. We rejected its circular suggestion to embed the final containing Git commit in that same HTML: freeze HTML first, then use external manifest mapping; a changed file cannot truthfully claim an earlier commit as its exact content source. Its proposed untested coverage-edge work is not added to this finite task.
+
+### Next finite frontend task: UI-G3-P1 — usable plaintext export and close known delivery gaps
+
+**Priority: frontend final delivery using remaining allowance. Owner:Muse.** Descendant of exactfe2d0a81; confined to`uig1/**`, same source/receipt/test/docs files plus a portable export or reproducible packaging recipe and actual screenshot evidence. Preserve canonical GRID contract/input/result bytes and estimator ownership. Backend P1 remains separate and must not delay this frontend export.
+
+1. Publish normal plaintext HTML/Python/JSON/Markdown using the uploader's actual interface. For our connected GitHub wrapper, supply plaintext text; it encodes itself. Verify resulting immutable remote blobs rather than trusting the local candidate. No decoding adapter is allowed in final acceptance.
+2. Clear the prior contract rows on empty dataset; keep the explicit unavailable reason and cleared expiry/scenario/spot controls. Add a behavior check for the existing4→0 stale-contract condition. Preserve all18 current browser passes and30 committed checks.
+3. Freeze the final HTML. Record its exact immutable **content-source commit** and SHA-256 in an external manifest/receipt published afterward; name the final review/export commit separately if it differs. Fetch HTML at the claimed content-source commit and final review commit and verify byte equality. This avoids circular self-reference. Footer can identify a stable build label with a link/reference to the verified external manifest; it must not mislabel a prior commit as exact changed source. Remove`TBD`/`pending-push` identities and replace inaccurate digest claims.
+4. Return a complete reproducible plain-source export: HTML, unchanged canonical fixtures, exact external manifest, source README/open/test/package commands, raw desktop/mobile PNG bytes with checked hashes. Produce the portable zip or an exact source-pinned packaging recipe with all included inputs present and downloadable. Do not return another placeholder package name. An isolated collaborator should open the HTML directly and reproduce tests without provider credentials, network calls or Muse-specific tooling.
+5. Report actual hosted source/route linkage only if evidenced. If inaccessible, state the exact missing information; mark export`standalone, not deployed`. Preserve the distinction between the usable local explorer and [the hosted Muse page](https://muse.ai/s/0dte-dashboard-xlk6gxicxxxtxwxnxp). No speculative hosted root cause or deployment claim.
+
+**Finite acceptance and exit:** actual remote HTML renders; raw JSON parses and raw Python tests execute30/30; all20 existing independent browser contracts pass (identity interpreted through correct external source mapping), all9 precomputed combinations and keyboard actions remain correct, empty state leaves0 prior contract rows, canonical fixture hashes match, exact source/artifact/PNG manifest checks pass, and the complete plain-source export opens offline. Return one immutable revision and receipts here, then stop for independent acceptance. Upon passing these gates this slice is complete; do not invent another backend challenge, live estimator, provider integration, market alpha claim or extra edge-case cycle. This maximizes usable deliverables and makes maintenance transferable to Codex/Gemini.
+
+**Pending/watch:** UI-G3-P1 afterfe2d0a81 and existing backendP1 afterdd63ab53. No subscription/payment/cancellation action, application merge or deployment is authorized or performed by this review. This docs update and own comment are not source implementation events.
+
+
 ## 2026-10-05 20:09 UTC — J1-F candidate passes diagnostics; remote publication is broken; next task P1
 
 Reviewed [J1-F response6001983871](https://github.com/3pacs/muse/pull/2#issuecomment-6001983871) at exact source **`dd63ab53a3c05ffa293023d04e431e74cbb60a26`**, branch `redteam/fixes-j1f`. Verified four-commit ancestry from `2dfcb5396fde94499c46f05fb4cc9bee7f9f5134`: 9a7e5197 → f4c97145 → 1dcae83f → dd63ab53. Only four changed files, listed below. Main remains43c2cd41 and no application merge occurred.
