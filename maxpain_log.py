@@ -148,9 +148,14 @@ def main():
     rec["ts_original"] = feed_ts
     rec["ts"] = tape_db.normalize_ts(feed_ts)
     gex, gex_dict = {}, None
+    # J1-B: distinguish an explicitly empty strike map (by_strike == [])
+    # from an unavailable one (by_strike missing). Deleting a nonempty
+    # accepted map is a changed payload; an unavailable map is no opinion.
+    by_strike_raw = g.get("by_strike")
+    gex_explicit = isinstance(by_strike_raw, list)
     try:
         spot = d.get("spot") or 0
-        snap_rows = (g.get("by_strike") or [])
+        snap_rows = by_strike_raw or []
         gex = {str(r["strike"]): r["net_gex_m"] for r in snap_rows
                if spot and abs(r["strike"] - spot) / spot <= 0.04
                and isinstance(r.get("net_gex_m"), (int, float))}
@@ -167,6 +172,9 @@ def main():
                         "spot": spot, "gex_m": rec["gex_m"],
                         "gex_formula": rec.get("gex_formula"),
                         "gex_units": "USD millions per 1% spot move"}
+        elif gex_explicit:
+            # Explicitly empty map: record it so deletion is detectable.
+            rec["gex_m"] = {}
     except Exception:
         pass  # heatmap snapshot is best-effort; the main record is what matters
 
@@ -187,12 +195,20 @@ def main():
         accepted_rec = _journal_find_event(LOG_PATH, ts_c, expiry)
         if accepted_rec is not None:
             stored_core = tape_db.event_core(accepted_rec)
-            accepted_gex = accepted_rec.get("gex_m")
+            if isinstance(accepted_rec.get("gex_m"), dict):
+                accepted_gex = accepted_rec["gex_m"]
+                acc_explicit = True
+            else:
+                # No embedded map; the DB projection is the fallback.
+                _, db_strikes = tape_db.fetch_stored(con, ts_c, expiry)
+                accepted_gex = db_strikes
+                acc_explicit = bool(db_strikes)
         else:
             stored_core, db_strikes = tape_db.fetch_stored(con, ts_c, expiry)
             accepted_rec = (tape_db.rec_from_row(con, ts_c, expiry)
                             if stored_core is not None else None)
             accepted_gex = db_strikes
+            acc_explicit = bool(db_strikes)
         incoming_core = tape_db.event_core(rec)
         incoming_gex = tape_db.canonical_strikes(gex)
 
@@ -206,14 +222,27 @@ def main():
                   f"expiry={rec['expiry']} mirror={status}")
             return
 
-        acc_gex = tape_db.canonical_strikes(accepted_gex)
-        strikes_agree = (not incoming_gex or not acc_gex
-                         or acc_gex == incoming_gex)
+        # J1-B: explicit vs unavailable strike maps. An explicitly empty
+        # incoming map that deletes a nonempty accepted map is a changed
+        # payload. An unavailable map (feed silent) is no opinion. An
+        # unavailable ACCEPTED map cannot be verified: quarantine, do not
+        # guess or silently adopt.
+        acc_gex = tape_db.canonical_strikes(accepted_gex) if acc_explicit else {}
+        if not gex_explicit:
+            strikes_agree, map_reason = True, ""
+        elif not acc_explicit:
+            strikes_agree, map_reason = False, \
+                "accepted strike map unavailable; cannot verify incoming"
+        else:
+            strikes_agree = (acc_gex == incoming_gex)
+            map_reason = "" if strikes_agree else \
+                "strike map changed for identical core"
         decision = tape_db.classify_event(stored_core, incoming_core)
 
         def converge_missing():
             """Complete every projection from the ACCEPTED event only.
-            Never uses the incoming payload."""
+            Never uses the incoming payload. DB strikes are repaired
+            independently of snapshot presence (J1-B)."""
             if not tape_db.has_snapshot(con, ts_c, expiry):
                 tape_db.mirror_record(accepted_rec, acc_gex, con)
             if _journal_find_event(LOG_PATH, ts_c, expiry) is None:
@@ -230,6 +259,16 @@ def main():
                     "spot": accepted_rec.get("spot"), "gex_m": acc_map,
                     "gex_formula": accepted_rec.get("gex_formula"),
                     "gex_units": "USD millions per 1% spot move"})
+            # J1-B: repair the DB strike projection from accepted content,
+            # even when the snapshot row is present.
+            if acc_explicit and acc_gex:
+                _, db_map = tape_db.fetch_stored(con, ts_c, expiry)
+                missing = {k: v for k, v in acc_gex.items()
+                           if k not in db_map}
+                if missing:
+                    tape_db.insert_gex_snapshot(
+                        ts_c, expiry, missing, con,
+                        formula=accepted_rec.get("gex_formula"))
 
         if decision == "duplicate" and strikes_agree:
             converge_missing()
@@ -242,10 +281,12 @@ def main():
         # payload never becomes a projection.
         converge_missing()
         reason = ("core payload changed" if decision == "conflict"
-                  else "strike map changed for identical core")
+                  else map_reason or "strike map changed for identical core")
         tape_db.record_conflict(
-            con, ts_c, expiry, tape_db.core_hash(stored_core),
-            tape_db.core_hash(incoming_core),
+            con, ts_c, expiry,
+            tape_db.semantic_hash(stored_core, acc_gex if acc_explicit else {}),
+            tape_db.semantic_hash(incoming_core,
+                                  incoming_gex if gex_explicit else {}),
             "logger: " + reason + "; accepted event stands")
         print(f"conflict quarantined | ts={ts_c} reason={reason}")
     finally:
@@ -280,8 +321,23 @@ def _journal_find_event(path, ts, expiry):
 
 
 def _append_line(path, obj):
+    line = json.dumps(obj) + "\n"
+    # J1-B: frame appends after an unterminated tail. If the file does not
+    # end with a newline, terminate the incomplete tail first so the new
+    # event stays independently parseable. Raw bytes are preserved; only a
+    # newline is added, history is never rewritten.
+    try:
+        if os.path.exists(path):
+            with open(path, "rb") as fh:
+                fh.seek(0, os.SEEK_END)
+                if fh.tell() > 0:
+                    fh.seek(-1, os.SEEK_END)
+                    if fh.read(1) != b"\n":
+                        line = "\n" + line
+    except OSError:
+        pass
     with open(path, "a", encoding="utf-8") as fh:
-        fh.write(json.dumps(obj) + "\n")
+        fh.write(line)
 
 
 if __name__ == "__main__":

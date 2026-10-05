@@ -207,6 +207,141 @@ record("conflict_then_retry",
        and c.strikes() == [(100.0, 0.02, "v2")] and c.conflicts() == 1,
        f"snaps={c.snaps()} conflicts={c.conflicts()}")
 
+# ---- J1-B boundary contracts (committed regression) ----
+# 10. new event after an unterminated tail stays independently parseable
+c = Ctx()
+c.run()
+with open(c.p / "history.jsonl", "a") as fh:
+    fh.write('{"ts": "truncated')
+c.run(feed(ts="2026-10-05T20:00:00+00:00"))
+lines = [json.loads(ln) for ln in c.journal_lines()[2:]]
+record("j1b_truncated_tail_framing",
+       any(ln.get("ts") == "2026-10-05T20:00:00+00:00" for ln in lines)
+       and len(c.snaps()) == 2,
+       f"snaps={len(c.snaps())}")
+
+# 11. backfill rebuilds DB strikes from the journal's embedded accepted map
+c = Ctx()
+rec = {"ts": TS, "expiry": EXPIRY, "spot": 100, "gex_formula": "v2",
+       "gex_m": {"100": 0.02}}
+with open(c.p / "main.jsonl", "w") as fh:
+    fh.write(json.dumps(rec) + "\n")
+with c.con() as con:
+    counts = tape_db.backfill(con)
+record("j1b_embedded_map_rebuild",
+       c.strikes() == [(100.0, 0.02, "v2")]
+       and counts["snap_accepted"] == 1,
+       f"strikes={c.strikes()} counts={counts}")
+
+# 12. disjoint strike from a rejected event is never added (no hybrid)
+c = Ctx()
+with c.con() as con:
+    tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                           "gex_formula": "v2"}, {"100": 0.02}, con)
+with open(c.p / "main.jsonl", "w") as fh:
+    fh.write(json.dumps({"ts": TS, "expiry": EXPIRY, "spot": 200,
+                         "gex_formula": "v2"}) + "\n")
+with open(c.p / "gex.jsonl", "w") as fh:
+    fh.write(json.dumps({"ts": TS, "expiry": EXPIRY,
+                         "gex_m": {"101": 3}, "gex_formula": "v2"}) + "\n")
+with c.con() as con:
+    counts = tape_db.backfill(con)
+record("j1b_disjoint_strike_conflict",
+       c.strikes() == [(100.0, 0.02, "v2")]
+       and counts["gex_conflict"] == 1,
+       f"strikes={c.strikes()} counts={counts}")
+
+# 13. explicitly empty map deletes a nonempty accepted map: conflict, and the
+#     logger and direct mirror agree on the verdict
+c = Ctx()
+c.run()
+empty_feed = dict(feed(), gamma={"gex_formula": "v2", "by_strike": []})
+c.run(empty_feed)
+logger_conflicts = c.conflicts()
+with c.con() as con:
+    rec0 = json.loads(c.journal_lines()[0])
+    direct = tape_db.mirror_record(rec0, {}, con)
+record("j1b_explicit_empty_map_conflict",
+       logger_conflicts == 1 and direct["status"] == "conflict"
+       and len(c.snaps()) == 1,
+       f"logger_conflicts={logger_conflicts} direct={direct['status']}")
+
+# 14. logger repairs a missing DB strike projection from accepted content
+c = Ctx()
+c.run()
+with c.con() as con:
+    con.execute("DELETE FROM gex_strikes")
+    con.commit()
+c.run()
+record("j1b_db_strike_repair", c.strikes() == [(100.0, 0.02, "v2")],
+       f"strikes={c.strikes()}")
+
+# 15. same strike value but changed formula is a semantic conflict
+c = Ctx()
+with c.con() as con:
+    tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                           "gex_formula": "v2"}, {"100": 0.02}, con)
+with open(c.p / "gex.jsonl", "w") as fh:
+    fh.write(json.dumps({"ts": TS, "expiry": EXPIRY,
+                         "gex_m": {"100": 0.02},
+                         "gex_formula": "v1"}) + "\n")
+with c.con() as con:
+    counts = tape_db.backfill(con)
+record("j1b_formula_only_conflict",
+       counts["gex_conflict"] == 1 and c.conflicts() == 1
+       and c.strikes() == [(100.0, 0.02, "v2")],
+       f"counts={counts} strikes={c.strikes()}")
+
+# 16. strike-only change yields distinct kept/incoming semantic hashes
+c = Ctx()
+with c.con() as con:
+    tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                           "gex_formula": "v2"}, {"100": 0.02}, con)
+    v = tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                               "gex_formula": "v2"}, {"100": 0.5}, con)
+record("j1b_semantic_hash_distinct",
+       v["status"] == "conflict" and v["kept"] != v["incoming"],
+       f"status={v['status']} distinct={v['kept'] != v['incoming']}")
+
+# 17. orphan strike line (no accepted parent) is quarantined, never accepted
+c = Ctx()
+with open(c.p / "gex.jsonl", "w") as fh:
+    fh.write(json.dumps({"ts": TS, "expiry": EXPIRY,
+                         "gex_m": {"100": 0.02},
+                         "gex_formula": "v2"}) + "\n")
+with c.con() as con:
+    counts = tape_db.backfill(con)
+record("j1b_orphan_quarantined",
+       c.strikes() == [] and counts["gex_orphan"] == 1
+       and c.conflicts() == 1,
+       f"strikes={c.strikes()} counts={counts}")
+
+# 18. valid JSON scalar/list lines are rejected, replay continues
+c = Ctx()
+with open(c.p / "main.jsonl", "w") as fh:
+    fh.write("[]\n")
+with c.con() as con:
+    counts = tape_db.backfill(con)
+record("j1b_nonobject_rejected",
+       counts["snap_rejected"] == 1 and len(c.snaps()) == 0,
+       f"counts={counts}")
+
+# 19. canonical UTC identity persists across backfill and mirror
+c = Ctx()
+with open(c.p / "main.jsonl", "w") as fh:
+    fh.write(json.dumps({"ts": "2026-10-05T10:00:00-04:00",
+                         "expiry": EXPIRY, "spot": 100,
+                         "gex_formula": "v2"}) + "\n")
+with c.con() as con:
+    tape_db.backfill(con)
+    v = tape_db.mirror_record({"ts": "2026-10-05T14:00:00+00:00",
+                               "expiry": EXPIRY, "spot": 100,
+                               "gex_formula": "v2"}, {}, con)
+record("j1b_offset_identity",
+       len(c.snaps()) == 1 and v["status"] == "duplicate"
+       and c.snaps()[0][0] == "2026-10-05T14:00:00+00:00",
+       f"snaps={c.snaps()} verdict={v['status']}")
+
 failed = [n for n, ok, _ in results if not ok]
 print(f"\n{len(results) - len(failed)}/{len(results)} pass")
 sys.exit(1 if failed else 0)

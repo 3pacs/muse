@@ -128,6 +128,26 @@ def core_hash(core):
                    default=str).encode()).hexdigest()
 
 
+# J1-B: sentinel for "strike map unavailable" (not provided), distinct from
+# an explicitly empty map {}. Missing/unavailable content is never treated
+# as a change; explicitly empty content is.
+_MAP_UNAVAILABLE = object()
+
+
+def semantic_hash(core, smap):
+    """J1-B: full semantic hash — core plus strike map. Changed strikes (or
+    a changed formula, via the core) produce distinct kept/incoming hashes
+    on conflict receipts."""
+    h = hashlib.sha256()
+    h.update(json.dumps(core, sort_keys=True, separators=(",", ":"),
+                        default=str).encode())
+    h.update(b"\x00")
+    h.update(json.dumps(smap if isinstance(smap, dict) else {},
+                        sort_keys=True, separators=(",", ":"),
+                        default=str).encode())
+    return h.hexdigest()
+
+
 def _strike_key(k):
     try:
         return str(float(k))
@@ -337,17 +357,27 @@ def _norm(rec):
 
 
 def _payload_hash(rec, gex_m=None):
-    """J1: canonical semantic hash. Kept name for compatibility; now hashes
-    the canonical core (receipt clocks excluded, ts normalized)."""
-    return core_hash(event_core(rec))
+    """J1-B: canonical semantic hash — core plus strike map. The map comes
+    from the explicit gex_m argument, else the record's embedded gex_m,
+    else unavailable (hashes as empty). Receipt clocks stay excluded and
+    ts stays normalized, as in J1."""
+    if gex_m is None:
+        gm = rec.get("gex_m")
+        gex_m = gm if isinstance(gm, dict) else {}
+    return semantic_hash(event_core(rec), canonical_strikes(gex_m))
 
 
 def insert_snapshot(rec, con=None):
+    # J1-B: every writer persists the canonical UTC identity. The raw
+    # original timestamp stays preserved in the journal; the DB is keyed
+    # by the normalized instant so equivalent-offset writes converge.
     con = con or connect()
+    rec_n = dict(rec)
+    rec_n["ts"] = normalize_ts(rec_n.get("ts"))
     cols = ", ".join(SNAP_COLS + ["payload_hash"])
     qs = ", ".join("?" * (len(SNAP_COLS) + 1))
     con.execute(f"INSERT OR IGNORE INTO snapshots ({cols}) VALUES ({qs})",
-                _norm(rec) + [_payload_hash(rec)])
+                _norm(rec_n) + [_payload_hash(rec_n)])
     con.commit()
 
 
@@ -385,8 +415,9 @@ def mirror_record(rec, gex_m, con=None):
     con = con or connect()
     ts, expiry = normalize_ts(rec["ts"]), rec["expiry"]
     incoming_core = event_core(rec)
-    incoming_hash = core_hash(incoming_core)
     incoming_strikes = canonical_strikes(gex_m)
+    # J1-B: full semantic hash (core + strike map) for storage and receipts.
+    incoming_full = semantic_hash(incoming_core, incoming_strikes)
     formula = rec.get("gex_formula")
     with con:  # single transaction; auto-rollback on error (F10)
         stored_core, stored_strikes = fetch_stored(con, ts, expiry)
@@ -395,16 +426,19 @@ def mirror_record(rec, gex_m, con=None):
                 "SELECT payload_hash FROM snapshots WHERE ts = ? AND expiry = ?",
                 (ts, expiry)).fetchone()
             kept_hash = row["payload_hash"] if row else None
+            # J1-B: full semantic hashes on receipts so a strike-only change
+            # yields distinct kept/incoming hashes.
+            kept_full = semantic_hash(stored_core, stored_strikes)
             # J1: legacy NULL hashes are VALIDATED by reconstructing the
             # stored accepted content, never by adopting the incoming hash.
             if kept_hash is None:
                 if stored_core == incoming_core and stored_strikes == incoming_strikes:
                     con.execute("UPDATE snapshots SET payload_hash = ? "
                                 "WHERE ts = ? AND expiry = ?",
-                                (incoming_hash, ts, expiry))
+                                (incoming_full, ts, expiry))
                     return {"status": "duplicate", "legacy_validated": True}
                 return record_conflict(
-                    con, ts, expiry, None, incoming_hash,
+                    con, ts, expiry, kept_full, incoming_full,
                     "legacy NULL hash: stored content differs from incoming; "
                     "quarantined, not adopted", commit=False)
             decision = classify_event(stored_core, incoming_core)
@@ -413,13 +447,13 @@ def mirror_record(rec, gex_m, con=None):
                 return {"status": "duplicate"}
             reason = ("core payload changed" if decision == "conflict"
                       else "strike map changed for identical core")
-            return record_conflict(con, ts, expiry, kept_hash, incoming_hash,
+            return record_conflict(con, ts, expiry, kept_full, incoming_full,
                                    reason, commit=False)
         cols = ", ".join(SNAP_COLS + ["payload_hash"])
         qs = ", ".join("?" * (len(SNAP_COLS) + 1))
         rec_n = dict(rec, ts=ts)
         con.execute(f"INSERT INTO snapshots ({cols}) VALUES ({qs})",
-                    _norm(rec_n) + [incoming_hash])
+                    _norm(rec_n) + [incoming_full])
         if incoming_strikes:
             rows = [(ts, expiry, float(k), v, formula)
                     for k, v in incoming_strikes.items()]
@@ -449,116 +483,161 @@ class ReplayState:
         self.con = con
         self.events = {}   # (ts, expiry) -> canonical core accepted this run
         self.strikes = {}  # (ts, expiry) -> {skey: value} accepted this run
+        # J1-B: idents whose strike map is explicitly defined (embedded
+        # journal map, DB projection, or an accepted gex line). An undefined
+        # map is unavailable, not empty.
+        self.map_defined = set()
 
     @staticmethod
     def ident(ts, expiry):
         return (normalize_ts(ts), expiry)
 
     def stored(self, ts, expiry):
+        """Returns (core, strikes, map_defined). core is None when no event
+        is stored."""
         ident = self.ident(ts, expiry)
         if ident in self.events:
-            return self.events[ident], self.strikes.get(ident, {})
-        return fetch_stored(self.con, ts, expiry)
+            return (self.events[ident], self.strikes.get(ident, {}),
+                    ident in self.map_defined)
+        core, smap = fetch_stored(self.con, ts, expiry)
+        if core is None:
+            return None, {}, False
+        # DB projection: a non-empty strike set defines the map; an empty
+        # one leaves it unavailable (legacy rows never had embedded maps).
+        return core, smap, bool(smap)
 
-    def accept_event(self, ts, expiry, core):
-        self.events[self.ident(ts, expiry)] = core
+    def accept_event(self, ts, expiry, core, smap=_MAP_UNAVAILABLE):
+        ident = self.ident(ts, expiry)
+        self.events[ident] = core
+        if smap is not _MAP_UNAVAILABLE:
+            self.strikes[ident] = dict(smap)
+            self.map_defined.add(ident)
 
     def accept_strikes(self, ts, expiry, smap):
         ident = self.ident(ts, expiry)
         cur = dict(self.strikes.get(ident, {}))
         cur.update(smap)
         self.strikes[ident] = cur
+        self.map_defined.add(ident)
 
 
 def _classify_snapshot_line(state, rec):
-    """J1: verdicts 'accepted' | 'duplicate' | 'conflict' | 'rejected'."""
+    """J1-B: verdicts 'accepted' | 'duplicate' | 'conflict' | 'rejected'.
+    Non-dict lines are rejected, never fatal."""
+    if not isinstance(rec, dict):
+        return "rejected"
     ts, expiry = rec.get("ts"), rec.get("expiry")
     if not ts or not expiry:
         return "rejected"
-    stored_core, _ = state.stored(ts, expiry)
+    stored_core, _, _ = state.stored(ts, expiry)
     decision = classify_event(stored_core, event_core(rec))
     return "accepted" if decision == "new" else decision
 
 
+def _embedded_map(rec):
+    """The journal line's embedded strike map, or _MAP_UNAVAILABLE."""
+    gm = rec.get("gex_m")
+    if not isinstance(gm, dict):
+        return _MAP_UNAVAILABLE
+    return canonical_strikes(gm)
+
+
 def _classify_gex_line(state, d):
-    """J1: a gex line must agree with the accepted event's strike map.
-    Any value change (including partial overlaps) is a conflict — the
-    rejected payload cannot add or alter a strike."""
-    ts, expiry = d.get("ts"), d.get("expiry")
-    smap = canonical_strikes(d.get("gex_m") or {})
-    if not ts or not expiry or not smap:
+    """J1-B: secondary strike records validate against the accepted parent.
+
+    Verdicts: 'accepted' | 'duplicate' | 'conflict' | 'orphan' | 'rejected'.
+    - No accepted parent event -> 'orphan': quarantined, never accepted.
+    - Accepted map undefined -> this line defines it.
+    - Accepted map defined -> the line must match it exactly; any value
+      change, disjoint addition, or formula change is a conflict. A rejected
+      payload never supplements the accepted map."""
+    if not isinstance(d, dict):
         return "rejected", {}
-    _, stored_strikes = state.stored(ts, expiry)
-    if stored_strikes is None:
-        stored_strikes = {}
-    overlap = [k for k in smap if k in stored_strikes]
-    if overlap and any(smap[k] != stored_strikes[k] for k in overlap):
+    ts, expiry = d.get("ts"), d.get("expiry")
+    raw_map = d.get("gex_m")
+    if not ts or not expiry or not isinstance(raw_map, dict):
+        return "rejected", {}
+    smap = canonical_strikes(raw_map)
+    if not smap:
+        return "rejected", {}
+    stored_core, stored_strikes, map_defined = state.stored(ts, expiry)
+    if stored_core is None:
+        return "orphan", smap
+    # J1-B: formula/units lineage is semantic — same value with a changed
+    # formula is a conflict, not a duplicate.
+    stored_formula = stored_core.get("gex_formula")
+    incoming_formula = d.get("gex_formula")
+    if (stored_formula and incoming_formula
+            and stored_formula != incoming_formula):
         return "conflict", smap
-    if all(k in stored_strikes for k in smap):
+    if not map_defined:
+        return "accepted", smap
+    if stored_strikes == smap:
         return "duplicate", smap
-    return "accepted", smap
+    return "conflict", smap
 
 
 def backfill(con=None, dry_run=False):
-    """Additive backfill: never deletes rows (F10). J1: dry-run and real
+    """Additive backfill: never deletes rows (F10). J1/J1-B: dry-run and real
     replay run the SAME evolving validation/duplicate/conflict state, so
     predicted counts match actual ones. A dry-run never writes. Verdicts:
-    accepted / duplicate / conflict (receipted, not inserted) / rejected
-    (malformed)."""
+    accepted / duplicate / conflict (receipted, not inserted) / orphan
+    (secondary line without an accepted parent; quarantined) / rejected
+    (malformed or non-object)."""
     con = con or connect()
     counts = {"snap_accepted": 0, "snap_duplicate": 0, "snap_conflict": 0,
               "snap_rejected": 0,
               "gex_accepted": 0, "gex_duplicate": 0, "gex_conflict": 0,
-              "gex_rejected": 0}
+              "gex_orphan": 0, "gex_rejected": 0}
     state = ReplayState(con)
 
-    def snap_lines():
-        if not os.path.exists(LOG_PATH):
+    def _lines(path):
+        if not os.path.exists(path):
             return
-        with open(LOG_PATH) as fh:
+        with open(path) as fh:
             for line in fh:
                 line = line.strip()
                 if not line:
                     continue
                 try:
-                    yield json.loads(line)
+                    parsed = json.loads(line)
                 except Exception:
                     yield None
-
-    def gex_lines():
-        if not os.path.exists(GEX_PATH):
-            return
-        with open(GEX_PATH) as fh:
-            for line in fh:
-                line = line.strip()
-                if not line:
                     continue
-                try:
-                    yield json.loads(line)
-                except Exception:
-                    yield None
+                # J1-B: valid JSON that is not an object is rejected, never
+                # fatal; the replay continues with subsequent lines.
+                yield parsed if isinstance(parsed, dict) else None
 
-    for rec in snap_lines():
+    for rec in _lines(LOG_PATH):
         if rec is None:
             counts["snap_rejected"] += 1
             continue
         verdict = _classify_snapshot_line(state, rec)
         counts["snap_" + verdict] += 1
+        ts, expiry = normalize_ts(rec.get("ts")), rec.get("expiry")
         if verdict == "accepted":
-            state.accept_event(rec.get("ts"), rec.get("expiry"),
-                               event_core(rec))
+            # J1-B: the journal's embedded accepted map rebuilds the
+            # secondary strike projection; no separate strike file needed.
+            embedded = _embedded_map(rec)
+            state.accept_event(ts, expiry, event_core(rec),
+                               embedded if embedded is not _MAP_UNAVAILABLE
+                               else _MAP_UNAVAILABLE)
             if not dry_run:
                 insert_snapshot(rec, con)
+                if embedded is not _MAP_UNAVAILABLE and embedded:
+                    # The embedded accepted map is part of the snapshot
+                    # acceptance (counted under snap_accepted).
+                    insert_gex_snapshot(ts, expiry, embedded, con,
+                                        formula=rec.get("gex_formula"))
         elif verdict == "conflict" and not dry_run:
-            ts, expiry = normalize_ts(rec.get("ts")), rec.get("expiry")
-            stored_core, _ = state.stored(ts, expiry)
+            stored_core, _, _ = state.stored(ts, expiry)
             record_conflict(
                 con, ts, expiry,
                 core_hash(stored_core) if stored_core else None,
                 core_hash(event_core(rec)),
                 "backfill: journal line conflicts with accepted event; "
                 "not inserted")
-    for d in gex_lines():
+    for d in _lines(GEX_PATH):
         if d is None:
             counts["gex_rejected"] += 1
             continue
@@ -570,11 +649,14 @@ def backfill(con=None, dry_run=False):
             if not dry_run:
                 insert_gex_snapshot(ts, expiry, smap, con,
                                     formula=d.get("gex_formula"))
-        elif verdict == "conflict" and not dry_run:
+        elif verdict in ("conflict", "orphan") and not dry_run:
             record_conflict(
                 con, ts, expiry, None, None,
-                "backfill: strike line changes accepted strike map; no "
-                "strike added")
+                "backfill: " + ("orphan strike line without accepted parent; "
+                                "quarantined, not accepted"
+                                if verdict == "orphan"
+                                else "strike line changes accepted strike map; "
+                                "no strike added"))
     return counts
 
 
