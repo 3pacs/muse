@@ -1,0 +1,27 @@
+{
+  "ui_revision": "uncommitted",
+  "grid_origin": "ad2330886ce8f97758bd4c599fbfc731adc1d742",
+  "screenshots": {
+    "desktop-1280-drilldown.png": {
+      "bytes": 153540,
+      "sha256": "b1b04e352e16f5efe0c0a2364d805f4350522fe22947b024f874f3c0098277e4"
+    },
+    "desktop-1280.png": {
+      "bytes": 153894,
+      "sha256": "ccfd16d8007053ee26cb858a9526c96cdfd3575ddb154ad794ae6812148abade"
+    },
+    "mobile-390.png": {
+      "bytes": 204593,
+      "sha256": "b0474377363d92889bfd92cc2192c30d85686d2e37305b06f4870bf1f03d9568"
+    }
+  },
+  "browser": "Chromium 152.0.7977.82 (system)",
+  "checks": {
+    "desktop_1280_no_page_overflow": true,
+    "mobile_390_no_page_overflow": true,
+    "all_9_scenario_x_spot_render": true,
+    "null_aggregate_unavailable_no_exception": true,
+    "keyboard_enter_opens_space_closes": true,
+    "no_js_errors": true
+  }
+}
