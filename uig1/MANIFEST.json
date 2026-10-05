@@ -21,7 +21,7 @@
   "revision": "UI-G3",
   "source_branch": "redteam/ui-g3",
   "source_parent": "09fc474f1d77946f48f01cbe6caa5b58e9ee0b4c",
-  "source_pin": "7ba0eb42e48486d7fee3e5d80e58fc80d336f298",
+  "source_pin": "8ff5d19ece7c98d0e71a9a79ff9e848076c82286",
   "verification": {
     "committed_checks": "30/30",
     "independent_browser": "17/19 (2 prior failures closed by UI-G3)"
