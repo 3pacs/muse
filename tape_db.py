@@ -39,6 +39,8 @@ SNAP_COLS = [
     "ts", "market_open", "expiry", "spot",
     "quote_as_of", "nasdaq_as_of", "src_mix",
     "max_pain", "call_wall", "put_wall", "gamma_flip", "net_gex_m", "gex_formula",
+    # J1-C: units lineage is semantic — incompatible units are a conflict.
+    "gex_units",
     "gamma_regime",
     "charm_k", "vanna_k",
     "call_volume", "put_volume", "call_oi", "put_oi", "pc_volume", "pc_oi",
@@ -166,6 +168,45 @@ def canonical_strikes(gex_m):
     return out
 
 
+def _map_status(gex_m):
+    """J1-C: map availability status for persistence.
+    'explicit' — non-empty map provided.
+    'explicit_empty' — empty map explicitly provided ({}).
+    'unavailable' — no map provided (None/missing)."""
+    if gex_m is None:
+        return "unavailable"
+    if isinstance(gex_m, dict) and len(gex_m) == 0:
+        return "explicit_empty"
+    if isinstance(gex_m, dict):
+        return "explicit"
+    return "unavailable"
+
+
+def _resolve_identity(con, ts_norm, expiry):
+    """J1-C: additive legacy timestamp alias policy. Returns the actual
+    stored ts for an identity, or None. First tries the canonical
+    normalized ts; on miss, scans for pre-normalization rows whose ts
+    normalizes to the same instant. Raw history is never rewritten —
+    the alias is resolved at read time."""
+    row = con.execute(
+        "SELECT ts FROM snapshots WHERE ts = ? AND expiry = ?",
+        (ts_norm, expiry)).fetchone()
+    if row is not None:
+        return row["ts"]
+    try:
+        rows = con.execute(
+            "SELECT ts FROM snapshots WHERE expiry = ?", (expiry,)).fetchall()
+    except Exception:
+        return None
+    for r in rows:
+        try:
+            if normalize_ts(r["ts"]) == ts_norm:
+                return r["ts"]
+        except Exception:
+            continue
+    return None
+
+
 def classify_event(stored_core, incoming_core):
     """The ONE duplicate/conflict decision (J1): logger, mirror and backfill
     all route through here. Returns 'new', 'duplicate' or 'conflict'."""
@@ -177,21 +218,36 @@ def classify_event(stored_core, incoming_core):
 def fetch_stored(con, ts, expiry):
     """Reconstruct the accepted event from the DB projection: canonical core
     from the snapshot row + strike map from gex_strikes. Returns
-    (core, strikes) or (None, None) when nothing is stored. Used for
+    (core, strikes, map_status) or (None, None, None) when nothing is stored.
+    Uses J1-C legacy alias resolution for pre-normalization rows. The
+    map_status is 'explicit' / 'explicit_empty' / 'unavailable' (J1-C);
+    rows predating the status column report 'unavailable'. Used for
     validated legacy comparison — never blind hash adoption."""
-    ts = normalize_ts(ts)
+    ts_norm = normalize_ts(ts)
+    stored_ts = _resolve_identity(con, ts_norm, expiry)
+    if stored_ts is None:
+        return None, None, None
     row = con.execute(
         "SELECT * FROM snapshots WHERE ts = ? AND expiry = ?",
-        (ts, expiry)).fetchone()
+        (stored_ts, expiry)).fetchone()
     if row is None:
-        return None, None
+        return None, None, None
     rec = {c: row[c] for c in SNAP_COLS if c in row.keys()}
     strikes = canonical_strikes(
         {r["strike"]: r["net_gex_m"]
          for r in con.execute(
              "SELECT strike, net_gex_m FROM gex_strikes WHERE ts = ? AND expiry = ?",
-             (ts, expiry))})
-    return event_core(rec), strikes
+             (stored_ts, expiry))})
+    try:
+        status = row["gex_map_status"]
+    except Exception:
+        status = None
+    # J1-C: a stored status is authoritative; without one, infer from
+    # surviving rows (non-empty projection implies an explicit map, but an
+    # empty projection is unavailable, not empty — see lost_map fixture).
+    if status not in ("explicit", "explicit_empty", "unavailable"):
+        status = "explicit" if strikes else "unavailable"
+    return event_core(rec), strikes, status
 
 
 def rec_from_row(con, ts, expiry):
@@ -271,6 +327,8 @@ def init_db(con=None):
             max_pain REAL, call_wall REAL, put_wall REAL, gamma_flip REAL,
             net_gex_m REAL, gamma_regime TEXT,
             gex_formula TEXT,
+            gex_units TEXT,
+            gex_map_status TEXT,
             charm_k REAL, vanna_k REAL,
             call_volume INTEGER, put_volume INTEGER, call_oi INTEGER, put_oi INTEGER,
             pc_volume REAL, pc_oi REAL,
@@ -322,9 +380,13 @@ def init_db(con=None):
     con.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_snap_ts_expiry "
                 "ON snapshots(ts, expiry)")
     # migrations for pre-existing DBs (F04/F03/R4): add columns if absent
+    # J1-C: gex_units (semantic lineage) and gex_map_status (explicit /
+    # explicit_empty / unavailable) are compatibility metadata; existing
+    # rows without them are treated as unavailable, never rewritten.
     for coldef in ("gex_formula TEXT", "quote_as_of TEXT",
                    "nasdaq_as_of TEXT", "src_mix TEXT",
-                   "payload_hash TEXT"):
+                   "payload_hash TEXT", "gex_units TEXT",
+                   "gex_map_status TEXT"):
         try:
             con.execute(f"ALTER TABLE snapshots ADD COLUMN {coldef}")
         except Exception:
@@ -371,13 +433,16 @@ def insert_snapshot(rec, con=None):
     # J1-B: every writer persists the canonical UTC identity. The raw
     # original timestamp stays preserved in the journal; the DB is keyed
     # by the normalized instant so equivalent-offset writes converge.
+    # J1-C: persist the embedded map's availability status.
     con = con or connect()
     rec_n = dict(rec)
     rec_n["ts"] = normalize_ts(rec_n.get("ts"))
-    cols = ", ".join(SNAP_COLS + ["payload_hash"])
-    qs = ", ".join("?" * (len(SNAP_COLS) + 1))
+    cols = ", ".join(SNAP_COLS + ["payload_hash", "gex_map_status"])
+    qs = ", ".join("?" * (len(SNAP_COLS) + 2))
+    gm = rec_n.get("gex_m")
+    status = _map_status(gm if isinstance(gm, dict) else None)
     con.execute(f"INSERT OR IGNORE INTO snapshots ({cols}) VALUES ({qs})",
-                _norm(rec_n) + [_payload_hash(rec_n)])
+                _norm(rec_n) + [_payload_hash(rec_n), status])
     con.commit()
 
 
@@ -394,9 +459,8 @@ def insert_gex_snapshot(ts, expiry, gex_m, con=None, formula=None):
 
 
 def has_snapshot(con, ts, expiry):
-    return con.execute(
-        "SELECT 1 FROM snapshots WHERE ts = ? AND expiry = ?",
-        (normalize_ts(ts), expiry)).fetchone() is not None
+    # J1-C: use legacy alias resolution for pre-normalization rows.
+    return _resolve_identity(con, normalize_ts(ts), expiry) is not None
 
 
 def mirror_record(rec, gex_m, con=None):
@@ -420,7 +484,7 @@ def mirror_record(rec, gex_m, con=None):
     incoming_full = semantic_hash(incoming_core, incoming_strikes)
     formula = rec.get("gex_formula")
     with con:  # single transaction; auto-rollback on error (F10)
-        stored_core, stored_strikes = fetch_stored(con, ts, expiry)
+        stored_core, stored_strikes, stored_status = fetch_stored(con, ts, expiry)
         if stored_core is not None:
             row = con.execute(
                 "SELECT payload_hash FROM snapshots WHERE ts = ? AND expiry = ?",
@@ -443,17 +507,30 @@ def mirror_record(rec, gex_m, con=None):
                     "quarantined, not adopted", commit=False)
             decision = classify_event(stored_core, incoming_core)
             strikes_ok = (stored_strikes == incoming_strikes)
+            # J1-C: integrity — if the stored map was explicit (nonempty)
+            # but the projection rows are lost, we cannot verify a duplicate.
+            # An explicitly empty incoming map against a lost nonempty
+            # projection is an integrity mismatch, not a duplicate.
+            if (decision == "duplicate" and strikes_ok
+                    and stored_status == "explicit" and not stored_strikes
+                    and _map_status(gex_m) == "explicit_empty"):
+                return record_conflict(
+                    con, ts, expiry, kept_full, incoming_full,
+                    "integrity: stored strike projection lost for explicitly "
+                    "nonempty accepted map; cannot verify duplicate",
+                    commit=False)
             if decision == "duplicate" and strikes_ok:
                 return {"status": "duplicate"}
             reason = ("core payload changed" if decision == "conflict"
                       else "strike map changed for identical core")
             return record_conflict(con, ts, expiry, kept_full, incoming_full,
                                    reason, commit=False)
-        cols = ", ".join(SNAP_COLS + ["payload_hash"])
-        qs = ", ".join("?" * (len(SNAP_COLS) + 1))
+        cols = ", ".join(SNAP_COLS + ["payload_hash", "gex_map_status"])
+        qs = ", ".join("?" * (len(SNAP_COLS) + 2))
         rec_n = dict(rec, ts=ts)
+        # J1-C: persist the map availability status with the accepted event.
         con.execute(f"INSERT INTO snapshots ({cols}) VALUES ({qs})",
-                    _norm(rec_n) + [incoming_full])
+                    _norm(rec_n) + [incoming_full, _map_status(gex_m)])
         if incoming_strikes:
             rows = [(ts, expiry, float(k), v, formula)
                     for k, v in incoming_strikes.items()]
@@ -499,12 +576,12 @@ class ReplayState:
         if ident in self.events:
             return (self.events[ident], self.strikes.get(ident, {}),
                     ident in self.map_defined)
-        core, smap = fetch_stored(self.con, ts, expiry)
+        core, smap, status = fetch_stored(self.con, ts, expiry)
         if core is None:
             return None, {}, False
-        # DB projection: a non-empty strike set defines the map; an empty
-        # one leaves it unavailable (legacy rows never had embedded maps).
-        return core, smap, bool(smap)
+        # J1-C: the persisted map status is authoritative. 'explicit' and
+        # 'explicit_empty' both define the map; 'unavailable' does not.
+        return core, smap, status in ("explicit", "explicit_empty")
 
     def accept_event(self, ts, expiry, core, smap=_MAP_UNAVAILABLE):
         ident = self.ident(ts, expiry)
@@ -523,15 +600,37 @@ class ReplayState:
 
 def _classify_snapshot_line(state, rec):
     """J1-B: verdicts 'accepted' | 'duplicate' | 'conflict' | 'rejected'.
-    Non-dict lines are rejected, never fatal."""
+    Non-dict lines are rejected, never fatal.
+    J1-C: a journal line with an explicit embedded map must match the
+    accepted map — a changed embedded map is a conflict, just as in
+    direct mirror. However, if the embedded map is a strict superset of
+    the stored projection (and the stored status was explicit), that is
+    projection loss, not a change: the journal is authoritative, so the
+    verdict is duplicate and the missing strikes are repaired."""
     if not isinstance(rec, dict):
         return "rejected"
     ts, expiry = rec.get("ts"), rec.get("expiry")
     if not ts or not expiry:
         return "rejected"
-    stored_core, _, _ = state.stored(ts, expiry)
+    stored_core, stored_strikes, map_defined = state.stored(ts, expiry)
     decision = classify_event(stored_core, event_core(rec))
-    return "accepted" if decision == "new" else decision
+    if decision == "new":
+        return "accepted"
+    if decision == "conflict":
+        return "conflict"
+    # Duplicate core: J1-C — if the line carries an explicit embedded map
+    # and the accepted map is defined, they must agree, unless the
+    # difference is projection loss (embedded strictly superset).
+    embedded = _embedded_map(rec)
+    if embedded is not _MAP_UNAVAILABLE and map_defined:
+        if embedded == stored_strikes:
+            return "duplicate"
+        # Projection loss: embedded superset of stored → duplicate+repair.
+        if set(embedded.keys()) > set(stored_strikes.keys()) and all(
+                embedded[k] == stored_strikes[k] for k in stored_strikes):
+            return "duplicate"
+        return "conflict"
+    return "duplicate"
 
 
 def _embedded_map(rec):
@@ -637,6 +736,22 @@ def backfill(con=None, dry_run=False):
                 core_hash(event_core(rec)),
                 "backfill: journal line conflicts with accepted event; "
                 "not inserted")
+        elif verdict == "duplicate":
+            # J1-C: reconcile a duplicate accepted journal event — verify
+            # the DB strike projection against the embedded accepted map
+            # and repair absent rows from accepted content only.
+            embedded = _embedded_map(rec)
+            if embedded is not _MAP_UNAVAILABLE and embedded:
+                _, db_strikes, _ = state.stored(ts, expiry)
+                missing = {k: v for k, v in embedded.items()
+                           if k not in db_strikes}
+                if missing:
+                    # Update the overlay so subsequent lines classify
+                    # against the repaired projection.
+                    state.accept_strikes(ts, expiry, missing)
+                    if not dry_run:
+                        insert_gex_snapshot(ts, expiry, missing, con,
+                                            formula=rec.get("gex_formula"))
     for d in _lines(GEX_PATH):
         if d is None:
             counts["gex_rejected"] += 1

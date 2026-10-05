@@ -136,3 +136,64 @@ The twelve numerical/provenance/dashboard failures from the earlier
 20-case extension remain explicitly open: R1-A solver numerics, R5/R7
 interpreter admission/provenance, and dashboard projection checks. No
 assertion was weakened to claim closure.
+
+---
+
+## J1-C — durable complete-event admission and truthful reconciliation (2026-10-05)
+
+J1-C closes the eight continuity contracts the red team returned after
+verifying J1-B. Scope stays `maxpain_log.py`, `tape_db.py`, committed
+offline tests, and this policy.
+
+### Persisted semantic content
+
+The `snapshots` row now persists, alongside the canonical core:
+
+- `gex_units` — the actual units lineage (e.g. "USD millions per 1% spot
+  move"). Units are semantic: the same values with incompatible units are
+  a conflict, never a duplicate. `gex_units` is part of `SNAP_COLS`, hence
+  of `event_core()` and the semantic hash.
+- `gex_map_status` — `explicit` / `explicit_empty` / `unavailable`.
+  Written by `mirror_record()` and `insert_snapshot()`; added to existing
+  DBs by a compatibility `ALTER TABLE`. Rows predating the column report
+  `unavailable`. The status is authoritative: an explicitly empty map
+  survives restart and can never acquire strikes from a secondary line;
+  a lost nonempty projection is an integrity mismatch, never a verified
+  duplicate of an explicitly empty incoming map.
+
+Legacy rows without the new columns are never rewritten.
+
+### One complete-event verdict
+
+`_classify_snapshot_line()` now compares the full journal event,
+including the embedded strike map, exactly as direct mirror does. A
+primary journal row with a changed embedded map conflicts. Projection
+loss is distinguished from change: an embedded map that is a strict
+superset of the stored projection (with overlapping values equal) is a
+duplicate whose missing strikes are repaired from the journal — the
+journal is authoritative.
+
+### Truthful reconciliation
+
+Backfill reconciles duplicate journal events, not just new ones: on a
+duplicate snapshot with an embedded map, absent DB strike rows are
+reinserted from accepted content (dry-run and real agree; dry-run never
+writes). The logger's convergence verifies the DB snapshot projection
+against the accepted journal event; divergent values are repaired from
+the journal with an explicit "integrity repaired" note, never a false
+"already logged".
+
+### Legacy timestamp aliases
+
+Pre-normalization rows (written by old code with raw offset spellings)
+are resolved additively at read time: `_resolve_identity()` first tries
+the canonical ts, then scans the expiry's rows for one normalizing to
+the same instant. Raw history is never rewritten and no silent second
+identity is inserted; an equivalent instant replays as duplicate (or
+conflicts if the payload changed) with a receipt.
+
+### Open (out of scope for J1-C)
+
+The twelve numerical/provenance/dashboard failures remain open per the
+reviewer: R1-A solver numerics, R5/R7 interpreter admission/provenance,
+dashboard projection checks. No assertion was weakened to claim closure.

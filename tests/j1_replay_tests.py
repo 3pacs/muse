@@ -342,6 +342,89 @@ record("j1b_offset_identity",
        and c.snaps()[0][0] == "2026-10-05T14:00:00+00:00",
        f"snaps={c.snaps()} verdict={v['status']}")
 
+# ---- J1-C continuity contracts (committed regression) ----
+# 20. changed embedded map in primary journal is a conflict (not silent)
+c = Ctx()
+with open(c.p / "main.jsonl", "w") as fh:
+    fh.write(json.dumps({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                         "gex_formula": "v2", "gex_m": {"100": 0.02}}) + "\n")
+    fh.write(json.dumps({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                         "gex_formula": "v2", "gex_m": {"100": 0.5}}) + "\n")
+with c.con() as con:
+    counts = tape_db.backfill(con)
+record("j1c_embedded_map_change_conflict",
+       counts["snap_conflict"] == 1 and c.conflicts() == 1
+       and c.strikes() == [(100.0, 0.02, "v2")],
+       f"counts={counts} strikes={c.strikes()}")
+
+# 21. repeat backfill repairs missing strike projection from journal
+c = Ctx()
+with open(c.p / "main.jsonl", "w") as fh:
+    fh.write(json.dumps({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                         "gex_formula": "v2",
+                         "gex_m": {"100": 0.02, "101": 0.03}}) + "\n")
+with c.con() as con:
+    tape_db.backfill(con)
+    con.execute("DELETE FROM gex_strikes WHERE strike = 101")
+    con.commit()
+    tape_db.backfill(con)
+record("j1c_repeat_backfill_repairs",
+       c.strikes() == [(100.0, 0.02, "v2"), (101.0, 0.03, "v2")],
+       f"strikes={c.strikes()}")
+
+# 22. explicitly empty map persists; secondary line cannot add strikes
+c = Ctx()
+with c.con() as con:
+    tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                           "gex_formula": "v2"}, {}, con)
+with open(c.p / "gex.jsonl", "w") as fh:
+    fh.write(json.dumps({"ts": TS, "expiry": EXPIRY,
+                         "gex_m": {"100": 0.02},
+                         "gex_formula": "v2"}) + "\n")
+with c.con() as con:
+    counts = tape_db.backfill(con)
+record("j1c_explicit_empty_persists",
+       c.strikes() == [] and counts["gex_accepted"] == 0,
+       f"strikes={c.strikes()} counts={counts}")
+
+# 23. lost nonempty projection + explicitly empty incoming is not duplicate
+c = Ctx()
+with c.con() as con:
+    tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                           "gex_formula": "v2"}, {"100": 0.02}, con)
+    con.execute("DELETE FROM gex_strikes")
+    con.commit()
+    v = tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                               "gex_formula": "v2"}, {}, con)
+record("j1c_lost_map_not_duplicate",
+       v["status"] != "duplicate",
+       f"status={v['status']}")
+
+# 24. incompatible units are a semantic conflict
+c = Ctx()
+with c.con() as con:
+    tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                           "gex_formula": "v2",
+                           "gex_units": "USD millions per 1% spot move"},
+                          {"100": 0.02}, con)
+    v = tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                               "gex_formula": "v2",
+                               "gex_units": "USD millions per $1 spot move"},
+                              {"100": 0.02}, con)
+record("j1c_units_conflict", v["status"] == "conflict",
+       f"status={v['status']}")
+
+# 25. divergent DB projection is repaired from authoritative journal
+c = Ctx()
+c.run()
+with c.con() as con:
+    con.execute("UPDATE snapshots SET spot = 200")
+    con.commit()
+c.run()
+with c.con() as con:
+    spot = con.execute("SELECT spot FROM snapshots").fetchone()[0]
+record("j1c_divergence_repaired", spot == 100, f"db_spot={spot}")
+
 failed = [n for n, ok, _ in results if not ok]
 print(f"\n{len(results) - len(failed)}/{len(results)} pass")
 sys.exit(1 if failed else 0)

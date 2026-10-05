@@ -200,15 +200,16 @@ def main():
                 acc_explicit = True
             else:
                 # No embedded map; the DB projection is the fallback.
-                _, db_strikes = tape_db.fetch_stored(con, ts_c, expiry)
+                # J1-C: use the persisted map status, not just row presence.
+                _, db_strikes, db_status = tape_db.fetch_stored(con, ts_c, expiry)
                 accepted_gex = db_strikes
-                acc_explicit = bool(db_strikes)
+                acc_explicit = db_status in ("explicit", "explicit_empty")
         else:
-            stored_core, db_strikes = tape_db.fetch_stored(con, ts_c, expiry)
+            stored_core, db_strikes, db_status = tape_db.fetch_stored(con, ts_c, expiry)
             accepted_rec = (tape_db.rec_from_row(con, ts_c, expiry)
                             if stored_core is not None else None)
             accepted_gex = db_strikes
-            acc_explicit = bool(db_strikes)
+            acc_explicit = db_status in ("explicit", "explicit_empty")
         incoming_core = tape_db.event_core(rec)
         incoming_gex = tape_db.canonical_strikes(gex)
 
@@ -242,9 +243,34 @@ def main():
         def converge_missing():
             """Complete every projection from the ACCEPTED event only.
             Never uses the incoming payload. DB strikes are repaired
-            independently of snapshot presence (J1-B)."""
+            independently of snapshot presence (J1-B). J1-C: divergent
+            DB projection values are repaired from the authoritative
+            accepted event (journal wins); the repair is explicit, never
+            a silent 'already logged'."""
             if not tape_db.has_snapshot(con, ts_c, expiry):
                 tape_db.mirror_record(accepted_rec, acc_gex, con)
+            else:
+                # J1-C: verify the DB snapshot projection against the
+                # accepted event. On divergence, repair from accepted
+                # content — the journal is authoritative.
+                stored_core, _, _ = tape_db.fetch_stored(con, ts_c, expiry)
+                accepted_core = tape_db.event_core(accepted_rec)
+                if stored_core is not None and stored_core != accepted_core:
+                    # Repair: update the divergent row to the accepted event.
+                    # Use the resolved (possibly legacy-alias) ts.
+                    stored_ts = tape_db._resolve_identity(con, ts_c, expiry)
+                    if stored_ts is not None:
+                        rec_n = dict(accepted_rec)
+                        rec_n["ts"] = stored_ts  # preserve raw stored ts
+                        sets = ", ".join(f"{c} = ?" for c in tape_db.SNAP_COLS)
+                        vals = tape_db._norm(rec_n)
+                        con.execute(
+                            f"UPDATE snapshots SET {sets} "
+                            "WHERE ts = ? AND expiry = ?",
+                            vals + [stored_ts, expiry])
+                        con.commit()
+                        print(f"integrity repaired | ts={ts_c} "
+                              f"db_projection_diverged_from_journal")
             if _journal_find_event(LOG_PATH, ts_c, expiry) is None:
                 _append_line(LOG_PATH, accepted_rec)
             # strike map: prefer the accepted record's original key
@@ -262,7 +288,7 @@ def main():
             # J1-B: repair the DB strike projection from accepted content,
             # even when the snapshot row is present.
             if acc_explicit and acc_gex:
-                _, db_map = tape_db.fetch_stored(con, ts_c, expiry)
+                _, db_map, _ = tape_db.fetch_stored(con, ts_c, expiry)
                 missing = {k: v for k, v in acc_gex.items()
                            if k not in db_map}
                 if missing:
