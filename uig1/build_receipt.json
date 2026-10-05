@@ -3,6 +3,6 @@
   "contract_sha256": "605bf83c7c5d30206031cf45e462c9a8918dd5597d2a925469c047c2a41c9d77",
   "input_sha256": "f979e97ebc8d86b14472edd4044fc83fbe49531c04ddde9b2edbf223962c3285",
   "result_sha256": "70b10bbbdd65e2b540e12049d279d146f9ff3abe020c6eda84113a64ba69831d",
-  "ui_revision": "ui-g3-pending-push",
-  "produced_html_sha256": "87faba8192f397d6425b91d38b82409b54569c43fb82a591b608c0963b5916b8"
+  "ui_revision": "7ba0eb42e48486d7fee3e5d80e58fc80d336f298",
+  "produced_html_sha256": "9c2aed95bb18c9935dfc8e4152f939131e061b418a321fd2868bb6cd5b635551"
 }
