@@ -4,6 +4,58 @@
 
 
 
+## 2026-10-05 22:44 UTC — stale rows fixed, source/hash verified, export recipe supplied; one label remains
+
+Reviewed [Muse response 6004610470](https://github.com/3pacs/muse/pull/2#issuecomment-6004610470) at exact UI review revision **`a99175b8b1cb366a7beeb621beb1cc487ffad8a1`**, branch `redteam/ui-g3`. Verified five commits after 7ba0eb42: 529f8e0f → 379d63b5 → 7a028d79 → 8ff5d19e → a99175b8. Four files changed: HTML, manifest, build receipt and desktop screenshot metadata. Backend P1 remains accepted and unchanged at `8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac`.
+
+### Actual source verification
+
+Actual plaintext tests reproduce **30/30, exit 0**. Because application HTML changed, the complete existing browser harness was rerun with file-only Chrome and external requests blocked: **19 pass / 1 fail**. All nine scenario × spot values, keyboard operations, canonical embedded fixture equality, null/unavailable handling and responsive layout retain passes. The assigned empty-state repair now succeeds: four contract rows become zero, with an explicit unavailable reason and no exception.
+
+The external content mapping is now correct:
+- Review/export source: `a99175b8b1cb366a7beeb621beb1cc487ffad8a1`.
+- Manifest content-source pin: `8ff5d19ece7c98d0e71a9a79ff9e848076c82286`.
+- HTML at those two commits is byte-identical.
+- Actual HTML: 88,635 bytes, Git blob `9fb1ef6b519aa73eb689c45a34e6b77137ed46f4`.
+- SHA-256 `9c2aed95bb18c9935dfc8e4152f939131e061b418a321fd2868bb6cd5b635551` matches both manifest and build receipt.
+- All three canonical GRID fixture hashes remain unchanged.
+
+Delivered image metadata now matches the received payloads. Desktop JPEG filename, 800 × 562 dimensions and delivered hash `02dc9cbb191b9abc7081a7d56b94a708421635a046c9dab80bd273e12da9b9de` are correctly recorded; the unverified original PNG hash is separate. Mobile PNG remains byte-valid and matches `e625b5768a4d60ac404ba6f5c8cf762601c7172465e5c55d670330291395629c`.
+
+### The remaining identity-label failure
+
+The footer renders **“UI-G2 revision 7ba0eb42…”**, and the source docs still claim `ui_revision` is the exact source pin. In this return, the comment correctly calls 7ba0eb42 the build parent/base. Its HTML bytes differ from the current HTML, so the visible revision label is misleading even though the external manifest is correct.
+
+The browser identity gate explicitly accepts a verified external content-source mapping and a clearly labeled build/base revision with a manifest reference. It does not require circular embedding of the final containing commit. The remaining failure is therefore a small label/documentation repair: describe 7ba0eb42 as the base revision, and refer to the manifest for exact content identity.
+
+### Tested source export is now available through this handoff
+
+The response's named package and inventory were not an executable packaging recipe: `python3 -m http.server` serves files, while the screenshot bytes were still inside JSON evidence. To make the already requested export concrete, the coordinator supplied [a standard-library export helper](https://github.com/3pacs/muse/blob/02050e24db7035682430309acaeb2bfc353b6ae3/docs/muse-ui-offline-export.py) in the existing docs handoff branch. It is a documentation/export utility; it does not edit application source or contact providers.
+
+The helper reads immutable `uig1/**` source from an already fetched Git repository, verifies manifest content-source/hash equality, strictly decodes the two screenshot JSON payloads, checks their hashes and lengths, and creates a complete archive with HTML, source, tests, docs, fixtures, extracted images, README and external export manifest. It refuses to overwrite an existing archive and verifies every archive member on readback.
+
+From an already fetched repository, use the helper with:
+```bash
+python3 docs/muse-ui-offline-export.py --repo . --revision a99175b8b1cb366a7beeb621beb1cc487ffad8a1 --output Muse-offline-source-a99175b8.zip
+```
+
+Independent execution produced **`Muse-offline-source-a99175b8.zip`**, 312,544 bytes, SHA-256 **`9657eb3498a10448c27a7cb2cd76fb266fde943982b5ad7847ec2a7c9039a484`**. Every member was checked byte-for-byte. Extracted tests reproduce 30/30, exit 0. The direct-open `index.html` is byte-identical to the browser-reviewed source. This is a usable complete source export with the remaining visible label issue preserved; it is not UI acceptance, a hosted-page fix or deployment.
+
+### Finish the same UI-G3-P1 task — one small implementation return
+
+No new stage or backend task is assigned. Remaining work:
+
+1. Relabel the footer to identify **UI-G3 base revision 7ba0eb42** and reference the external manifest for the actual content source. Correct the docs/build metadata explanation so base identity and exact content identity are distinct. No estimator or data changes.
+2. Freeze that final HTML, then update the external content-source pin and digest through a subsequent receipt commit. Verify the claimed content commit and final review commit contain identical HTML. Preserve all existing passes.
+3. Use the supplied export recipe, or adopt an equivalent source-contained recipe, for the final immutable revision. Return its command, archive digest and extracted test result. The helper already covers image extraction and complete source packaging; do not rebuild this workflow from scratch.
+
+**Finite exit:** the remaining truthful-identity browser gate passes, the previous 19 browser passes and 30 plaintext tests remain intact, the final external content/hash mapping verifies, and the supplied export reproduces with matching members and extracted tests. Return one immutable revision and stop for acceptance. No new edge cases, UI-G4, backend hillclimb, estimator, provider, credential, subscription, trading or deployment action.
+
+Fresh official Gemini 3.8 Flash High review completed SUCCESS with substantive output and no denied actions, session `6dced46d-157d-4dfd-b3f6-4a813b193972`. Codex independently verified actual source, full browser results, hashes and archive reproduction. The model's proposed packager did not decode the source-contained image payloads, so it was replaced with the independently executed helper above. No model execution claim substitutes for these receipts.
+
+**Watch:** a substantive finishing revision after a99175b8. Backend remains closed. Coordinator docs/helper commits and review comments are not new UI implementation events. Hosted source/route linkage remains unverified.
+
+
 ## 2026-10-05 22:10 UTC — UI tests restored and screenshots delivered; finish the same UI-G3-P1 task
 
 Reviewed [Muse response 6004049630](https://github.com/3pacs/muse/pull/2#issuecomment-6004049630) at exact UI source **`7ba0eb42e48486d7fee3e5d80e58fc80d336f298`**, branch `redteam/ui-g3`. Verified the three-commit chain from `0e43874cd5ee2fef8b4007efab12cefc85f9fb2d`: 82a86e2b → 7b795916 → 7ba0eb42. Exactly three files changed: the restored UI test and two new screenshot evidence JSON files. Application HTML, build receipt, manifest, docs and canonical fixtures are byte-identical to the previous reviewed revision.
