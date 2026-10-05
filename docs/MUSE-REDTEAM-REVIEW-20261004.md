@@ -4,6 +4,765 @@
 
 
 
+## 2026-10-05 17:08 UTC — J1-D and UI-G1 reviewed; next owned stages J1-E / UI-G2
+
+This is the independent response to [J1-D comment 5999019626](https://github.com/3pacs/muse/pull/2#issuecomment-5999019626) and [UI-G1 comment 5999069765](https://github.com/3pacs/muse/pull/2#issuecomment-5999069765). It advances the two existing authorized lanes; it does not create another handoff or duplicate pending work. Earlier dated tasks are historical. **Current backend task: J1-E. Current frontend task: UI-G2.** GRID remains the canonical estimator owner.
+
+### Exact revisions and validation
+
+| Lane | Source / ancestry | Reproduced passes | Remaining acceptance |
+| --- | --- | --- | --- |
+| Backend J1-D | `0aea3a3dd8eb636ae099ffe5d9ba61604020c695`, branch `redteam/fixes-j1d`, exact parent `c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba`; one commit, exactly two Python files plus committed replay tests/policy | Original21/21, solver probes5/5, required J1 8/8, J1-B10/10, J1-C8/8, J1-D8/8, committed35/35. Earlier20-case extension stays8 pass /12 open outside this recovery scope | New full-proof extension **0 pass /10 fail** below. The ten passing old J1-D contracts are not invalidated; these are additional boundaries, not ten claimed regressions |
+| Frontend UI-G1 | `58fffe8545ab9ead8aa47ae0c8bb6b19ebcc5320`, branch `redteam/ui-g1`; two UI-only commits via `9a00d664c7938cde393fa246245ab87c5b991c66` on exact parent `c3a0a4b1`; seven files only under `uig1/` | Committed21/21 string checks. Independent file-only Chromium **7 pass /8 fail** across15 contracts. Canonical contract/input/result bytes are exact, embedded declared JSON is semantically exact, all3 scenario values at760 render with correct signs, OI0 survives, UTC/synthetic disclaimers and click drilldown pass, no external requests | Missing spot/provenance/status controls, false build clock, unavailable-point exception, mobile page overflow and keyboard drilldown below |
+
+All eleven source blobs were recomputed from immutable fetched Git objects and matched GitHub's exact diff blob IDs. Original checkouts and previous receipts were preserved. Backend fixtures use fixed synthetic event times, fresh logger processes, disposable SQLite/journals and blocked transports. Changed projection values/digests are explicit fault injections; **no live-corruption claim** is made. UI browser uses the local immutable HTML file in a temporary isolated Chrome profile; all HTTP requests are intercepted/blocked. No deployed page was changed.
+
+Two fresh accepted official Gemini3.8 reviews completed: backend `cb35f33c-3185-4c64-a478-1e096b79f178` and UI `b3918957-63d6-4ba8-9221-46103dd49aa0`, both SUCCESS, substantive response, no denied actions. Codex independently ran every published failure. The first UI model attempt `9c8ad6ce-b01f-4c0a-bfd6-466953170f1c` returned an empty response with a denied command and was discarded; a bounded fresh text-only retry supplied the accepted review. Model suggestions with invented `spot_price`/clock keys, missing OI vintage called stale, or a previous commit hardcoded as a new build identity were rejected. Actual canonical spot key is `spot`; unknown dates remain unknown. No unexecuted model speculation is reported as a reproduced finding.
+
+### Backend: full accepted-content proof still bypassed
+
+| Executed contract | Actual result at 0aea3a3d | Required result |
+| --- | --- | --- |
+| `ambiguous_logger_does_not_append_rejected` | Two genuinely different old timestamp aliases and missing journal: logger prints `mirror=conflict` but appends incoming primary/strike history | mirror conflict/ambiguous identity never appends incoming accepted journal or strike history |
+| `all_core_alias_ambiguity` | Same spot/formula but max_pain100 vs101 aliases: duplicate/legacy_validated, zero conflicts | same spot/formula aliases with any different accepted core or map are ambiguous and quarantined |
+| `all_map_alias_ambiguity` | Same core but strike100=.02 vs.5 aliases: duplicate/legacy_validated, zero conflicts | same spot/formula aliases with any different accepted core or map are ambiguous and quarantined |
+| `alias_value_repair_updates_actual_row` | Offset row remains .5 after logger prints `integrity repaired` and `already logged`; UPDATE targeted canonical ts, matched no stored row | repair actually changes resolved legacy row or honestly quarantines, not a zero-row UPDATE with repaired/complete message |
+| `db_only_digest_mismatch_cannot_be_accepted` | Delete journals, mutate only DB strike to.5, incoming.5: logger recreates journal.5 and prints already logged although retained accepted digest belongs to.02 | DB projection changed from accepted digest is unavailable/integrity conflict; do not recover altered content from projection or incoming feed |
+| `backfill_reconciles_values_not_just_keys` | Accepted original journal/digest plus divergent DB.5: dry and real both duplicate1/conflict0; DB remains.5 | digest-proven original duplicate repairs divergent values or explicitly marks integrity failure |
+| `stored_digest_mismatch_not_exact_map_fallback` | Present incompatible digest plus matching projection: direct mirror and backfill call duplicate; invalid digest remains | a present incompatible digest fails proof even when current projection/core happen to match; exact-map legacy fallback is only for absent digest |
+| `unavailable_accepted_map_not_silently_adopted` | Accepted map unavailable: later embedded.02 is adopted as duplicate, DB map nonempty while durable status stays unavailable | unavailable accepted map cannot accept unproved later map or leave a hybrid unavailable/nonempty projection |
+| `logger_projection_formula_integrity` | Value unchanged but strike formula v1 against accepted v2: already logged, wrong formula remains | formula metadata checked alongside strike value; wrong lineage repaired from accepted proof or unavailable |
+| `secondary_projection_preserves_source_units` | Primary source units millions per$1, secondary journal relabeled millions per1% | each accepted projection carries exact source-reported units; never relabel incompatible units |
+
+Source anchors: [logger unconditional post-mirror append](https://github.com/3pacs/muse/blob/0aea3a3dd8eb636ae099ffe5d9ba61604020c695/maxpain_log.py#L218), [incomplete alias comparison](https://github.com/3pacs/muse/blob/0aea3a3dd8eb636ae099ffe5d9ba61604020c695/tape_db.py#L185), [digest/map-defined bypass and fallback](https://github.com/3pacs/muse/blob/0aea3a3dd8eb636ae099ffe5d9ba61604020c695/tape_db.py#L664), [key-only replay repair](https://github.com/3pacs/muse/blob/0aea3a3dd8eb636ae099ffe5d9ba61604020c695/tape_db.py#L790), [alias-blind value UPDATE](https://github.com/3pacs/muse/blob/0aea3a3dd8eb636ae099ffe5d9ba61604020c695/maxpain_log.py#L292). The digest test does not authorize accepting a guessed repair: with no complete trusted accepted record and a digest mismatch, keep unavailable/quarantine. A truthful quarantine can satisfy the integrity contract when exact repair is impossible.
+
+### Next backend task J1-E — finish proof across every recovery path
+
+Start exact `0aea3a3d`. Keep ownership in `maxpain_log.py`, `tape_db.py`, focused offline persistence tests/`tests/j1_replay_tests.py`, and `docs/J1-EVENT-REPLAY-POLICY.md`. Keep solver/interpreter/dashboard/GRID/frontend edits out of this lane.
+
+1. Resolve all same-instant aliases using the full canonical core, full strike map/status and lineage. Matching spot/formula alone is insufficient. Propagate ambiguity consistently to reads, hash lookups, writers and logger; never append incoming accepted content after mirror conflict or unresolved ambiguity.
+2. Prove complete DB-only reconstructed content against the retained accepted digest before recovery or duplicate admission. A present digest mismatch cannot fall through to an exact-current-map legacy comparison. A truly absent legacy digest needs explicit full-content validation; unavailable map content must not be silently adopted.
+3. Use the resolved actual stored identity for repairs and hash writes, verify affected rows and the resulting complete projection. Compare strike values and formula/units, not just keys. Keep primary and secondary units source-faithful, including unknown units. Backfill/logger/direct mirror must agree on accepted content and explicit/unavailable state.
+4. Preserve all preceding21/5/8/10/8/8/35 controls and close these ten contracts. Add committed restart tests that cover DB-only fault recovery, both alias ambiguity dimensions, offset repair, invalid retained digest, unavailable map and lineage. Quarantine with truthful receipts is acceptable when trusted proof is insufficient; silently calling a wrong projection complete is not.
+
+Return one immutable backend revision with exact parent/file list and before/after machine receipts here, then stop for review. Do not claim the twelve numerical/admission/dashboard failures resolved. Optimization can follow correctness; the earlier measured alias-index proposal must retain all candidates/ambiguity and never replace proof with first-match selection.
+
+### Frontend: canonical rendering works, operator context and responsive acceptance incomplete
+
+The copied canonical contract/input/result SHA-256s are unchanged:
+`605bf83c7c5d30206031cf45e462c9a8918dd5597d2a925469c047c2a41c9d77`,
+`f979e97ebc8d86b14472edd4044fc83fbe49531c04ddde9b2edbf223962c3285`,
+`70b10bbbdd65e2b540e12049d279d146f9ff3abe020c6eda84113a64ba69831d`.
+The existing canonical delivery links below remain authoritative.
+
+| Independent failed UI contract | Reproduced result |
+| --- | --- |
+| `source_authentication_axis_visible` | Status cards show numerical/coverage/inventory/units; actual `source_authentication=SYNTHETIC` axis omitted. Header already correctly labels synthetic; this is missing explicit axis, not a claim the header calls it live |
+| `valuation_and_spot_source_clocks_visible` | Fixture valuation2026-09-28T15:00:00Z and spot source14:59:55Z absent from rendered body |
+| `all_precomputed_spots_selectable` | Only scenario selector exists; renderer hardcodes `s.spots[0]`=760, no765/770 selector or clear evaluated-spot control |
+| `contract_provenance_and_unknown_oi_visible` | OI vintage, quote/Greek/OI source and receipt clocks, sources, spot clock context not inspectable. Generic “null preserved” subtext is not per-contract disclosure; provider numerical gamma is also replaced by the NOT_FRESH label |
+| `expiry_drilldown_keyboard_accessible` | Click-only TR has tabIndex-1, no focus/role/key handling |
+| `mobile_page_width_fits` | At390×844, document/body width761px and contract-table width744.7px; page-level horizontal overflow. Independent screenshot visibly confirms wide tables outside the viewport layout |
+| `build_provenance_not_runtime_clock` | “Built” timestamp is `new Date().toISOString()` at page load; this is not an immutable source/build receipt |
+| `unsupported_null_aggregate_is_unavailable` | A canonical schema-shaped synthetic NOT_SUPPORTED point with reason, `aggregates=null`, `contracts=null` throws “Cannot read properties of null (reading 'by_expiry')”. Happy canonical fixture still renders; this is a separate unavailable-point probe |
+
+[Exact renderer source](https://github.com/3pacs/muse/blob/58fffe8545ab9ead8aa47ae0c8bb6b19ebcc5320/uig1/frontend/gex-granular-dashboard.html#L89). Committed21 tests inspect HTML strings, including the full embedded JSON; a field existing only inside that payload can pass without becoming visible. They do not establish responsive/interaction/status acceptance.
+
+Reviewer captured and inspected source-pinned local desktop1280×900, desktop expanded drilldown and mobile390×844 images:
+- `desktop-1280.png`: SHA-256 `adaa5d6dd083365c0a6869dffcaa25dadb5714d58c2f73fe8420398af79d859e`.
+- `desktop-1280-drilldown.png`: SHA-256 `6bc3d3599abc57cc3f225fe071fb9af6a474db173890e47617a63b65b4064037`.
+- `mobile-390.png`: SHA-256 `8f6b76762f69f4524cc9a4c353d7b513e408665f4926170289f256484c4c58b1`.
+These screenshots are reviewer artifacts, not a claim about the hosted Muse page. Their bytes and local paths are in the coordinator receipt; return your own portable screenshot artifacts with the next source revision.
+
+### Next frontend task UI-G2 — finish the precomputed explorer and provenance
+
+Start exact `58fffe85`, keep ownership under existing `uig1/**` (frontend, UI fixtures/tests and `uig1/docs/MUSE-GRANULAR-UI.md`). Do not touch J1 backend files, shared GRID code, `interpreter.py` or `dashboard_build.py`.
+
+1. Add a clearly labeled selector for the provided spots760/765/770 and show the chosen scenario/spot/valuation context. Render exact precomputed contract/strike/expiry/total values; no frontend Greek engine, spot interpolation/extrapolation or fabricated positions. Keep OI gross versus assumed inventory gross versus signed net, call/put and UTC-date-only0DTE distinct.
+2. Render all four status axes including source_authentication, with units separately. Show fixture valuation, spot source/receipt clocks, per-contract quote/Greek/OI source and receipt timestamps or ages relative to fixture valuation, true OI vintage unknown, direct-IV recomputation semantics and provider gamma numeric value with NOT_FRESH. Arrival time never substitutes for unknown source/OI vintage. Inventory fractions remain hypothetical net-position assumptions, not observed gross holdings.
+3. Support null/unavailable/NOT_SUPPORTED/empty results with an explicit reason and no stale prior table, zero substitution or exception. Preserve legitimate OI0 and zero signed exposure.
+4. Polish responsive hierarchy at1280 and390×844, with tables in contained scroll regions or readable mobile detail cards. Keep page width within viewport, labels/units/signs legible, keyboard-operable scenario/spot/expiry/contract controls, focus and expanded state. Add meaningful DOM/interaction tests for each of the eight failed contracts and screenshot evidence with drilldown open.
+5. Replace runtime “Built” with real reproducible source/build/fixture hashes or explicitly unknown metadata. Return exact frontend commit, artifact digest, fixture origin/hashes, reproducible open/build command and deployment-linkage status. The published [Muse dashboard](https://muse.ai/s/0dte-dashboard-xlk6gxicxxxtxwxnxp) has no demonstrated revision/schema mapping to this standalone source. Do not infer linkage, fabricate a deployment receipt or deploy without separate authorization.
+
+**Acceptance:** preserve the seven independent browser controls and21 earlier checks; all eight failed browser contracts pass; separately exercise all9 scenario×spot combinations against exact canonical payload, contract/expiry/strike drills, full source/unknown metadata, null point plus empty case, keyboard use and1280/390 screenshots. Revised tests can use portable selectors, but cannot weaken the underlying visible behavior. If a hosted source mapping is unavailable, explicitly report it unavailable and return the isolated artifact for review; no blocked live acceptance claim.
+
+Return a separate immutable UI revision with its before/after DOM/screenshot receipts here. This proceeds in parallel with J1-E and does not reset canonical GRID work or authorize runtime integration/merge/deploy/provider operations.
+
+### Reproducible reviewer evidence
+
+Backend script below runs from a workspace with immutable public Muse objects in `muse-audit/`, saved as `outputs/iteration-0aea3a3d/j1-proof.py`. It loads exact0aea3a3d and the actual olded3b8741 writer via git show; no checkout modification or live I/O. Network transports are blocked; only disposable stores are mutated. SHA-256 `4d5ee749f31f8bbf507922bcefc2f792b3948e790d318030e151819879d58a6f`.
+
+```python
+"""Additional source-pinned J1 boundary contracts, synthetic and offline."""
+import datetime as dt, hashlib, json, pathlib, socket, sqlite3, subprocess, sys, tempfile, types, urllib.request
+ROOT=pathlib.Path(__file__).resolve().parents[2]
+SHA='0aea3a3dd8eb636ae099ffe5d9ba61604020c695'
+TS='2026-10-05T19:59:00+00:00'; EXP='2026-10-05'
+def blocked(*a,**k): raise AssertionError('unmocked network attempted')
+socket.socket.connect=blocked;socket.create_connection=blocked;urllib.request.urlopen=blocked
+def load(name):
+    source=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',SHA+':'+name+'.py'],text=True)
+    m=types.ModuleType(name);m.__file__=str(ROOT/'muse-audit'/name)+'.py'
+    exec(compile(source,m.__file__,'exec'),m.__dict__)
+    return m
+def feed(ts=TS,empty=False):
+    return dict(status='ok',updated_at=ts,quote_as_of=TS,expiry=EXP,spot=100,
+                gamma=dict(gex_formula='v2',by_strike=[] if empty else [dict(strike=100,net_gex_m=.02)]))
+def worker(folder):
+    p=pathlib.Path(folder);db=load('tape_db');sys.modules['tape_db']=db;m=load('maxpain_log')
+    db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db')
+    m.LOG_PATH=str(p/'main.jsonl');m.GEX_SNAP_PATH=str(p/'gex.jsonl')
+    m.LOCK_PATH=str(p/'lock');m.EVENTS_PATH=str(p/'absent')
+    m.fetch=lambda:json.loads((p/'feed.json').read_text())
+    m.main()
+if len(sys.argv)>1 and sys.argv[1]=='worker':
+    worker(sys.argv[2]);raise SystemExit(0)
+def run(p,f):
+    (p/'feed.json').write_text(json.dumps(f))
+    r=subprocess.run([sys.executable,str(pathlib.Path(__file__).resolve()),'worker',str(p)],capture_output=True,text=True,check=True)
+    return r.stdout
+def context(p):
+    db=load('tape_db');db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db');db.LOG_PATH=str(p/'main.jsonl');db.GEX_PATH=str(p/'gex.jsonl')
+    con=db.connect();db.init_db(con);return db,con
+def row(ts=TS,spot=100):
+    return dict(ts=ts,expiry=EXP,spot=spot,gex_formula='v2')
+def strike_line(gex,formula='v2'):
+    return dict(ts=TS,expiry=EXP,spot=100,gex_m=gex,gex_formula=formula)
+def write(p,fn,records): (p/fn).write_text(''.join(json.dumps(r)+'\n' for r in records))
+
+def old_module(sha):
+    source=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',sha+':tape_db.py'],text=True)
+    m=types.ModuleType('legacy');m.__file__='legacy.py';exec(compile(source,m.__file__,'exec'),m.__dict__);return m
+
+# Full accepted-content proof and all-alias boundary contracts. Synthetic only.
+results=[]
+def record(name,ok,observed,expected):
+    results.append(dict(name=name,pass_contract=bool(ok),observed=observed,expected=expected))
+def lines(p,name):
+    return [json.loads(s) for s in (p/name).read_text().splitlines()] if (p/name).exists() else []
+def conflict_count(c): return c.execute('SELECT COUNT(*) FROM mirror_conflicts').fetchone()[0]
+def strikes(c): return [tuple(r) for r in c.execute('SELECT strike,net_gex_m FROM gex_strikes ORDER BY strike')]
+def raw_alias(c):
+    alias='2026-10-05T15:59:00-04:00'
+    for table in ['snapshots','gex_strikes']:
+        c.execute('UPDATE '+table+' SET ts=?',(alias,))
+    c.commit();return alias
+def legacy_pair(p,c,a,b,mapa,mapb):
+    old=old_module('ed3b8741c21b58438be1da65a1dca17d0c5e3bac')
+    for rec,sm in [(a,mapa),(b,mapb)]:
+        old.insert_snapshot(rec,c);old.insert_gex_snapshot(rec['ts'],EXP,sm,c)
+    db=load('tape_db');db.init_db(c);return db
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p)
+    a=row();b=row(ts='2026-10-05T15:59:00-04:00',spot=200)
+    db=legacy_pair(p,c,a,b,{'100':.02},{'100':.02});c.close()
+    stdout=run(p,feed());db,c=context(p)
+    record('ambiguous_logger_does_not_append_rejected',not lines(p,'main.jsonl') and conflict_count(c)>0,
+       dict(stdout=stdout,journal=lines(p,'main.jsonl'),conflicts=conflict_count(c)),
+       'mirror conflict/ambiguous identity never appends incoming accepted journal or strike history');c.close()
+
+for name,which in [('all_core_alias_ambiguity','core'),('all_map_alias_ambiguity','map')]:
+    with tempfile.TemporaryDirectory() as td:
+        p=pathlib.Path(td);db,c=context(p)
+        a=dict(row(),max_pain=100);b=dict(row(ts='2026-10-05T15:59:00-04:00'),max_pain=101 if which=='core' else 100)
+        db=legacy_pair(p,c,a,b,{'100':.02},{'100':.5 if which=='map' else .02})
+        verdict=db.mirror_record(a,{'100':.02},c)
+        record(name,verdict['status']=='conflict' and conflict_count(c)>0,
+          dict(verdict=verdict,conflicts=conflict_count(c),rows=[tuple(r) for r in c.execute('SELECT ts,spot,max_pain FROM snapshots')]),
+          'same spot/formula aliases with any different accepted core or map are ambiguous and quarantined');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);run(p,feed());db,c=context(p);alias=raw_alias(c)
+    c.execute('UPDATE gex_strikes SET net_gex_m=.5');c.commit();c.close()
+    stdout=run(p,feed());db,c=context(p);value=c.execute('SELECT net_gex_m FROM gex_strikes WHERE ts=?',(alias,)).fetchone()[0]
+    record('alias_value_repair_updates_actual_row',value==.02 or ('quarantin' in stdout.lower() and 'already logged' not in stdout.lower()),
+       dict(stdout=stdout,value=value,rows=[tuple(r) for r in c.execute('SELECT ts,strike,net_gex_m FROM gex_strikes')]),
+       'repair actually changes resolved legacy row or honestly quarantines, not a zero-row UPDATE with repaired/complete message');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);run(p,feed());db,c=context(p)
+    original_digest=c.execute('SELECT payload_hash FROM snapshots').fetchone()[0]
+    c.execute('UPDATE gex_strikes SET net_gex_m=.5');c.commit();c.close()
+    for fn in ['main.jsonl','gex.jsonl']:(p/fn).unlink()
+    incoming=feed();incoming['gamma']['by_strike'][0]['net_gex_m']=.5
+    stdout=run(p,incoming);db,c=context(p);journal=lines(p,'main.jsonl')
+    valid=not journal or all(db._payload_hash(r)==original_digest for r in journal)
+    record('db_only_digest_mismatch_cannot_be_accepted',valid and conflict_count(c)>0,
+       dict(stdout=stdout,journal_gex=[r.get('gex_m') for r in journal],original_digest=original_digest,conflicts=conflict_count(c)),
+       'DB projection changed from accepted digest is unavailable/integrity conflict; do not recover altered content from projection or incoming feed');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);a=dict(row(),gex_m={'100':.02})
+    write(p,'main.jsonl',[a]);db.backfill(c)
+    c.execute('UPDATE gex_strikes SET net_gex_m=.5');c.commit()
+    dry=db.backfill(c,dry_run=True);real=db.backfill(c)
+    record('backfill_reconciles_values_not_just_keys',strikes(c)==[(100.,.02)] or real['snap_conflict']>0,
+       dict(dry=dry,actual=real,strikes=strikes(c)),
+       'digest-proven original duplicate repairs divergent values or explicitly marks integrity failure');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);a=dict(row(),gex_m={'100':.02})
+    db.mirror_record(a,a['gex_m'],c);c.execute("UPDATE snapshots SET payload_hash='wrong-digest'");c.commit()
+    verdict=db.mirror_record(a,a['gex_m'],c);write(p,'main.jsonl',[a]);counts=db.backfill(c)
+    record('stored_digest_mismatch_not_exact_map_fallback',verdict['status']=='conflict' and counts['snap_conflict']>0,
+       dict(verdict=verdict,counts=counts,digest=c.execute('SELECT payload_hash FROM snapshots').fetchone()[0]),
+       'a present incompatible digest fails proof even when current projection/core happen to match; exact-map legacy fallback is only for absent digest');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);a=row();db.insert_snapshot(a,c)
+    write(p,'main.jsonl',[dict(a,gex_m={'100':.02})]);counts=db.backfill(c)
+    record('unavailable_accepted_map_not_silently_adopted',not strikes(c) and counts['snap_conflict']>0,
+       dict(counts=counts,strikes=strikes(c),status=c.execute('SELECT gex_map_status FROM snapshots').fetchone()[0]),
+       'unavailable accepted map cannot accept unproved later map or leave a hybrid unavailable/nonempty projection');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);run(p,feed());db,c=context(p)
+    c.execute("UPDATE gex_strikes SET gex_formula='v1'");c.commit();c.close()
+    stdout=run(p,feed());db,c=context(p);formula=c.execute('SELECT gex_formula FROM gex_strikes').fetchone()[0]
+    record('logger_projection_formula_integrity',formula=='v2' or ('quarantin' in stdout.lower() and 'already logged' not in stdout.lower()),
+       dict(stdout=stdout,strike_formula=formula,snapshot_formula=c.execute('SELECT gex_formula FROM snapshots').fetchone()[0]),
+       'formula metadata checked alongside strike value; wrong lineage repaired from accepted proof or unavailable');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);f=feed();f['gamma']['gex_units']='USD millions per $1 spot move';run(p,f)
+    primary=lines(p,'main.jsonl')[0];secondary=lines(p,'gex.jsonl')[0]
+    record('secondary_projection_preserves_source_units',primary.get('gex_units')==secondary.get('gex_units')=='USD millions per $1 spot move',
+       dict(primary_units=primary.get('gex_units'),secondary_units=secondary.get('gex_units')),
+       'each accepted projection carries exact source-reported units; never relabel incompatible units')
+
+out=dict(source_head=SHA,synthetic_only=True,network_blocked=True,results=results,
+ passes=sum(r['pass_contract'] for r in results),failures=sum(not r['pass_contract'] for r in results),
+ harness_sha256=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest())
+(pathlib.Path(__file__).parent/'j1-proof-results.json').write_text(json.dumps(out,indent=2)+'\n')
+print(json.dumps(out,indent=2))
+```
+
+Exact backend machine receipt (fixed synthetic event identity; logged receipt time excluded from semantic hashes):
+```json
+{
+  "source_head": "0aea3a3dd8eb636ae099ffe5d9ba61604020c695",
+  "synthetic_only": true,
+  "network_blocked": true,
+  "results": [
+    {
+      "name": "ambiguous_logger_does_not_append_rejected",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "logged | spot=100 max_pain=None expiry=2026-10-05 mirror=conflict\n",
+        "journal": [
+          {
+            "ts": "2026-10-05T19:59:00+00:00",
+            "logged_at": "2026-10-05T16:59:06.698042+00:00",
+            "market_open": null,
+            "expiry": "2026-10-05",
+            "spot": 100,
+            "quote_as_of": "2026-10-05T19:59:00+00:00",
+            "nasdaq_as_of": null,
+            "src_mix": "None rtd + None nasdaq_delayed",
+            "max_pain": null,
+            "call_wall": null,
+            "put_wall": null,
+            "gamma_flip": null,
+            "net_gex_m": null,
+            "gex_formula": "v2",
+            "gex_units": null,
+            "gamma_regime": null,
+            "top_gamma": [],
+            "charm_k": null,
+            "vanna_k": null,
+            "call_volume": null,
+            "put_volume": null,
+            "call_oi": null,
+            "put_oi": null,
+            "pc_volume": null,
+            "pc_oi": null,
+            "hottest_strike": null,
+            "hottest_call_vol": null,
+            "hottest_put_vol": null,
+            "unusual_count": 0,
+            "unusual_notional_k": 0,
+            "top_unusual": null,
+            "atm_iv": null,
+            "atm_put_iv": null,
+            "atm_strike": null,
+            "rr_25d": null,
+            "smile_width": null,
+            "smile_min_strike": null,
+            "exp_move_dollars": null,
+            "exp_move_pct": null,
+            "exp_move_rem_dollars": null,
+            "exp_move_rem_pct": null,
+            "pin_score": null,
+            "pin_magnet": null,
+            "hedge_25bp_m": null,
+            "hedge_25bp_dir": null,
+            "hedge_1pct_m": null,
+            "hedge_1pct_dir": null,
+            "dealer_gamma_m_per_pt": null,
+            "rev_magnet": null,
+            "rev_disp_dollars": null,
+            "rev_stretched": null,
+            "rev_conditions": [],
+            "events": [],
+            "ts_original": "2026-10-05T19:59:00+00:00",
+            "gex_m": {
+              "100": 0.02
+            }
+          }
+        ],
+        "conflicts": 1
+      },
+      "expected": "mirror conflict/ambiguous identity never appends incoming accepted journal or strike history"
+    },
+    {
+      "name": "all_core_alias_ambiguity",
+      "pass_contract": false,
+      "observed": {
+        "verdict": {
+          "status": "duplicate",
+          "legacy_validated": true
+        },
+        "conflicts": 0,
+        "rows": [
+          [
+            "2026-10-05T19:59:00+00:00",
+            100,
+            100
+          ],
+          [
+            "2026-10-05T15:59:00-04:00",
+            100,
+            101
+          ]
+        ]
+      },
+      "expected": "same spot/formula aliases with any different accepted core or map are ambiguous and quarantined"
+    },
+    {
+      "name": "all_map_alias_ambiguity",
+      "pass_contract": false,
+      "observed": {
+        "verdict": {
+          "status": "duplicate",
+          "legacy_validated": true
+        },
+        "conflicts": 0,
+        "rows": [
+          [
+            "2026-10-05T19:59:00+00:00",
+            100,
+            100
+          ],
+          [
+            "2026-10-05T15:59:00-04:00",
+            100,
+            100
+          ]
+        ]
+      },
+      "expected": "same spot/formula aliases with any different accepted core or map are ambiguous and quarantined"
+    },
+    {
+      "name": "alias_value_repair_updates_actual_row",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "integrity repaired | ts=2026-10-05T19:59:00+00:00 divergent_strike_values\nalready logged | ts=2026-10-05T19:59:00+00:00\n",
+        "value": 0.5,
+        "rows": [
+          [
+            "2026-10-05T15:59:00-04:00",
+            100,
+            0.5
+          ]
+        ]
+      },
+      "expected": "repair actually changes resolved legacy row or honestly quarantines, not a zero-row UPDATE with repaired/complete message"
+    },
+    {
+      "name": "db_only_digest_mismatch_cannot_be_accepted",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "already logged | ts=2026-10-05T19:59:00+00:00\n",
+        "journal_gex": [
+          {
+            "100.0": 0.5
+          }
+        ],
+        "original_digest": "f1f84cbedc3e5b974ac06dd54999c81887e808e40988029115ac745c5661e7f2",
+        "conflicts": 0
+      },
+      "expected": "DB projection changed from accepted digest is unavailable/integrity conflict; do not recover altered content from projection or incoming feed"
+    },
+    {
+      "name": "backfill_reconciles_values_not_just_keys",
+      "pass_contract": false,
+      "observed": {
+        "dry": {
+          "snap_accepted": 0,
+          "snap_duplicate": 1,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_orphan": 0,
+          "gex_rejected": 0
+        },
+        "actual": {
+          "snap_accepted": 0,
+          "snap_duplicate": 1,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_orphan": 0,
+          "gex_rejected": 0
+        },
+        "strikes": [
+          [
+            100,
+            0.5
+          ]
+        ]
+      },
+      "expected": "digest-proven original duplicate repairs divergent values or explicitly marks integrity failure"
+    },
+    {
+      "name": "stored_digest_mismatch_not_exact_map_fallback",
+      "pass_contract": false,
+      "observed": {
+        "verdict": {
+          "status": "duplicate"
+        },
+        "counts": {
+          "snap_accepted": 0,
+          "snap_duplicate": 1,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_orphan": 0,
+          "gex_rejected": 0
+        },
+        "digest": "wrong-digest"
+      },
+      "expected": "a present incompatible digest fails proof even when current projection/core happen to match; exact-map legacy fallback is only for absent digest"
+    },
+    {
+      "name": "unavailable_accepted_map_not_silently_adopted",
+      "pass_contract": false,
+      "observed": {
+        "counts": {
+          "snap_accepted": 0,
+          "snap_duplicate": 1,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_orphan": 0,
+          "gex_rejected": 0
+        },
+        "strikes": [
+          [
+            100,
+            0.02
+          ]
+        ],
+        "status": "unavailable"
+      },
+      "expected": "unavailable accepted map cannot accept unproved later map or leave a hybrid unavailable/nonempty projection"
+    },
+    {
+      "name": "logger_projection_formula_integrity",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "already logged | ts=2026-10-05T19:59:00+00:00\n",
+        "strike_formula": "v1",
+        "snapshot_formula": "v2"
+      },
+      "expected": "formula metadata checked alongside strike value; wrong lineage repaired from accepted proof or unavailable"
+    },
+    {
+      "name": "secondary_projection_preserves_source_units",
+      "pass_contract": false,
+      "observed": {
+        "primary_units": "USD millions per $1 spot move",
+        "secondary_units": "USD millions per 1% spot move"
+      },
+      "expected": "each accepted projection carries exact source-reported units; never relabel incompatible units"
+    }
+  ],
+  "passes": 0,
+  "failures": 10,
+  "harness_sha256": "4d5ee749f31f8bbf507922bcefc2f792b3948e790d318030e151819879d58a6f"
+}
+```
+
+Independent browser script below was saved at `outputs/iteration-ui58fffe85/browser-review.mjs` with exact UI source extracted under `source/uig1/`. It uses the reviewer's existing local bundled Puppeteer and Chrome; adapt those two installed browser paths for another environment, without altering the behavior contracts. It uses a dedicated temporary browser profile, file-only navigation and blocked external requests. SHA-256 `b4075a891571b0468a45a6446710ea3e16a32fa3748653c2f01a46ed9ae9df31`. The declared embedded JSON comparison is performed before render adds harmless view state; the earlier reviewer comparison against the mutated runtime object was corrected and is not a Muse failure.
+
+```javascript
+import {puppeteer} from '/opt/antigravity-2.19.1/resources/app.asar.unpacked/node_modules/chrome-devtools-mcp/build/src/third_party/index.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {pathToFileURL} from 'node:url';
+import {isDeepStrictEqual} from 'node:util';
+const out=path.resolve('outputs/iteration-ui58fffe85');
+const file=path.join(out,'source/uig1/frontend/gex-granular-dashboard.html');
+const fixture=JSON.parse(fs.readFileSync(path.join(out,'source/uig1/fixtures/gex-granular-v1/result.json'),'utf8'));
+const expected=(v)=>v==null?'—':(v<0?'−':'')+'$'+Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:0});
+const browser=await puppeteer.launch({executablePath:'/opt/google/chrome/chrome',headless:true,userDataDir:fs.mkdtempSync('/tmp/muse-ui-review-'),args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND']});
+const page=await browser.newPage();
+const requests=[],errors=[],results=[];
+await page.setRequestInterception(true);
+page.on('request',r=>{requests.push(r.url()); if(r.url().startsWith('file:')||r.url().startsWith('data:'))r.continue();else r.abort();});
+page.on('pageerror',e=>errors.push(e.message));
+const record=(name,ok,observed,contract)=>results.push({name,pass_contract:!!ok,observed,expected:contract});
+try {
+await page.setViewport({width:1280,height:900});
+await page.goto(pathToFileURL(file).href,{waitUntil:'load'});
+record('renders_without_runtime_error',errors.length===0,{errors:[...errors]},'canonical fixture renders without JS errors');
+const embedded=JSON.parse(fs.readFileSync(file,'utf8').split('const RESULT = ')[1].split('\n;\n')[0]);
+record('embedded_result_exact_semantics',isDeepStrictEqual(embedded,fixture),{},'declared embedded object is semantically identical to provided canonical fixture before render adds view state');
+const scenarios=[];
+for(let i=0;i<fixture.scenarios.length;i++){
+ await page.select('#scenario-sel',String(i));
+ const cells=await page.$$eval('#expiry-table tbody tr.expiry-row',rs=>rs.map(r=>Array.from(r.cells).map(c=>c.textContent.trim())));
+ const actual=cells.map(c=>c[4]),want=fixture.scenarios[i].spots[0].aggregates.by_expiry.map(a=>expected(a.signed_net));
+ scenarios.push({name:fixture.scenarios[i].name,actual,expected:want,ok:JSON.stringify(actual)===JSON.stringify(want)});
+}
+record('scenario_selection_uses_provided_signed_values',scenarios.every(s=>s.ok),scenarios,'all three scenarios render exact formatted signed values for selected spot');
+await page.select('#scenario-sel','0');
+record('zero_oi_contract_preserved',(await page.$$eval('#contract-table tbody tr',rs=>rs.some(r=>r.cells[3].textContent.trim()==='0'))),{},'admitted OI=0 remains a visible contract');
+const originalText=await page.evaluate(()=>document.body.innerText);
+record('utc_date_and_synthetic_disclaimers',originalText.includes('UTC')&&originalText.includes('not exchange-session')&&originalText.includes('Synthetic'),{},'synthetic inventory and UTC-date 0DTE limitation remain visible');
+record('source_authentication_axis_visible',originalText.includes(fixture.source_authentication),{axis:fixture.source_authentication,visible:originalText.includes(fixture.source_authentication)},'source_authentication=SYNTHETIC is fourth status axis; units is an independent unit label');
+record('valuation_and_spot_source_clocks_visible',originalText.includes(fixture.input_metadata.valuation_at)&&originalText.includes(fixture.input_metadata.spot_clocks.source_at),{valuation:fixture.input_metadata.valuation_at,spot_source:fixture.input_metadata.spot_clocks.source_at,visible:false},'show fixture valuation and spot source/receipt instants rather than a runtime Built date');
+record('all_precomputed_spots_selectable',await page.evaluate(()=>Array.from(document.querySelectorAll('select option,button')).some(e=>e.textContent.trim()==='765')&&Array.from(document.querySelectorAll('select option,button')).some(e=>e.textContent.trim()==='770')),{available:await page.$$eval('select',es=>es.map(e=>({id:e.id,options:Array.from(e.options).map(o=>o.text)})))},'provided spots760/765/770 selectable, evaluated spot clearly identified; no estimator');
+record('contract_provenance_and_unknown_oi_visible',await page.evaluate(()=>!!document.querySelector('#contract-table [data-oi-as-of]')||Array.from(document.querySelectorAll('th')).some(e=>/OI.*(as.of|vintage)|quote.*(time|age)|greek.*(time|age)/i.test(e.textContent))),{headers:await page.$$eval('#contract-table th',es=>es.map(e=>e.textContent))},'contract OI vintage unknown, quote/Greek/OI source and receipt timestamps or fixture-relative ages inspectable, not just generic subtext');
+const keyboard=await page.$eval('tr.expiry-row',e=>({tag:e.tagName,tabIndex:e.tabIndex,role:e.getAttribute('role')}));
+record('expiry_drilldown_keyboard_accessible',keyboard.tabIndex>=0||keyboard.tag==='BUTTON',keyboard,'expiry drilldown has a keyboard control/focus and Enter/Space operation');
+await page.screenshot({path:path.join(out,'desktop-1280.png'),fullPage:true});
+await page.click('tr.expiry-row');
+record('expiry_click_drilldown_control',await page.$eval('tr.detail',e=>e.classList.contains('open')),{},'click reveals strike decomposition');
+await page.screenshot({path:path.join(out,'desktop-1280-drilldown.png'),fullPage:true});
+await page.setViewport({width:390,height:844});
+await page.screenshot({path:path.join(out,'mobile-390.png'),fullPage:true});
+const layout=await page.evaluate(()=>({viewport:innerWidth,pageWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth,tableWidth:document.querySelector('#contract-table').getBoundingClientRect().width}));
+record('mobile_page_width_fits',layout.pageWidth<=390,layout,'390px page fits viewport; wide tables scroll within dedicated region rather than page overflow');
+const buildText=await page.$eval('#build-info',e=>e.textContent);
+record('build_provenance_not_runtime_clock',!buildText.startsWith('Built '),{buildText},'actual immutable frontend source/build identity, not current page-load time labeled Built');
+const unsupported=await page.evaluate(()=>{const p=RESULT.scenarios[0].spots[0];p.status='NOT_SUPPORTED';p.reason='synthetic primitive boundary probe';p.contracts=null;p.aggregates=null;try{renderScenario();return {error:null,text:document.querySelector('#expiry-table').innerText};}catch(e){return {error:e.message,text:document.querySelector('#expiry-table').innerText};}});
+record('unsupported_null_aggregate_is_unavailable',!unsupported.error&&/NOT_SUPPORTED|unavailable|unsupported/i.test(unsupported.text),unsupported,'schema-supported NOT_SUPPORTED point with null aggregates renders explicit unavailable, not exception/zero');
+record('no_external_requests',requests.every(u=>u.startsWith('file:')||u.startsWith('data:')),{requests},'local fixture makes no HTTP network calls');
+} finally { await browser.close(); }
+const receipt={source_head:'58fffe8545ab9ead8aa47ae0c8bb6b19ebcc5320',synthetic_only:true,local_file_browser:true,network_requests_intercepted:true,results,passes:results.filter(r=>r.pass_contract).length,failures:results.filter(r=>!r.pass_contract).length,errors,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};
+fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify(receipt,null,2)+'\n');
+console.log(JSON.stringify({passes:receipt.passes,failures:receipt.failures,results},null,2));
+```
+
+Exact browser machine receipt:
+```json
+{
+  "source_head": "58fffe8545ab9ead8aa47ae0c8bb6b19ebcc5320",
+  "synthetic_only": true,
+  "local_file_browser": true,
+  "network_requests_intercepted": true,
+  "results": [
+    {
+      "name": "renders_without_runtime_error",
+      "pass_contract": true,
+      "observed": {
+        "errors": []
+      },
+      "expected": "canonical fixture renders without JS errors"
+    },
+    {
+      "name": "embedded_result_exact_semantics",
+      "pass_contract": true,
+      "observed": {},
+      "expected": "declared embedded object is semantically identical to provided canonical fixture before render adds view state"
+    },
+    {
+      "name": "scenario_selection_uses_provided_signed_values",
+      "pass_contract": true,
+      "observed": [
+        {
+          "name": "oi_sign_baseline",
+          "actual": [
+            "−$7,380,753",
+            "$9,487,720"
+          ],
+          "expected": [
+            "−$7,380,753",
+            "$9,487,720"
+          ],
+          "ok": true
+        },
+        {
+          "name": "all_short",
+          "actual": [
+            "−$68,932,841",
+            "−$9,487,720"
+          ],
+          "expected": [
+            "−$68,932,841",
+            "−$9,487,720"
+          ],
+          "ok": true
+        },
+        {
+          "name": "partial_neutral",
+          "actual": [
+            "−$3,690,377",
+            "$0"
+          ],
+          "expected": [
+            "−$3,690,377",
+            "$0"
+          ],
+          "ok": true
+        }
+      ],
+      "expected": "all three scenarios render exact formatted signed values for selected spot"
+    },
+    {
+      "name": "zero_oi_contract_preserved",
+      "pass_contract": true,
+      "observed": {},
+      "expected": "admitted OI=0 remains a visible contract"
+    },
+    {
+      "name": "utc_date_and_synthetic_disclaimers",
+      "pass_contract": true,
+      "observed": {},
+      "expected": "synthetic inventory and UTC-date 0DTE limitation remain visible"
+    },
+    {
+      "name": "source_authentication_axis_visible",
+      "pass_contract": false,
+      "observed": {
+        "axis": "SYNTHETIC",
+        "visible": false
+      },
+      "expected": "source_authentication=SYNTHETIC is fourth status axis; units is an independent unit label"
+    },
+    {
+      "name": "valuation_and_spot_source_clocks_visible",
+      "pass_contract": false,
+      "observed": {
+        "valuation": "2026-09-28T15:00:00Z",
+        "spot_source": "2026-09-28T14:59:55Z",
+        "visible": false
+      },
+      "expected": "show fixture valuation and spot source/receipt instants rather than a runtime Built date"
+    },
+    {
+      "name": "all_precomputed_spots_selectable",
+      "pass_contract": false,
+      "observed": {
+        "available": [
+          {
+            "id": "scenario-sel",
+            "options": [
+              "oi_sign_baseline",
+              "all_short",
+              "partial_neutral"
+            ]
+          }
+        ]
+      },
+      "expected": "provided spots760/765/770 selectable, evaluated spot clearly identified; no estimator"
+    },
+    {
+      "name": "contract_provenance_and_unknown_oi_visible",
+      "pass_contract": false,
+      "observed": {
+        "headers": [
+          "Contract",
+          "Side",
+          "Strike",
+          "OI",
+          "OI Gross",
+          "Inv. Gross",
+          "Signed Net",
+          "Dealer Frac",
+          "Gamma",
+          "Prov. Γ"
+        ]
+      },
+      "expected": "contract OI vintage unknown, quote/Greek/OI source and receipt timestamps or fixture-relative ages inspectable, not just generic subtext"
+    },
+    {
+      "name": "expiry_drilldown_keyboard_accessible",
+      "pass_contract": false,
+      "observed": {
+        "tag": "TR",
+        "tabIndex": -1,
+        "role": null
+      },
+      "expected": "expiry drilldown has a keyboard control/focus and Enter/Space operation"
+    },
+    {
+      "name": "expiry_click_drilldown_control",
+      "pass_contract": true,
+      "observed": {},
+      "expected": "click reveals strike decomposition"
+    },
+    {
+      "name": "mobile_page_width_fits",
+      "pass_contract": false,
+      "observed": {
+        "viewport": 390,
+        "pageWidth": 761,
+        "bodyWidth": 761,
+        "tableWidth": 744.734375
+      },
+      "expected": "390px page fits viewport; wide tables scroll within dedicated region rather than page overflow"
+    },
+    {
+      "name": "build_provenance_not_runtime_clock",
+      "pass_contract": false,
+      "observed": {
+        "buildText": "Built 2026-10-05T17:04:57.168Z · UI-G1 fixture lane · No backend/scope change."
+      },
+      "expected": "actual immutable frontend source/build identity, not current page-load time labeled Built"
+    },
+    {
+      "name": "unsupported_null_aggregate_is_unavailable",
+      "pass_contract": false,
+      "observed": {
+        "error": "Cannot read properties of null (reading 'by_expiry')",
+        "text": "EXPIRY\t0DTE\tOI GROSS\tINVENTORY GROSS\tSIGNED NET\tCALL SIGNED\tPUT SIGNED"
+      },
+      "expected": "schema-supported NOT_SUPPORTED point with null aggregates renders explicit unavailable, not exception/zero"
+    },
+    {
+      "name": "no_external_requests",
+      "pass_contract": true,
+      "observed": {
+        "requests": [
+          "file:///home/anik/Documents/Codex/2026-10-05/task-5/outputs/iteration-ui58fffe85/source/uig1/frontend/gex-granular-dashboard.html"
+        ]
+      },
+      "expected": "local fixture makes no HTTP network calls"
+    }
+  ],
+  "passes": 7,
+  "failures": 8,
+  "errors": [],
+  "harness_sha256": "b4075a891571b0468a45a6446710ea3e16a32fa3748653c2f01a46ed9ae9df31"
+}
+```
+
+**Watch:** a new source-pinned J1-E response after0aea3a3d and a separate UI-G2 response after58fffe85. This document remains the shared index on draftPR2. Our own handoff/comment/webhook events do not count as new Muse implementation responses.
+
+
+
 ## 2026-10-05 16:41 UTC — UI-G1 canonical offline fixture is ready
 
 The GRID owner has delivered its final immutable offline slice, source `ad2330886ce8f97758bd4c599fbfc731adc1d742`, base `87601dcb55767d4b8ebd9eeb3e492ddf9362281c`, branch `codex/gex-granular-offline-20261005`. **This supersedes the earlier “proposal pending final schema” status for UI-G1's synthetic interface only.** Live adapter, deployed frontend linkage, model/inventory accuracy and market-value acceptance remain separate.
