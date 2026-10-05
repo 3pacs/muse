@@ -4,6 +4,54 @@
 
 
 
+## 2026-10-05 16:41 UTC — UI-G1 canonical offline fixture is ready
+
+The GRID owner has delivered its final immutable offline slice, source `ad2330886ce8f97758bd4c599fbfc731adc1d742`, base `87601dcb55767d4b8ebd9eeb3e492ddf9362281c`, branch `codex/gex-granular-offline-20261005`. **This supersedes the earlier “proposal pending final schema” status for UI-G1's synthetic interface only.** Live adapter, deployed frontend linkage, model/inventory accuracy and market-value acceptance remain separate.
+
+The final owner receipt records four Gemini3.8 SUCCESS passes (final CLEARED),54 repo tests,62 independent checks and13 frozen entries verified. This handoff verified the immutable local commit, clean worktree, exact four-file source hashes, final patch digest and generated output's module/raw-input linkage; it did not independently rerun that owner's arithmetic suite. Patch SHA-256 `99b0ddbd717c88f82aa9f9db8b8521d64f2d928244013c90f6eb30a4eb029cf2`. GRID's local checkpoint is not claimed to have been pushed, deployed or activated.
+
+### Canonical copied artifacts — use these for UI-G1
+
+- [Exact GRID contract](GEX-GRANULAR-V1-GRID-CONTRACT.md), SHA-256 `605bf83c7c5d30206031cf45e462c9a8918dd5597d2a925469c047c2a41c9d77`.
+- [Exact synthetic input](fixtures/gex-granular-v1.input.json), SHA-256 `f979e97ebc8d86b14472edd4044fc83fbe49531c04ddde9b2edbf223962c3285`.
+- [Exact generated synthetic result](fixtures/gex-granular-v1.result.json), SHA-256 `70b10bbbdd65e2b540e12049d279d146f9ff3abe020c6eda84113a64ba69831d`.
+
+These are byte-identical documentation/fixture copies, not a second estimator implementation. The result binds the copied input through `raw_sha256` and the canonical source through `code_hashes.granular=e44efdebb156883db95634fd0992cf4cf72ace5f7f42ddaca47b39dbfabacdfa`. Copied input rows exactly match output `input_metadata.rows`. Both declare `synthetic-fixture-not-market-data`; output `source_authentication=SYNTHETIC`. Full parsed input/output string scan covered1035 values and found no credential/contact/URL/local-path patterns; no observed account/participant data appears in these explicit synthetic fixtures. No private final owner report or operational hub receipt was copied into Muse.
+
+### Exact output mapping — replace provisional field guesses
+
+| UI value | Actual canonical path/name |
+| --- | --- |
+| Schema / raw units | `schema="gex-granular-v1"`; `units="USD_per_1pct_underlying_move"` |
+| Valuation / source / calendar / r,q | `input_metadata.valuation_at`, `input_metadata.source`, `input_metadata.calendar_version`, `input_metadata.r`, `input_metadata.q` |
+| Spot event/receipt provenance | `input_metadata.spot_clocks.source_at/received_at/source` |
+| Scenarios and precomputed spots | `scenarios[].name/kind` → `scenarios[].spots[]` (not a `points` array) |
+| Contract drilldown | `scenarios[].spots[].contracts[]`; key `contract_id` |
+| Per-contract exposures | `oi_gross_usd_per_1pct`, `inventory_gross_usd_per_1pct`, `signed_usd_per_1pct`, `signed_position_contracts`, `assumed_dealer_fraction` |
+| Aggregation hierarchy | `scenarios[].spots[].aggregates.by_strike_within_expiry[]`, `.by_expiry[]`, `.total` |
+| Aggregate exposure fields | `call_oi_gross`, `put_oi_gross`, `oi_gross`; `call_inventory_gross`, `put_inventory_gross`, `inventory_gross`; `call_signed`, `put_signed`, `signed_net` |
+| Quote/Greek/OI clocks | Each contract `clocks.quote/greek/oi.source_at/received_at/source` |
+| OI vintage / unknown flags | `oi_as_of`; `unknown.oi_as_of/oi_source_at/quote_source_at/greek_source_at` |
+| Provider versus recomputed gamma | `provider_gamma`, `provider_gamma_provenance`, `gamma`; recomputed gamma is not a fresh observed provider value |
+| Coverage / interpretation statuses | `numerical_status`, `coverage_status`, `inventory_status`, `source_authentication`, per-spot `status`; keep distinct |
+| Coverage details | `coverage.expected_count/observed_count/admitted_count/missing_count/excluded_count/exclusions`, `scope`, `full_market_coverage` |
+| 0DTE grouping | Expiry aggregate `is_0dte`: **UTC expiry-date equals UTC valuation-date**, not exchange-local session alignment |
+
+If the UI needs an underlying symbol, join `input_metadata.rows` by `contract_id`; do not invent provenance from identifier spelling. The provided scenarios are `oi_sign_baseline` (`assumed_oi_sign_baseline`), `all_short` and `partial_neutral` (both `hypothetical_signed_inventory`). Precomputed spot points are760,765,770; render those exact points. New spot/scenario calculations belong to GRID, not a copied frontend Greek engine.
+
+### UI acceptance for this final fixture
+
+1. Consume the copied result directly in the isolated UI-G1 frontend/fixtures/tests lane. Keep backend J1-D recovery files untouched. No real-feed polling, fresh-price implication, duplicate estimator or automatic deployment.
+2. Label it visibly **synthetic offline sensitivity**, valuation2026-09-28T15:00:00Z. Do not use today's browser clock to make it appear live. Numerical PASS is separate from partial declared coverage, hypothetical unobserved inventory and synthetic authentication.
+3. Coverage is **4 admitted of7 declared fixture contracts**,6 observed,1 missing;3 exclusions include EXPIRED, MISSING_CONTRACT and FUTURE_QUOTE_RECEIPT. `full_market_coverage=null`; never call this full-chain/market coverage.
+4. Retain the admitted OI0 put and its real zero exposures. Unknown `oi_as_of` and OI `source_at` stay null/unknown. Greek clocks describe direct-IV observation used for recomputation; `provider_gamma_provenance=NOT_FRESH` in this example must not become an observed-fresh gamma badge.
+5. Preserve the distinction between total unsigned OI sensitivity, gross magnitude of an assumed net inventory and signed net. Neither inventory gross nor the OI-sign baseline measures observed dealer gross holdings. Hypothetical fractions are sensitivity assumptions, not confidence intervals or validated direction predictions. Raw USD/%move and any display division are explicit.
+6. For an unavailable/unsupported point, render null aggregates and status explicitly, not zero. Keep declared clocks, enclosing snapshot availability, exact expiries and European Black-Scholes approximation/SPY American-dividend limitations visible through drilldown/assumptions.
+7. Existing UI-G1 build/source/deployed-revision linkage,1280px/390×844 screenshot, accessibility, zero/missing/status/scenario/schema tests still apply. Return one immutable UI commit and receipts in this handoff. This fixture relays an offline contract; it grants no live-model, merge or deployment acceptance.
+
+**Recovery is unchanged:** J1-D still watches a revision after `c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba`. This is a meaningful canonical-contract delivery for the already authorized parallel UI-G1 task, not a new task or repeated recovery review. All prior findings and source-pinned acceptance requirements below remain dated history.
+
+
 ## 2026-10-05 16:26 UTC — J1-C verified; J1-D recovery and separate UI-G1 lane
 
 **New response:** [PR #2 comment 5998349399](https://github.com/3pacs/muse/pull/2#issuecomment-5998349399), created16:10:58UTC, pins [`c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba`](https://github.com/3pacs/muse/tree/c3a0a4b16a498402a2f4b8c576e1879ebb3dcdba), branch `redteam/fixes-j1c`, sole parent `08f2ed54`. The four changed files are the two scoped Python files, committed replay tests and existing policy. Source blobs, five retargeted harness ASTs, Python parsing and source diff whitespace were checked; no old checkout was reset.
