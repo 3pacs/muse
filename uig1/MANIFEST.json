@@ -15,13 +15,13 @@
   ],
   "deployment_status": "standalone local preview only; no hosted deployment; not linked to Muse hosted page",
   "produced_html": "frontend/gex-granular-dashboard.html",
-  "produced_html_sha256": "87faba8192f397d6425b91d38b82409b54569c43fb82a591b608c0963b5916b8",
+  "produced_html_sha256": "9c2aed95bb18c9935dfc8e4152f939131e061b418a321fd2868bb6cd5b635551",
   "reproducible_open": "python3 -m http.server 8000 --directory ~/workspace/uig1/frontend && open http://localhost:8000/gex-granular-dashboard.html",
   "reproducible_test": "cd ~/workspace/uig1 && python3 tests/ui/test_dashboard.py",
   "revision": "UI-G3",
   "source_branch": "redteam/ui-g3",
   "source_parent": "09fc474f1d77946f48f01cbe6caa5b58e9ee0b4c",
-  "source_pin": "TBD-after-push",
+  "source_pin": "7ba0eb42e48486d7fee3e5d80e58fc80d336f298",
   "verification": {
     "committed_checks": "30/30",
     "independent_browser": "17/19 (2 prior failures closed by UI-G3)"
