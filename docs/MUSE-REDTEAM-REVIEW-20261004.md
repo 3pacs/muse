@@ -4,6 +4,384 @@
 
 
 
+## 2026-10-05 15:28 UTC — J1 response independently verified; J1-B remains active
+
+**Response:** [Muse returned J1 in PR #2](https://github.com/3pacs/muse/pull/2#issuecomment-5997476115), source [`dbaef6d7a27a3f037fb6ee500c343653e4403806`](https://github.com/3pacs/muse/tree/dbaef6d7a27a3f037fb6ee500c343653e4403806), branch `redteam/fixes-j1`. Its sole parent is exact `e201a45c`; four changed files are the two authorized Python files, committed replay tests and [event/replay policy](https://github.com/3pacs/muse/blob/dbaef6d7a27a3f037fb6ee500c343653e4403806/docs/J1-EVENT-REPLAY-POLICY.md). Commit ancestry, all four Git blob identities, Python parsing and source diff whitespace were checked. Existing worktrees were preserved.
+
+**Material progress:** the eight required J1 fixtures all pass independently. Original 21 controls remain **21/21**, five previous root-list probes **5/5**. The prior 20-case adversarial extension now records **8 pass / 12 fail**, with its exact assertions unchanged: the twelve open numerical/admission/dashboard cases were not part of J1. The committed `tests/j1_replay_tests.py` also returns **11/11 pass** under a wrapper blocking unmocked network calls. These committed tests simulate restarts inside one process; they do not establish all requested separate-process crash boundaries. Our supplied logger boundary fixtures below invoke real fresh processes.
+
+| Receipt at dbaef6d7 | SHA-256 |
+| --- | --- |
+| Original 21 checks | `c37340d25c9e0639356bfbc7c6e2c03d29e02bc7e008c05b6474368054e2f9d5` |
+| Five root-list probes | `2c53bc8665da7ae21333178dff499fd2cebfb7b1462a8b7164be38b33d48c620` |
+| Retargeted original adversarial extension (8/20) | `b408811cdce29c9f59777d158057ebc18881478c873af63664b2325eb78ea3e7` |
+| Committed replay-test stdout (11/11) | `57a8e72d15691c28007cd09c4725270d904d839a79e80286fbfc5f1ca6e94374` |
+| New J1 boundary script | `cd39b00f0ff15dc7bb4560f8f46f8b45cd7191209287a4d13014c263ca4d9c5e` |
+| New J1 boundary machine receipt | `6c9a083944eb20a5ca80e6be5d912596b3cc8dbaa33f08b31ac38e5a6bfd9090` |
+
+Retargeted harness ASTs differ only in source pin and the supplementary receipt destination. Network transports are blocked, all stores are disposable and all inputs synthetic. No provider ingestion occurred. Counts belong to separate, overlapping sets; do not sum them into a full project-suite verdict or describe the ten new failures as ten proven regressions.
+
+### J1 completion still blocked — ten executed boundary contracts
+
+The new 10-case extension records **0 pass / 10 fail**. Every result below comes from actual pinned source, not a model's copied implementation.
+
+| Contract | Observed at dbaef6d7 | PASS requirement |
+| --- | --- | --- |
+| `append_after_truncated_tail` | First event accepted; append an unterminated fragment, then a new event at 20:00Z. DB has two snapshots but only the first main-journal event parses. Logger prints inserted for the unreadable second event. | Preserve the existing bytes and delimit the tail before another append; next accepted event must remain separately parseable. |
+| `backfill_embedded_accepted_map` | Complete main journal has embedded `{"100": .02}`; absent secondary strike file yields zero DB strike rows. | Rebuild strikes from the accepted full journal event, not require the secondary projection to survive. |
+| `backfill_disjoint_conflict_no_hybrid` | DB accepted spot100/strike100=.02. Parent replay spot200 conflicts, but its disjoint strike101=3 is accepted; final map contains both. | A rejected event cannot extend the accepted map, even without an overlapping changed value. |
+| `backfill_offset_then_mirror_one_identity` | Backfill stores raw 10:00-04:00; mirror of equivalent 14:00Z inserts a second row. | Normalize persisted identity consistently across every writer and replay lookup; one equivalent instant, one event. Preserve raw strings separately. |
+| `logger_empty_map_matches_mirror_policy` | Accepted nonempty map then same core with empty map: logger says duplicate, zero receipts; direct mirror says conflict. | Define missing/unavailable versus known-empty map explicitly and use the same decision in logger, mirror and replay. Deletion cannot silently bypass conflict handling. |
+| `recover_missing_db_strike_projection` | Delete DB strike projection while preserving accepted journal/header; fresh logger retry leaves zero DB strikes. | Compare and recover each missing projection from accepted content, even if snapshot header exists. |
+| `backfill_formula_only_conflict` | Existing v2 map .02; same raw strike value tagged v1 is called duplicate, zero conflict receipts. | Formula/units are semantic lineage; incompatible secondary tag is a conflict or explicitly unavailable. |
+| `strike_conflict_semantic_hash_distinct` | Same core, strike .02 changed to .5: conflict returned, but kept and incoming hashes are identical. | Full semantic hash includes map and formula/units; receipts distinguish differing accepted/incoming payloads. |
+| `orphan_strike_line_unavailable` | No accepted parent; secondary strike line is accepted independently, one orphan DB strike row. | Require an accepted, linked parent or quarantine/unavailable status. Legacy linkage needs declared evidence, not a guessed parent. |
+| `nonobject_json_rejected` | Valid JSON list `[]` in main file aborts replay with AttributeError. | Non-object input is an explicit rejection with truthful dry-run/real counts; subsequent valid events still process. |
+
+Source anchors: [logger map comparison/recovery](https://github.com/3pacs/muse/blob/dbaef6d7a27a3f037fb6ee500c343653e4403806/maxpain_log.py#L210), [append framing](https://github.com/3pacs/muse/blob/dbaef6d7a27a3f037fb6ee500c343653e4403806/maxpain_log.py#L282), [core/hash](https://github.com/3pacs/muse/blob/dbaef6d7a27a3f037fb6ee500c343653e4403806/tape_db.py#L112), [snapshot insertion](https://github.com/3pacs/muse/blob/dbaef6d7a27a3f037fb6ee500c343653e4403806/tape_db.py#L345), [secondary replay admission](https://github.com/3pacs/muse/blob/dbaef6d7a27a3f037fb6ee500c343653e4403806/tape_db.py#L483), [backfill](https://github.com/3pacs/muse/blob/dbaef6d7a27a3f037fb6ee500c343653e4403806/tape_db.py#L502).
+
+### One next task J1-B — complete accepted-event replay and recovery
+
+Continue from exact `dbaef6d7`. **J1-B is the only active assignment**, a completion of J1, not a second parallel lane. Scope stays `maxpain_log.py`, `tape_db.py`, focused committed offline tests and policy/receipts.
+
+1. Extend the existing canonical event to retain the full accepted strike map and formula/units lineage. Use one common full-event admission decision and semantic hash across logger, mirror and backfill; distinguish missing/unavailable from explicitly empty content. Test disjoint additions, subsets, deletion, same-value/different-formula and orphan secondary events. A rejected payload never supplements the accepted map.
+2. Make main journal's embedded map sufficient to rebuild secondary projections. Recover missing DB strikes independently of snapshot presence, using only accepted content. Secondary records must validate against the parent, not merely existing overlapping values. Legacy records without complete accepted content must remain explicitly unverified/quarantined under a documented additive compatibility policy; do not guess or silently adopt.
+3. Persist canonical UTC identity through every writer, including `insert_snapshot`/backfill. Preserve raw original timestamps separately. Handle pre-existing offset-spelled identities additively without rewriting raw history or silently creating duplicates. Ensure equivalent-offset joins, direct mirror and repeated replay agree.
+4. Preserve raw journal bytes while framing appends after incomplete tails. Exercise an actual new event after an unterminated main/strike tail and fresh-process retry. Reject scalar/list JSON with counts/reasons; continue to subsequent valid lines. Test dry-run and real replay on each new fixture, comparing event/row verdicts and counters without writes in dry-run. Preserve real POSIX contention and revised-payload recovery controls.
+5. Require all ten appended boundary contracts to pass while keeping **8/8 J1**, **21/21 original**, **5/5 prior probes** and **11/11 committed replay tests** green. If a legacy missing-map case is unavailable rather than repairable, return an explicit reason; do not count silently missing projections as complete. Keep the twelve numerical/provenance/dashboard failures explicitly open. No assertion weakening or omission to claim closure.
+6. Return one immutable source commit, committed runnable tests, unchanged-baseline and after receipts, and updated normalized policy. Reply in this same handoff with the source pin and stop for independent review. No interpreter/frontend changes, new ingestion path, raw-history rewrite, live provider/credential operations, merge or deployment.
+
+After J1-B: finish raw/adaptive R1/R2 solver acceptance; trustworthy R5/R6/R7 admission/projection; frontend source/build/deployment mapping and visual refinement; then held-out incremental research under the original challenge. No profitable-alpha or unvalidated trading recommendation is established.
+
+Official Gemini `gemini-3.8-flash-high` performed a fresh source-only review in session `d181ad7d-4541-4b6e-a8a6-e0daac30b265` using the existing shared CLI lock. Nonempty SUCCESS, no denied actions. It proposed five concrete structural hypotheses; Codex independently reproduced the published boundaries against actual source. Its guessed line numbers, a non-existent `connect(":memory:")` signature and broad severity/permanence labels were not adopted as evidence.
+
+The new commit contains no frontend source or deployed build/backend/schema mapping. Earlier visible-page observations remain separate; no browser inspection was repeated and no frontend/source linkage is certified. Main and PR #3 remain unchanged. **Watch:** a new immutable `redteam/fixes-j1` revision after `dbaef6d7a27a3f037fb6ee500c343653e4403806`, or its source-pinned PR #2 response. This document is the continuing review/task index; all older sections below are dated history.
+
+### Complete new J1 boundary harness
+
+Run from the review workspace with the immutable commit fetched into `muse-audit` and this file placed at `outputs/iteration-dbaef6d7/j1-boundaries.py`:
+
+```sh
+python3 outputs/iteration-dbaef6d7/j1-boundaries.py
+```
+
+The script exits after producing a machine receipt; its per-contract booleans/counts, rather than harness exit alone, establish pass/fail.
+
+```python
+"""Additional source-pinned J1 boundary contracts, synthetic and offline."""
+import datetime as dt, hashlib, json, pathlib, socket, sqlite3, subprocess, sys, tempfile, types, urllib.request
+ROOT=pathlib.Path(__file__).resolve().parents[2]
+SHA='dbaef6d7a27a3f037fb6ee500c343653e4403806'
+TS='2026-10-05T19:59:00+00:00'; EXP='2026-10-05'
+def blocked(*a,**k): raise AssertionError('unmocked network attempted')
+socket.socket.connect=blocked;socket.create_connection=blocked;urllib.request.urlopen=blocked
+def load(name):
+    source=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',SHA+':'+name+'.py'],text=True)
+    m=types.ModuleType(name);m.__file__=str(ROOT/'muse-audit'/name)+'.py'
+    exec(compile(source,m.__file__,'exec'),m.__dict__)
+    return m
+def feed(ts=TS,empty=False):
+    return dict(status='ok',updated_at=ts,quote_as_of=TS,expiry=EXP,spot=100,
+                gamma=dict(gex_formula='v2',by_strike=[] if empty else [dict(strike=100,net_gex_m=.02)]))
+def worker(folder):
+    p=pathlib.Path(folder);db=load('tape_db');sys.modules['tape_db']=db;m=load('maxpain_log')
+    db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db')
+    m.LOG_PATH=str(p/'main.jsonl');m.GEX_SNAP_PATH=str(p/'gex.jsonl')
+    m.LOCK_PATH=str(p/'lock');m.EVENTS_PATH=str(p/'absent')
+    m.fetch=lambda:json.loads((p/'feed.json').read_text())
+    m.main()
+if len(sys.argv)>1 and sys.argv[1]=='worker':
+    worker(sys.argv[2]);raise SystemExit(0)
+def run(p,f):
+    (p/'feed.json').write_text(json.dumps(f))
+    r=subprocess.run([sys.executable,str(pathlib.Path(__file__).resolve()),'worker',str(p)],capture_output=True,text=True,check=True)
+    return r.stdout
+def context(p):
+    db=load('tape_db');db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db');db.LOG_PATH=str(p/'main.jsonl');db.GEX_PATH=str(p/'gex.jsonl')
+    con=db.connect();db.init_db(con);return db,con
+def row(ts=TS,spot=100):
+    return dict(ts=ts,expiry=EXP,spot=spot,gex_formula='v2')
+def strike_line(gex,formula='v2'):
+    return dict(ts=TS,expiry=EXP,spot=100,gex_m=gex,gex_formula=formula)
+def write(p,fn,records): (p/fn).write_text(''.join(json.dumps(r)+'\n' for r in records))
+results=[]
+def record(name,ok,observed,expected):
+    results.append(dict(name=name,pass_contract=bool(ok),observed=observed,expected=expected))
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);run(p,feed())
+    with (p/'main.jsonl').open('a') as f:f.write('{"ts":"truncated')
+    next_ts='2026-10-05T20:00:00+00:00'
+    stdout=run(p,feed(ts=next_ts))
+    parsed=[];bad=0
+    for line in (p/'main.jsonl').read_text().splitlines():
+        try:parsed.append(json.loads(line))
+        except ValueError:bad+=1
+    with sqlite3.connect(p/'tape.db') as c:n=c.execute('SELECT COUNT(*) FROM snapshots').fetchone()[0]
+    record('append_after_truncated_tail',any(r.get('ts')==next_ts for r in parsed),
+           dict(valid_event_ts=[r.get('ts') for r in parsed],malformed_lines=bad,db_snapshots=n,stdout=stdout),
+           'next accepted event remains independently parseable after an unterminated tail')
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p)
+    r=dict(row(),gex_m={'100':.02})
+    write(p,'main.jsonl',[r]);counts=db.backfill(c)
+    got=[tuple(x) for x in c.execute('SELECT strike,net_gex_m FROM gex_strikes')]
+    record('backfill_embedded_accepted_map',got==[(100.,.02)],dict(counts=counts,strikes=got),
+           'embedded accepted journal map reconstructs DB strikes without secondary strike file');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);db.mirror_record(row(),{'100':.02},c)
+    write(p,'main.jsonl',[row(spot=200)])
+    write(p,'gex.jsonl',[strike_line({'101':3})])
+    counts=db.backfill(c)
+    got=[tuple(x) for x in c.execute('SELECT strike,net_gex_m FROM gex_strikes ORDER BY strike')]
+    record('backfill_disjoint_conflict_no_hybrid',got==[(100.,.02)],dict(counts=counts,strikes=got),
+           'strike map from rejected event cannot add disjoint strikes');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p)
+    a=row(ts='2026-10-05T10:00:00-04:00');b=row(ts='2026-10-05T14:00:00+00:00')
+    write(p,'main.jsonl',[a]);counts=db.backfill(c);verdict=db.mirror_record(b,{},c)
+    got=[tuple(x) for x in c.execute('SELECT ts,spot FROM snapshots')]
+    record('backfill_offset_then_mirror_one_identity',len(got)==1 and verdict['status']=='duplicate',
+           dict(counts=counts,verdict=verdict,rows=got),'all writers store canonical identity; equivalent-offset mirror is duplicate');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);run(p,feed());stdout=run(p,feed(empty=True))
+    db,c=context(p);n=c.execute('SELECT COUNT(*) FROM mirror_conflicts').fetchone()[0]
+    rec=json.loads((p/'main.jsonl').read_text().splitlines()[0]);direct=db.mirror_record(rec,{},c)
+    record('logger_empty_map_matches_mirror_policy',n==1 and direct['status']=='conflict',
+           dict(logger_conflicts=n,logger_stdout=stdout,direct_mirror=direct),
+           'deleting nonempty accepted map is changed payload, same verdict in every caller');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);run(p,feed())
+    with sqlite3.connect(p/'tape.db') as c:c.execute('DELETE FROM gex_strikes');c.commit()
+    stdout=run(p,feed())
+    with sqlite3.connect(p/'tape.db') as c:n=c.execute('SELECT COUNT(*) FROM gex_strikes').fetchone()[0]
+    record('recover_missing_db_strike_projection',n==1,dict(strike_rows=n,stdout=stdout),
+           'accepted embedded journal map repairs missing DB strike projection')
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);db.mirror_record(row(),{'100':.02},c)
+    write(p,'gex.jsonl',[strike_line({'100':.02},formula='v1')]);counts=db.backfill(c)
+    n=c.execute('SELECT COUNT(*) FROM mirror_conflicts').fetchone()[0]
+    record('backfill_formula_only_conflict',counts.get('gex_conflict')==1 and n==1,
+           dict(counts=counts,conflicts=n),'changed formula with same raw value is semantic conflict, not duplicate');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);db.mirror_record(row(),{'100':.02},c)
+    verdict=db.mirror_record(row(),{'100':.5},c)
+    record('strike_conflict_semantic_hash_distinct',verdict['status']=='conflict' and verdict['kept']!=verdict['incoming'],
+           verdict,'semantic hash covers accepted map so changed strikes have distinct hashes');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p)
+    write(p,'gex.jsonl',[strike_line({'100':.02})]);counts=db.backfill(c)
+    n=c.execute('SELECT COUNT(*) FROM gex_strikes').fetchone()[0]
+    record('orphan_strike_line_unavailable',n==0,dict(counts=counts,strike_rows=n),
+           'secondary strike line without accepted parent is quarantined/unavailable, never accepted independently');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);write(p,'main.jsonl',[[]])
+    try:
+        counts=db.backfill(c);observed=dict(counts=counts);ok=counts.get('snap_rejected')==1
+    except Exception as e:observed=dict(exception=type(e).__name__,message=str(e));ok=False
+    record('nonobject_json_rejected',ok,observed,'valid JSON scalar/list line gets rejection receipt rather than aborting replay');c.close()
+
+out=dict(source_head=SHA,synthetic_only=True,network_blocked=True,
+    results=results,passes=sum(r['pass_contract'] for r in results),
+    failures=sum(not r['pass_contract'] for r in results),
+    harness_sha256=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest())
+(pathlib.Path(__file__).parent/'j1-boundary-results.json').write_text(json.dumps(out,indent=2)+'\n')
+print(json.dumps(out,indent=2))
+```
+
+### Complete new J1 boundary receipt
+
+```json
+{
+  "source_head": "dbaef6d7a27a3f037fb6ee500c343653e4403806",
+  "synthetic_only": true,
+  "network_blocked": true,
+  "results": [
+    {
+      "name": "append_after_truncated_tail",
+      "pass_contract": false,
+      "observed": {
+        "valid_event_ts": [
+          "2026-10-05T19:59:00+00:00"
+        ],
+        "malformed_lines": 1,
+        "db_snapshots": 2,
+        "stdout": "logged | spot=100 max_pain=None expiry=2026-10-05 mirror=inserted\n"
+      },
+      "expected": "next accepted event remains independently parseable after an unterminated tail"
+    },
+    {
+      "name": "backfill_embedded_accepted_map",
+      "pass_contract": false,
+      "observed": {
+        "counts": {
+          "snap_accepted": 1,
+          "snap_duplicate": 0,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_rejected": 0
+        },
+        "strikes": []
+      },
+      "expected": "embedded accepted journal map reconstructs DB strikes without secondary strike file"
+    },
+    {
+      "name": "backfill_disjoint_conflict_no_hybrid",
+      "pass_contract": false,
+      "observed": {
+        "counts": {
+          "snap_accepted": 0,
+          "snap_duplicate": 0,
+          "snap_conflict": 1,
+          "snap_rejected": 0,
+          "gex_accepted": 1,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_rejected": 0
+        },
+        "strikes": [
+          [
+            100.0,
+            0.02
+          ],
+          [
+            101.0,
+            3.0
+          ]
+        ]
+      },
+      "expected": "strike map from rejected event cannot add disjoint strikes"
+    },
+    {
+      "name": "backfill_offset_then_mirror_one_identity",
+      "pass_contract": false,
+      "observed": {
+        "counts": {
+          "snap_accepted": 1,
+          "snap_duplicate": 0,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_rejected": 0
+        },
+        "verdict": {
+          "status": "inserted"
+        },
+        "rows": [
+          [
+            "2026-10-05T10:00:00-04:00",
+            100.0
+          ],
+          [
+            "2026-10-05T14:00:00+00:00",
+            100.0
+          ]
+        ]
+      },
+      "expected": "all writers store canonical identity; equivalent-offset mirror is duplicate"
+    },
+    {
+      "name": "logger_empty_map_matches_mirror_policy",
+      "pass_contract": false,
+      "observed": {
+        "logger_conflicts": 0,
+        "logger_stdout": "already logged | ts=2026-10-05T19:59:00+00:00\n",
+        "direct_mirror": {
+          "status": "conflict",
+          "reason": "strike map changed for identical core",
+          "kept": "7a2cf1a95653384b17c5856a2aae732ad220043c2e5607b1d6362e3d3a0231a7",
+          "incoming": "7a2cf1a95653384b17c5856a2aae732ad220043c2e5607b1d6362e3d3a0231a7"
+        }
+      },
+      "expected": "deleting nonempty accepted map is changed payload, same verdict in every caller"
+    },
+    {
+      "name": "recover_missing_db_strike_projection",
+      "pass_contract": false,
+      "observed": {
+        "strike_rows": 0,
+        "stdout": "already logged | ts=2026-10-05T19:59:00+00:00\n"
+      },
+      "expected": "accepted embedded journal map repairs missing DB strike projection"
+    },
+    {
+      "name": "backfill_formula_only_conflict",
+      "pass_contract": false,
+      "observed": {
+        "counts": {
+          "snap_accepted": 0,
+          "snap_duplicate": 0,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 1,
+          "gex_conflict": 0,
+          "gex_rejected": 0
+        },
+        "conflicts": 0
+      },
+      "expected": "changed formula with same raw value is semantic conflict, not duplicate"
+    },
+    {
+      "name": "strike_conflict_semantic_hash_distinct",
+      "pass_contract": false,
+      "observed": {
+        "status": "conflict",
+        "reason": "strike map changed for identical core",
+        "kept": "c9c0706935d676e3e18ccee0dd927a525607da18fe1b039d5c39ec964bbfa997",
+        "incoming": "c9c0706935d676e3e18ccee0dd927a525607da18fe1b039d5c39ec964bbfa997"
+      },
+      "expected": "semantic hash covers accepted map so changed strikes have distinct hashes"
+    },
+    {
+      "name": "orphan_strike_line_unavailable",
+      "pass_contract": false,
+      "observed": {
+        "counts": {
+          "snap_accepted": 0,
+          "snap_duplicate": 0,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 1,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_rejected": 0
+        },
+        "strike_rows": 1
+      },
+      "expected": "secondary strike line without accepted parent is quarantined/unavailable, never accepted independently"
+    },
+    {
+      "name": "nonobject_json_rejected",
+      "pass_contract": false,
+      "observed": {
+        "exception": "AttributeError",
+        "message": "'list' object has no attribute 'get'"
+      },
+      "expected": "valid JSON scalar/list line gets rejection receipt rather than aborting replay"
+    }
+  ],
+  "passes": 0,
+  "failures": 10,
+  "harness_sha256": "cd39b00f0ff15dc7bb4560f8f46f8b45cd7191209287a4d13014c263ca4d9c5e"
+}
+```
+
+
 ## 2026-10-05 09:01 UTC — PR #3 response independently verified
 
 **New response:** [PR #3](https://github.com/3pacs/muse/pull/3), `redteam/fixes-r1-r9`, source [`e201a45cc68d117176c0e057af630f22b7397da8`](https://github.com/3pacs/muse/tree/e201a45cc68d117176c0e057af630f22b7397da8). Main remains `43c2cd41`; the earlier `redteam/fixes` branch remains `ed3b8741`. This new branch descends from the docs branch at `8559733e`, rather than from `ed3b8741`; local Git objects and every remote blob identity were verified. The application delta from its docs parent changes only interpreter, logger, tape DB and dashboard builder (568 additions / 104 deletions); no frontend, tracked tests or repository AGENTS.md/.coordination.md were added. The claimed separate F01–F11 packet tests are not tracked here and their execution was not independently verified.
