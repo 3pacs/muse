@@ -1,1 +1,52 @@
-IyBVSS1HMSDigJQgR3JhbnVsYXIgR0VYIEZpeHR1cmUgRGFzaGJvYXJkCgojIyBTY29wZQoKRnJvbnRlbmQvVUkgZml4dHVyZSBhbmQgdGVzdCBmaWxlcyBvbmx5LiBObyBKMSBiYWNrZW5kIGZpbGVzIChgbWF4cGFpbl9sb2cucHlgLCBgdGFwZV9kYi5weWApIG9yIHNoYXJlZCBHUklEIGNvZGUgbW9kaWZpZWQuIE5vIGludGVycHJldGVyIG9yIGRhc2hib2FyZF9idWlsZCBjaGFuZ2VzLiBGaXh0dXJlLWZpcnN0IGxhbmU7IG1hdGgvbGl2ZSBpbnRlZ3JhdGlvbiB3YWl0cyBmb3IgR1JJRCBmaW5hbCBzY2hlbWEuCgojIyBTb3VyY2UKCi0gR1JJRCBvcmlnaW46IGBhZDIzMzA4ODZjZThmOTc3NThiZDRjNTk5ZmJmYzczMWFkYzFkNzQyYAotIENvbnRyYWN0OiBgZG9jcy9HRVgtR1JBTlVMQVItVjEtR1JJRC1DT05UUkFDVC5tZGAgKGJ5dGUtZXhhY3QsIFNIQS0yNTYgYDYwNWJmODNjLi4uYCkKLSBJbnB1dDogYGRvY3MvZml4dHVyZXMvZ2V4LWdyYW51bGFyLXYxLmlucHV0Lmpzb25gIChTSEEtMjU2IGBmOTc5ZTk3ZS4uLmApCi0gUmVzdWx0OiBgZG9jcy9maXh0dXJlcy9nZXgtZ3JhbnVsYXItdjEucmVzdWx0Lmpzb25gIChTSEEtMjU2IGA3MGIxMGJiYi4uLmApCi0gQWxsIGNvbnN1bWVkIHZlcmJhdGltOyBubyBkdXBsaWNhdGUgZXN0aW1hdG9yLgoKIyMgRmlsZXMKCi0gYGZyb250ZW5kL2dleC1ncmFudWxhci1kYXNoYm9hcmQuaHRtbGAg4oCUIHN0YW5kYWxvbmUgZGFzaGJvYXJkLCByZXN1bHQgSlNPTiBlbWJlZGRlZAotIGBmaXh0dXJlcy9nZXgtZ3JhbnVsYXItdjEvYCDigJQgY29udHJhY3QubWQsIGlucHV0Lmpzb24sIHJlc3VsdC5qc29uIChieXRlLWV4YWN0IGNvcGllcykKLSBgdGVzdHMvdWkvdGVzdF9kYXNoYm9hcmQucHlgIOKAlCAzMCBvZmZsaW5lIHRlc3RzICgyMSBVSS1HMSArIDkgVUktRzIpCi0gYGRvY3MvTVVTRS1HUkFOVUxBUi1VSS5tZGAg4oCUIHRoaXMgZmlsZQotIGBidWlsZF9yZWNlaXB0Lmpzb25gIOKAlCBpbW11dGFibGUgYnVpbGQgcHJvdmVuYW5jZSAoaGFzaGVzLCBub3QgcnVudGltZSBjbG9jaykKCiMjIFVJLUcyIENoYW5nZXMgKDIwMjYtMTAtMDUpCgpBZGRyZXNzZXMgdGhlIDggZmFpbGVkIGJyb3dzZXIgY29udHJhY3RzOgoKMS4gKipzb3VyY2VfYXV0aGVudGljYXRpb24gYXhpcyoqOiBTdGF0dXMgY2FyZHMgbm93IHNob3cgYWxsIGZvdXIgYXhlcyBpbmNsdWRpbmcgU291cmNlIEF1dGggKFNZTlRIRVRJQykuCjIuICoqVmFsdWF0aW9uL3Nwb3QgY2xvY2tzKio6IFZhbHVhdGlvbiB0aW1lc3RhbXAgYW5kIHNwb3Qgc291cmNlL3JlY2VpcHQgY2xvY2tzIHJlbmRlcmVkIGluIGNvbnRleHQgYmFyLgozLiAqKlNwb3Qgc2VsZWN0b3IqKjogQWxsIHByZWNvbXB1dGVkIHNwb3RzICg3NjAvNzY1Lzc3MCkgc2VsZWN0YWJsZTsgbm8gaGFyZGNvZGVkIHNwb3RzWzBdLgo0LiAqKkNvbnRyYWN0IHByb3ZlbmFuY2UqKjogUGVyLWNvbnRyYWN0IHF1b3RlL0dyZWVrL09JIHNvdXJjZSBhbmQgcmVjZWlwdCBjbG9ja3MsIE9JIHZpbnRhZ2UgKHVua25vd24gZmxhZ2dlZCksIHByb3ZpZGVyIGdhbW1hIG51bWVyaWMgdmFsdWUgd2l0aCBOT1RfRlJFU0ggbGFiZWwsIHVua25vd24gZmxhZ3MsIElWIG9yaWdpbi4KNS4gKipLZXlib2FyZCBhY2Nlc3NpYmxlKio6IEV4cGlyeSByb3dzIGhhdmUgdGFiaW5kZXg9MCwgcm9sZSwgYXJpYS1leHBhbmRlZCwgRW50ZXIvU3BhY2UgaGFuZGxlcnMuCjYuICoqUmVzcG9uc2l2ZSoqOiBWaWV3cG9ydCBvdmVyZmxvdyBoaWRkZW4sIHRhYmxlcyBpbiBzY3JvbGwgcmVnaW9ucywgbW9iaWxlIENTUyBhdCA0ODBweC4KNy4gKipCdWlsZCBwcm92ZW5hbmNlKio6IEltbXV0YWJsZSBTSEEtMjU2IGhhc2hlcyBpbiBCVUlMRCBvYmplY3Q7IG5vIGBuZXcgRGF0ZSgpYCBydW50aW1lIGNsb2NrLgo4LiAqKk51bGwgYWdncmVnYXRlcyoqOiBOdWxsIGFnZ3JlZ2F0ZXMgcmVuZGVyIGV4cGxpY2l0IHVuYXZhaWxhYmxlIHN0YXRlLCBubyBleGNlcHRpb24sIG5vIHplcm8gc3Vic3RpdHV0aW9uLgoKIyMgVmVyaWZpY2F0aW9uCgozMC8zMCBVSSB0ZXN0cyBwYXNzLiBObyBuZXR3b3JrIGNhbGxzLCBubyBHcmVlayByZWNvbXB1dGF0aW9uLCBubyBsaXZlIGFkYXB0ZXIuCk9wZW4gdmlhIGBweXRob24zIC1tIGh0dHAuc2VydmVyYCBpbiBgdWlnMS9mcm9udGVuZC9gLiBObyBkZXBsb3ltZW50OyBzdGFuZGFsb25lIGFydGlmYWN0IGZvciByZXZpZXcuCgojIyBVSS1HMyBDaGFuZ2VzICgyMDI2LTEwLTA1KQoKQ2xvc2VzIHRoZSAyIHJlbWFpbmluZyBVSS1HMiBkZWxpdmVyeSBnYXBzICgxNy8xOSDihpIgMTkvMTkpOgoKMS4gKipFbXB0eSBkYXRhc2V0IGd1YXJkKio6IFRvcC1sZXZlbCBndWFyZCBpbiBgcmVuZGVyKClgIOKAlCBlbXB0eS9hYnNlbnQgc2NlbmFyaW9zIHJlbmRlciBhbiBleHBsaWNpdCAiRGF0YXNldCB1bmF2YWlsYWJsZSIgc3RhdGUgd2l0aCByZWFzb247IG5vIHRocm93LiBTdGFsZSB0YWJsZXMvc2VsZWN0b3JzIGNsZWFyZWQgY29uc2lzdGVudGx5LiBWZXJpZmllZCB2aWEgYnJvd3NlciBpbmplY3Rpb24gdGVzdC4KMi4gKipCdWlsZCBpZGVudGl0eSoqOiBgdWlfcmV2aXNpb25gIHNldCB0byB0aGUgc291cmNlIHBpbiAobm8gbG9uZ2VyIGB1bmNvbW1pdHRlZGApOyBgTUFOSUZFU1QuanNvbmAgY2FycmllcyBleGFjdCBzb3VyY2UgcmV2aXNpb24sIEhUTUwgU0hBLTI1NiwgZml4dHVyZSBkaWdlc3RzLCByZXByb2R1Y2libGUgY29tbWFuZHMsIGFuZCBkZXBsb3ltZW50IHN0YXR1cy4KMy4gKipDb21wYWN0IG1vYmlsZSBwcm92ZW5hbmNlKio6IENvbnRyYWN0IHByb3ZlbmFuY2UgY29sbGFwc2VkIGludG8ga2V5Ym9hcmQtb3BlcmFibGUgYDxkZXRhaWxzPmAgZWxlbWVudHM7IHJvd3Mgc3RheSBjb21wYWN0IG9uIDM5MHB4LCBmdWxsIGNsb2Nrcy91bmtub3ducyBpbnNwZWN0YWJsZSBvbiBleHBhbmQuCjQuICoqSG9zdGVkIG1hcHBpbmcqKjogRG9jdW1lbnRlZCB0aGF0IHVpZzEvKiogaXMgYSBzdGFuZGFsb25lIHJlZC10ZWFtIGRlbGl2ZXJhYmxlIHdpdGggbm8gaG9zdGVkIHNvdXJjZS9yb3V0ZTsgcmVsZWFzZSBjYW5kaWRhdGUgaXMgdGhlIHBvcnRhYmxlIG9mZmxpbmUgcHJldmlldyBwYWNrYWdlLgoKIyMgVmVyaWZpY2F0aW9uCgozMC8zMCBVSSB0ZXN0cyBwYXNzLiBSZWFsIENocm9taXVtIHNjcmVlbnNob3RzIChkZXNrdG9wLTEyODAsIG1vYmlsZS0zOTApIHdpdGggU0hBLTI1NiByZWNlaXB0cy4gRW1wdHktZ3VhcmQgYnJvd3NlciB0ZXN0OiBubyB0aHJvdywgdW5hdmFpbGFibGUgc3RhdGUgcmVuZGVyZWQuCg==
+# UI-G1 — Granular GEX Fixture Dashboard
+
+## Scope
+
+Frontend/UI fixture and test files only. No J1 backend files (`maxpain_log.py`, `tape_db.py`) or shared GRID code modified. No interpreter or dashboard_build changes. Fixture-first lane; math/live integration waits for GRID final schema.
+
+## Source
+
+- GRID origin: `ad2330886ce8f97758bd4c599fbfc731adc1d742`
+- Contract: `docs/GEX-GRANULAR-V1-GRID-CONTRACT.md` (byte-exact, SHA-256 `605bf83c...`)
+- Input: `docs/fixtures/gex-granular-v1.input.json` (SHA-256 `f979e97e...`)
+- Result: `docs/fixtures/gex-granular-v1.result.json` (SHA-256 `70b10bbb...`)
+- All consumed verbatim; no duplicate estimator.
+
+## Files
+
+- `frontend/gex-granular-dashboard.html` — standalone dashboard, result JSON embedded
+- `fixtures/gex-granular-v1/` — contract.md, input.json, result.json (byte-exact copies)
+- `tests/ui/test_dashboard.py` — 30 offline tests (21 UI-G1 + 9 UI-G2)
+- `docs/MUSE-GRANULAR-UI.md` — this file
+- `build_receipt.json` — immutable build provenance (hashes, not runtime clock)
+
+## UI-G2 Changes (2026-10-05)
+
+Addresses the 8 failed browser contracts:
+
+1. **source_authentication axis**: Status cards now show all four axes including Source Auth (SYNTHETIC).
+2. **Valuation/spot clocks**: Valuation timestamp and spot source/receipt clocks rendered in context bar.
+3. **Spot selector**: All precomputed spots (760/765/770) selectable; no hardcoded spots[0].
+4. **Contract provenance**: Per-contract quote/Greek/OI source and receipt clocks, OI vintage (unknown flagged), provider gamma numeric value with NOT_FRESH label, unknown flags, IV origin.
+5. **Keyboard accessible**: Expiry rows have tabindex=0, role, aria-expanded, Enter/Space handlers.
+6. **Responsive**: Viewport overflow hidden, tables in scroll regions, mobile CSS at 480px.
+7. **Build provenance**: Immutable SHA-256 hashes in BUILD object; no `new Date()` runtime clock.
+8. **Null aggregates**: Null aggregates render explicit unavailable state, no exception, no zero substitution.
+
+## Verification
+
+30/30 UI tests pass. No network calls, no Greek recomputation, no live adapter.
+Open via `python3 -m http.server` in `uig1/frontend/`. No deployment; standalone artifact for review.
+
+## UI-G3 Changes (2026-10-05)
+
+Closes the 2 remaining UI-G2 delivery gaps (17/19 → 19/19):
+
+1. **Empty dataset guard**: Top-level guard in `render()` — empty/absent scenarios render an explicit "Dataset unavailable" state with reason; no throw. Stale tables/selectors cleared consistently. Verified via browser injection test.
+2. **Build identity**: `ui_revision` set to the source pin (no longer `uncommitted`); `MANIFEST.json` carries exact source revision, HTML SHA-256, fixture digests, reproducible commands, and deployment status.
+3. **Compact mobile provenance**: Contract provenance collapsed into keyboard-operable `<details>` elements; rows stay compact on 390px, full clocks/unknowns inspectable on expand.
+4. **Hosted mapping**: Documented that uig1/** is a standalone red-team deliverable with no hosted source/route; release candidate is the portable offline preview package.
+
+## Verification
+
+30/30 UI tests pass. Real Chromium screenshots (desktop-1280, mobile-390) with SHA-256 receipts. Empty-guard browser test: no throw, unavailable state rendered.
