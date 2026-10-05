@@ -4,6 +4,81 @@
 
 
 
+## 2026-10-05 20:09 UTC — J1-F candidate passes diagnostics; remote publication is broken; next task P1
+
+Reviewed [J1-F response6001983871](https://github.com/3pacs/muse/pull/2#issuecomment-6001983871) at exact source **`dd63ab53a3c05ffa293023d04e431e74cbb60a26`**, branch `redteam/fixes-j1f`. Verified four-commit ancestry from `2dfcb5396fde94499c46f05fb4cc9bee7f9f5134`: 9a7e5197 → f4c97145 → 1dcae83f → dd63ab53. Only four changed files, listed below. Main remains43c2cd41 and no application merge occurred.
+
+**Publication blocker: all four actual remote Git blobs contain one line of literal Base64 text.** This is an observed byte-level failure, not a backend correctness inference. `maxpain_log.py` parses as an undefined giant identifier and raw import raises NameError. `tape_db.py` and `tests/j1_replay_tests.py` fail compilation with `SyntaxError: cannot assign to expression` at line1. The policy document is encoded text rather than readable Markdown. Consequently the published revision cannot execute its replay suite; the response's green claims cannot be accepted against those remote bytes.
+
+### Exact publication evidence
+
+Each remote raw blob was fetched from immutable Git objects, independently hashed and strictly decoded once into a separately labeled diagnostic directory. The GitHub file read for `tape_db.py` independently returned UTF-8 content beginning `IiIiU1FMaXRl` and blob38d57a93, matching the raw Git object. Local checkout/worktrees were preserved. No decoded content was substituted into the actual source checkout.
+
+| Path | Actual remote bytes / lines | Actual remote Git blob | Raw execution |
+|---|---:|---|---|
+| `maxpain_log.py` |31312 /1|bcfe22d433b181a9775abde0ff429f7ffb39c5ae|Import FAIL: NameError|
+| `tape_db.py` |55728 /1|38d57a931f08d6ccab0aa12ab93ba9be236fbb3e|Compile FAIL: SyntaxError|
+| `tests/j1_replay_tests.py` |41816 /1|e9ab38de8b97bde03fca9d90922bb32c47a46add|Compile FAIL: SyntaxError|
+| `docs/J1-EVENT-REPLAY-POLICY.md` |18860 /1|de9d12c4e05df6eef52f8092026e2251c9f2d4ee|Readable policy FAIL|
+
+The corresponding raw SHA-256 values, in table order, are:
+```text
+518ea315ca89873a358907762f3c91c851da946a3be3ca333828f767753d0365
+02cfe9a808f4d828bfe9bc01dd21730d847dc2a4a52305b6cc414dd1fc44e855
+1fca76336b584e2a7703e2bb06b9aba54a79cd896518d646429bf4c98b779d86
+5d69c3d1f8a25a7506c748612074ad8175edb84e123622f6e289b6583a770c22
+```
+
+### Decoded diagnostic result — candidate only, not remote acceptance
+
+All three decoded Python files compile. Fresh independent Codex offline, synthetic, network-blocked checks against the once-decoded candidate give:
+
+| Existing contract set | Candidate pass | Candidate fail |
+|---|---:|---:|
+| Original source review controls |21|0|
+| Prior solver probes |5|0|
+| Existing20-case extension (includes8 required J1 contracts) |8|12|
+| J1-B boundaries |10|0|
+| J1-C continuity |8|0|
+| J1-D repair |8|0|
+| J1-E proof |10|0|
+| J1-F restart/reconciliation |8|0|
+| Offline CLI exit/reopen durability |1|0|
+| Committed replay assertions |50|0|
+
+The eight former J1-F failures now pass diagnostically: durable backfill and CLI repair; dry/real repair-overlay parity; exact secondary units; every-row logger formula convergence; backfill formula persistence; logger extra-strike convergence; safe journal-present alias ambiguity; alias-targeted missing-strike repair. Actual CLI diagnostic exits0 and reopening SQLite retains0.02, rather than the former0.5. These are promising candidate repairs, but decoding changes the input under test. **J1-F remains blocked until plaintext remote source reproduces these results without a decoding adapter.**
+
+The12 previously open numerical/admission/dashboard extension failures remain explicitly open. No new broad adversarial cycle is assigned here. Backfill's additive policy and logger's extra-strike deletion are distinct behaviors; the owner's blanket statement about extra-strike repair does not establish backfill pruning. This distinction is carried as policy clarification, not a new requirement for P1.
+
+Fresh official Gemini3.8 Flash High review completed SUCCESS with substantive output and no denied actions, session `9ddedefd-4282-40da-8a63-a4769935ccea`. It reviewed the full four decoded candidate files plus raw-publication receipts. Codex independently reproduced the raw-byte failures and test results. Its unsupported claim that it executed48 cases was rejected: independent execution is50/50. Its guessed uploader root cause is not proof of which caller produced these blobs. For our connected `github_update_file` wrapper, the content argument is plaintext UTF-8 and the wrapper performs encoding; a raw GitHub REST request instead requires precisely one encoding. Use the actual client's documented interface and verify its remote output.
+
+### Next bounded backend task: P1 — repair J1-F publication and verify remote bytes
+
+**Owner: Muse. Scope: the same four files, on a descendant of exactdd63ab53.** This replaces no solved J1 task and creates no parallel handoff. Preserve the intended candidate bytes exactly; no solver/interpreter/dashboard/GRID changes. Return one immutable source revision and receipts in this PR, then stop for independent review.
+
+1. Restore the four files to normal plaintext UTF-8 through the correct upload interface. Do not commit literal Base64 payloads. The once-decoded candidate hashes below are the exact expected plaintext SHA-256 values. If any semantic changes are necessary, explain and separately hash them rather than presenting them as an encoding-only repair.
+2. Fetch the resulting immutable remote tree into a fresh isolated offline review directory. Verify the remote bytes equal the locally tested bytes, expected file headers and normal line structure, Git blob IDs, file SHA-256, and readable policy. No hidden decoding shim may be used for acceptance.
+3. Compile all three remote Python files and safely import both application modules with network blocked and no entrypoint execution. Run the actual remote committed replay suite:50/50, exit0. Repeat all existing contract sets above against actual remote source; preserve all prior passes and keep the12 tracked out-of-scope failures explicitly open.
+4. Reproduce all8 J1-F fixtures and the immutable CLI durability receipt. After CLI exit and SQLite reopen, the repaired value must remain0.02; dry-run database bytes/rows remain unchanged; dry/real counts agree for the same starting state. Formula/units/alias/ambiguity and logger extra-strike cases must retain their demonstrated outcomes.
+5. Report exact source commit, base/ancestry, changed-file list, remote blob hashes, checksums, raw commands/exit statuses, and pass/fail counts. Clarify that backfill remains additive while the accepted logger convergence path removes extraneous projection rows. Do not claim deployments or market value.
+
+Expected plaintext hashes:
+```text
+maxpain_log.py
+f6a4b416fbacd9986214b5c1ce1a7d4d27cfe770fd4d1a86ba8e713797de320d
+tape_db.py
+3da901f7baaad59b3adce142c67b6a5b265001e2f7779441ca514a334e9f344e
+tests/j1_replay_tests.py
+244aca93e9c568d6e520cf94ef8a20bdc9d9281b3ab1b50ec32a86fde4ceacff
+docs/J1-EVENT-REPLAY-POLICY.md
+950645f316f6deb892b07064306b2197d246fe8abeece84212dc6499dc81d462
+```
+
+**Frontend priority remains UI-G3, unchanged and independent.** Latest frontend source remains `09fc474f1d77946f48f01cbe6caa5b58e9ee0b4c`; the previous17pass/2fail browser receipt and exact portable local preview stand. No UI-G3 response was present at this checkpoint. The hosted [Muse dashboard](https://muse.ai/s/0dte-dashboard-xlk6gxicxxxtxwxnxp) still has no verified source/build/schema/deployed-revision linkage. UI-G3 should deliver the compact polished portable artifact, empty-data handling, immutable identity and concrete hosted source/route mapping already assigned below. Backend P1 must not delay this slice. GRID remains estimator owner; no live adapter, provider polling, credentials, merge, deployment, trading recommendation or profitable-alpha claim is authorized by this handoff.
+
+**Watch:** a substantive Muse P1 response/new source descendant afterdd63ab53, or UI-G3 response/new UI source after09fc474f. This docs update and coordinator's own review comment are not new implementation events. Pending response, retain these two existing tasks; do not duplicate them.
+
+
 ## 2026-10-05 17:50 UTC — UI-G2 works locally; prioritize small UI-G3 delivery, J1-F stays parallel
 
 The user's report that the frontend is not working makes usable frontend delivery the priority. Reviewed [UI-G2 response5999855885](https://github.com/3pacs/muse/pull/2#issuecomment-5999855885) at **`09fc474f1d77946f48f01cbe6caa5b58e9ee0b4c`**, branch `redteam/ui-g2`. Exact chain:58fffe85 → cd8a5d26 → e9a2c75b →09fc474f; only five changed files under `uig1/`. All five changed Git blobs independently recomputed and matched remote diff metadata. Unchanged canonical contract/input/result hashes and declared embedded payload equality are verified.
