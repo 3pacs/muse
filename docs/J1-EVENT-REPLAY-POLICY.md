@@ -197,3 +197,44 @@ conflicts if the payload changed) with a receipt.
 The twelve numerical/provenance/dashboard failures remain open per the
 reviewer: R1-A solver numerics, R5/R7 interpreter admission/provenance,
 dashboard projection checks. No assertion was weakened to claim closure.
+
+## J1-D — prove accepted content before repair (2026-10-05)
+
+J1-D replaces the J1-C superset heuristic with digest-based proof of
+original accepted content.
+
+### Accepted payload digest
+
+The full semantic digest (`payload_hash`, covering core + embedded map)
+is retained at accept time and verified before any repair. A duplicate
+journal line must prove it is the original accepted payload via digest
+match; a different payload (including a later superset or growth from
+an explicitly empty map) is a conflict, not a repair. Legacy rows
+without a digest fall back to exact map comparison; an explicitly empty
+stored map can never grow.
+
+### Ambiguous legacy aliases
+
+`_resolve_identity()` now detects multiple distinct rows normalizing to
+the same instant. If they agree on content, the first is returned; if
+they differ, `_AMBIGUOUS` is returned and callers quarantine (conflict)
+rather than arbitrarily resolving. The same resolution is used in
+`fetch_stored`, `rec_from_row`, payload-hash lookup, mirror, snapshot/
+strike projection writes, and logger fallback.
+
+### Logger integrity
+
+The logger propagates source-reported `gex_units` from the feed to the
+accepted record (unknown stays unknown). On duplicate, the logger
+verifies DB strike projection values against accepted content, not just
+missing keys — divergent values are repaired via UPDATE with an explicit
+"integrity repaired" note. If direct mirror returns conflict/quarantine,
+the logger never appends the incoming payload as accepted history; it
+restores only the accepted legacy content or retains an explicit
+unavailable/integrity state.
+
+### Verification
+
+8/8 J1-D fixtures, 10/10 J1-B, 8/8 J1, 21/21 original controls, 5/5
+probes, 35/35 committed replay tests (27 prior + 8 new J1-D). The twelve
+out-of-scope failures remain explicitly open.

@@ -184,27 +184,41 @@ def _map_status(gex_m):
 
 def _resolve_identity(con, ts_norm, expiry):
     """J1-C: additive legacy timestamp alias policy. Returns the actual
-    stored ts for an identity, or None. First tries the canonical
-    normalized ts; on miss, scans for pre-normalization rows whose ts
-    normalizes to the same instant. Raw history is never rewritten —
-    the alias is resolved at read time."""
-    row = con.execute(
-        "SELECT ts FROM snapshots WHERE ts = ? AND expiry = ?",
-        (ts_norm, expiry)).fetchone()
-    if row is not None:
-        return row["ts"]
+    stored ts for an identity, None if absent, or _AMBIGUOUS if multiple
+    distinct rows normalize to the same instant (J1-D: ambiguous aliases
+    are quarantined, not arbitrarily resolved). First tries the canonical
+    normalized ts; on miss, scans for pre-normalization rows. J1-D: even
+    on direct hit, checks for conflicting aliases. Raw history is never
+    rewritten."""
+    # J1-D: always scan for all matching aliases to detect ambiguity.
     try:
         rows = con.execute(
-            "SELECT ts FROM snapshots WHERE expiry = ?", (expiry,)).fetchall()
+            "SELECT ts, spot, gex_formula FROM snapshots WHERE expiry = ?",
+            (expiry,)).fetchall()
     except Exception:
         return None
+    matches = []
     for r in rows:
         try:
             if normalize_ts(r["ts"]) == ts_norm:
-                return r["ts"]
+                matches.append(r)
         except Exception:
             continue
-    return None
+    if not matches:
+        return None
+    if len(matches) == 1:
+        return matches[0]["ts"]
+    # J1-D: multiple aliases — check if they agree on content.
+    # If all match, return the first; if they differ, it's ambiguous.
+    first = (matches[0]["spot"], matches[0]["gex_formula"])
+    if all((m["spot"], m["gex_formula"]) == first for m in matches):
+        return matches[0]["ts"]
+    return _AMBIGUOUS
+
+
+# J1-D: sentinel for ambiguous legacy aliases (multiple distinct rows,
+# same normalized instant). Callers must quarantine, not pick one.
+_AMBIGUOUS = object()
 
 
 def classify_event(stored_core, incoming_core):
@@ -218,20 +232,25 @@ def classify_event(stored_core, incoming_core):
 def fetch_stored(con, ts, expiry):
     """Reconstruct the accepted event from the DB projection: canonical core
     from the snapshot row + strike map from gex_strikes. Returns
-    (core, strikes, map_status) or (None, None, None) when nothing is stored.
-    Uses J1-C legacy alias resolution for pre-normalization rows. The
-    map_status is 'explicit' / 'explicit_empty' / 'unavailable' (J1-C);
-    rows predating the status column report 'unavailable'. Used for
-    validated legacy comparison — never blind hash adoption."""
+    (core, strikes, map_status, digest) or (None, None, None, None) when
+    nothing is stored. Uses J1-C legacy alias resolution for
+    pre-normalization rows. The map_status is 'explicit' / 'explicit_empty'
+    / 'unavailable' (J1-C); rows predating the status column report
+    'unavailable'. The digest is the stored payload_hash (full semantic
+    hash). Used for validated legacy comparison — never blind hash adoption."""
     ts_norm = normalize_ts(ts)
     stored_ts = _resolve_identity(con, ts_norm, expiry)
     if stored_ts is None:
-        return None, None, None
+        return None, None, None, None
+    # J1-D: detect ambiguous aliases (multiple rows, different content).
+    # _resolve_identity returns _AMBIGUOUS in that case.
+    if stored_ts is _AMBIGUOUS:
+        return _AMBIGUOUS, None, None, None
     row = con.execute(
         "SELECT * FROM snapshots WHERE ts = ? AND expiry = ?",
         (stored_ts, expiry)).fetchone()
     if row is None:
-        return None, None, None
+        return None, None, None, None
     rec = {c: row[c] for c in SNAP_COLS if c in row.keys()}
     strikes = canonical_strikes(
         {r["strike"]: r["net_gex_m"]
@@ -247,17 +266,25 @@ def fetch_stored(con, ts, expiry):
     # empty projection is unavailable, not empty — see lost_map fixture).
     if status not in ("explicit", "explicit_empty", "unavailable"):
         status = "explicit" if strikes else "unavailable"
-    return event_core(rec), strikes, status
+    try:
+        digest = row["payload_hash"]
+    except Exception:
+        digest = None
+    return event_core(rec), strikes, status, digest
 
 
 def rec_from_row(con, ts, expiry):
     """Rebuild the accepted journal record from the DB projection (inverse
     of _norm, best-effort). Used to repair a missing journal line after a
-    crash when the DB is the only surviving projection."""
-    ts = normalize_ts(ts)
+    crash when the DB is the only surviving projection. J1-D: uses legacy
+    alias resolution so the same identity resolves consistently."""
+    ts_norm = normalize_ts(ts)
+    stored_ts = _resolve_identity(con, ts_norm, expiry)
+    if stored_ts is None or stored_ts is _AMBIGUOUS:
+        return None
     row = con.execute(
         "SELECT * FROM snapshots WHERE ts = ? AND expiry = ?",
-        (ts, expiry)).fetchone()
+        (stored_ts, expiry)).fetchone()
     if row is None:
         return None
     rec = {}
@@ -275,7 +302,7 @@ def rec_from_row(con, ts, expiry):
         rec[c] = v
     strikes = {r["strike"]: r["net_gex_m"] for r in con.execute(
         "SELECT strike, net_gex_m FROM gex_strikes WHERE ts = ? AND expiry = ?",
-        (ts, expiry))}
+        (stored_ts, expiry))}
     if strikes:
         rec["gex_m"] = {_strike_key(k): v for k, v in strikes.items()}
     return rec
@@ -484,7 +511,13 @@ def mirror_record(rec, gex_m, con=None):
     incoming_full = semantic_hash(incoming_core, incoming_strikes)
     formula = rec.get("gex_formula")
     with con:  # single transaction; auto-rollback on error (F10)
-        stored_core, stored_strikes, stored_status = fetch_stored(con, ts, expiry)
+        stored_core, stored_strikes, stored_status, stored_digest = fetch_stored(con, ts, expiry)
+        # J1-D: ambiguous legacy aliases are quarantined.
+        if stored_core is _AMBIGUOUS:
+            return record_conflict(
+                con, ts, expiry, None, None,
+                "ambiguous legacy timestamp aliases with conflicting "
+                "payloads; quarantined, not resolved", commit=False)
         if stored_core is not None:
             row = con.execute(
                 "SELECT payload_hash FROM snapshots WHERE ts = ? AND expiry = ?",
@@ -564,31 +597,39 @@ class ReplayState:
         # journal map, DB projection, or an accepted gex line). An undefined
         # map is unavailable, not empty.
         self.map_defined = set()
+        # J1-D: full accepted payload digest per ident, for proof of
+        # original content before repair.
+        self.digests = {}
 
     @staticmethod
     def ident(ts, expiry):
         return (normalize_ts(ts), expiry)
 
     def stored(self, ts, expiry):
-        """Returns (core, strikes, map_defined). core is None when no event
-        is stored."""
+        """Returns (core, strikes, map_defined, digest). core is None when
+        no event is stored; core is _AMBIGUOUS when legacy aliases conflict
+        (J1-D)."""
         ident = self.ident(ts, expiry)
         if ident in self.events:
             return (self.events[ident], self.strikes.get(ident, {}),
-                    ident in self.map_defined)
-        core, smap, status = fetch_stored(self.con, ts, expiry)
+                    ident in self.map_defined, self.digests.get(ident))
+        core, smap, status, digest = fetch_stored(self.con, ts, expiry)
         if core is None:
-            return None, {}, False
+            return None, {}, False, None
+        if core is _AMBIGUOUS:
+            return _AMBIGUOUS, {}, False, None
         # J1-C: the persisted map status is authoritative. 'explicit' and
         # 'explicit_empty' both define the map; 'unavailable' does not.
-        return core, smap, status in ("explicit", "explicit_empty")
+        return core, smap, status in ("explicit", "explicit_empty"), digest
 
-    def accept_event(self, ts, expiry, core, smap=_MAP_UNAVAILABLE):
+    def accept_event(self, ts, expiry, core, smap=_MAP_UNAVAILABLE, digest=None):
         ident = self.ident(ts, expiry)
         self.events[ident] = core
         if smap is not _MAP_UNAVAILABLE:
             self.strikes[ident] = dict(smap)
             self.map_defined.add(ident)
+        if digest is not None:
+            self.digests[ident] = digest
 
     def accept_strikes(self, ts, expiry, smap):
         ident = self.ident(ts, expiry)
@@ -599,38 +640,42 @@ class ReplayState:
 
 
 def _classify_snapshot_line(state, rec):
-    """J1-B: verdicts 'accepted' | 'duplicate' | 'conflict' | 'rejected'.
+    """Verdicts 'accepted' | 'duplicate' | 'conflict' | 'rejected'.
     Non-dict lines are rejected, never fatal.
-    J1-C: a journal line with an explicit embedded map must match the
-    accepted map — a changed embedded map is a conflict, just as in
-    direct mirror. However, if the embedded map is a strict superset of
-    the stored projection (and the stored status was explicit), that is
-    projection loss, not a change: the journal is authoritative, so the
-    verdict is duplicate and the missing strikes are repaired."""
+    J1-D: replaces the superset heuristic with proof of original accepted
+    content. A duplicate core with an embedded map must prove it is the
+    original accepted payload via the full semantic digest; a different
+    payload (including a later superset or growth from empty) conflicts.
+    Genuine projection loss (same digest, missing rows) repairs."""
     if not isinstance(rec, dict):
         return "rejected"
     ts, expiry = rec.get("ts"), rec.get("expiry")
     if not ts or not expiry:
         return "rejected"
-    stored_core, stored_strikes, map_defined = state.stored(ts, expiry)
+    stored_core, stored_strikes, map_defined, stored_digest = state.stored(ts, expiry)
+    # J1-D: ambiguous legacy aliases are quarantined, not resolved.
+    if stored_core is _AMBIGUOUS:
+        return "conflict"
     decision = classify_event(stored_core, event_core(rec))
     if decision == "new":
         return "accepted"
     if decision == "conflict":
         return "conflict"
-    # Duplicate core: J1-C — if the line carries an explicit embedded map
-    # and the accepted map is defined, they must agree, unless the
-    # difference is projection loss (embedded strictly superset).
+    # Duplicate core: verify the embedded map against the accepted digest.
     embedded = _embedded_map(rec)
-    if embedded is not _MAP_UNAVAILABLE and map_defined:
-        if embedded == stored_strikes:
-            return "duplicate"
-        # Projection loss: embedded superset of stored → duplicate+repair.
-        if set(embedded.keys()) > set(stored_strikes.keys()) and all(
-                embedded[k] == stored_strikes[k] for k in stored_strikes):
-            return "duplicate"
-        return "conflict"
-    return "duplicate"
+    if embedded is _MAP_UNAVAILABLE or not map_defined:
+        return "duplicate"
+    # J1-D: compute the incoming full digest and compare with the stored
+    # accepted digest. Match = original payload (repair allowed); differ =
+    # changed payload (conflict).
+    incoming_digest = semantic_hash(event_core(rec), embedded)
+    if stored_digest is not None and incoming_digest == stored_digest:
+        return "duplicate"
+    # No stored digest (legacy): fall back to map comparison. An explicitly
+    # empty stored map can never grow; otherwise require exact match.
+    if embedded == stored_strikes:
+        return "duplicate"
+    return "conflict"
 
 
 def _embedded_map(rec):
@@ -659,9 +704,11 @@ def _classify_gex_line(state, d):
     smap = canonical_strikes(raw_map)
     if not smap:
         return "rejected", {}
-    stored_core, stored_strikes, map_defined = state.stored(ts, expiry)
+    stored_core, stored_strikes, map_defined, _ = state.stored(ts, expiry)
     if stored_core is None:
         return "orphan", smap
+    if stored_core is _AMBIGUOUS:
+        return "conflict", smap
     # J1-B: formula/units lineage is semantic — same value with a changed
     # formula is a conflict, not a duplicate.
     stored_formula = stored_core.get("gex_formula")
@@ -717,10 +764,15 @@ def backfill(con=None, dry_run=False):
         if verdict == "accepted":
             # J1-B: the journal's embedded accepted map rebuilds the
             # secondary strike projection; no separate strike file needed.
+            # J1-D: store the full accepted digest for proof before repair.
             embedded = _embedded_map(rec)
+            digest = semantic_hash(
+                event_core(rec),
+                embedded if embedded is not _MAP_UNAVAILABLE else {})
             state.accept_event(ts, expiry, event_core(rec),
                                embedded if embedded is not _MAP_UNAVAILABLE
-                               else _MAP_UNAVAILABLE)
+                               else _MAP_UNAVAILABLE,
+                               digest=digest)
             if not dry_run:
                 insert_snapshot(rec, con)
                 if embedded is not _MAP_UNAVAILABLE and embedded:
@@ -729,10 +781,10 @@ def backfill(con=None, dry_run=False):
                     insert_gex_snapshot(ts, expiry, embedded, con,
                                         formula=rec.get("gex_formula"))
         elif verdict == "conflict" and not dry_run:
-            stored_core, _, _ = state.stored(ts, expiry)
+            stored_core, _, _, _ = state.stored(ts, expiry)
             record_conflict(
                 con, ts, expiry,
-                core_hash(stored_core) if stored_core else None,
+                core_hash(stored_core) if stored_core and stored_core is not _AMBIGUOUS else None,
                 core_hash(event_core(rec)),
                 "backfill: journal line conflicts with accepted event; "
                 "not inserted")
@@ -742,7 +794,7 @@ def backfill(con=None, dry_run=False):
             # and repair absent rows from accepted content only.
             embedded = _embedded_map(rec)
             if embedded is not _MAP_UNAVAILABLE and embedded:
-                _, db_strikes, _ = state.stored(ts, expiry)
+                _, db_strikes, _, _ = state.stored(ts, expiry)
                 missing = {k: v for k, v in embedded.items()
                            if k not in db_strikes}
                 if missing:

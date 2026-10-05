@@ -90,6 +90,8 @@ def main():
         "gamma_flip": g.get("gamma_flip"),
         "net_gex_m": g.get("net_gex_m"),
         "gex_formula": g.get("gex_formula", "v1"),
+        # J1-D: carry source-reported units lineage; unknown stays unknown.
+        "gex_units": g.get("gex_units"),
         "gamma_regime": g.get("regime"),
         "top_gamma": [{"strike": r.get("strike"),
                        "net_gex_m": r.get("net_gex_m")} for r in top_gamma[:3]],
@@ -201,11 +203,11 @@ def main():
             else:
                 # No embedded map; the DB projection is the fallback.
                 # J1-C: use the persisted map status, not just row presence.
-                _, db_strikes, db_status = tape_db.fetch_stored(con, ts_c, expiry)
+                _, db_strikes, db_status, _ = tape_db.fetch_stored(con, ts_c, expiry)
                 accepted_gex = db_strikes
                 acc_explicit = db_status in ("explicit", "explicit_empty")
         else:
-            stored_core, db_strikes, db_status = tape_db.fetch_stored(con, ts_c, expiry)
+            stored_core, db_strikes, db_status, _ = tape_db.fetch_stored(con, ts_c, expiry)
             accepted_rec = (tape_db.rec_from_row(con, ts_c, expiry)
                             if stored_core is not None else None)
             accepted_gex = db_strikes
@@ -253,7 +255,7 @@ def main():
                 # J1-C: verify the DB snapshot projection against the
                 # accepted event. On divergence, repair from accepted
                 # content — the journal is authoritative.
-                stored_core, _, _ = tape_db.fetch_stored(con, ts_c, expiry)
+                stored_core, _, _, _ = tape_db.fetch_stored(con, ts_c, expiry)
                 accepted_core = tape_db.event_core(accepted_rec)
                 if stored_core is not None and stored_core != accepted_core:
                     # Repair: update the divergent row to the accepted event.
@@ -287,14 +289,28 @@ def main():
                     "gex_units": "USD millions per 1% spot move"})
             # J1-B: repair the DB strike projection from accepted content,
             # even when the snapshot row is present.
+            # J1-D: verify values too, not just missing keys. Divergent
+            # values are repaired from accepted content.
             if acc_explicit and acc_gex:
-                _, db_map, _ = tape_db.fetch_stored(con, ts_c, expiry)
+                _, db_map, _, _ = tape_db.fetch_stored(con, ts_c, expiry)
                 missing = {k: v for k, v in acc_gex.items()
                            if k not in db_map}
+                divergent = {k: v for k, v in acc_gex.items()
+                             if k in db_map and db_map[k] != v}
                 if missing:
                     tape_db.insert_gex_snapshot(
                         ts_c, expiry, missing, con,
                         formula=accepted_rec.get("gex_formula"))
+                if divergent:
+                    # Repair divergent values via UPDATE.
+                    for k, v in divergent.items():
+                        con.execute(
+                            "UPDATE gex_strikes SET net_gex_m = ? "
+                            "WHERE ts = ? AND expiry = ? AND strike = ?",
+                            (v, ts_c, expiry, float(k)))
+                    con.commit()
+                    print(f"integrity repaired | ts={ts_c} "
+                          f"divergent_strike_values")
 
         if decision == "duplicate" and strikes_agree:
             converge_missing()

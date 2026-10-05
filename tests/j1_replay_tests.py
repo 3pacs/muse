@@ -425,6 +425,136 @@ with c.con() as con:
     spot = con.execute("SELECT spot FROM snapshots").fetchone()[0]
 record("j1c_divergence_repaired", spot == 100, f"db_spot={spot}")
 
+# 26. J1-D: later superset payload in journal conflicts, does not repair.
+# (Matches reviewer fixture: two lines, same core, second has superset map.)
+c = Ctx()
+with c.con() as con:
+    a = {"ts": TS, "expiry": EXPIRY, "spot": 100, "gex_formula": "v2",
+         "gex_m": {"100": 0.02}}
+    b = {"ts": TS, "expiry": EXPIRY, "spot": 100, "gex_formula": "v2",
+         "gex_m": {"100": 0.02, "101": 0.03}}
+    with open(c.p / "main.jsonl", "w") as f:
+        f.write(json.dumps(a) + "\n")
+        f.write(json.dumps(b) + "\n")
+    counts = tape_db.backfill(con)
+    n_strikes = len(c.strikes())
+record("j1d_superset_replay_conflict",
+       n_strikes == 1 and counts["snap_conflict"] == 1,
+       f"strikes={n_strikes} conflicts={counts['snap_conflict']}")
+
+# 27. J1-D: explicitly empty primary map cannot grow via replay.
+# (Matches reviewer fixture: line a empty, line b nonempty -> conflict.)
+c = Ctx()
+with c.con() as con:
+    a = {"ts": TS, "expiry": EXPIRY, "spot": 100, "gex_formula": "v2",
+         "gex_m": {}}
+    b = {"ts": TS, "expiry": EXPIRY, "spot": 100, "gex_formula": "v2",
+         "gex_m": {"100": 0.02}}
+    with open(c.p / "main.jsonl", "w") as f:
+        f.write(json.dumps(a) + "\n")
+        f.write(json.dumps(b) + "\n")
+    counts = tape_db.backfill(con)
+    n_strikes = len(c.strikes())
+record("j1d_empty_cannot_grow",
+       n_strikes == 0 and counts["snap_conflict"] == 1,
+       f"strikes={n_strikes} conflicts={counts['snap_conflict']}")
+
+# 28. J1-D: divergent strike values are repaired, not left
+c = Ctx()
+c.run()
+with c.con() as con:
+    con.execute("UPDATE gex_strikes SET net_gex_m = 0.5")
+    con.commit()
+c.run()  # logger should repair the divergent value
+with c.con() as con:
+    val = con.execute("SELECT net_gex_m FROM gex_strikes").fetchone()[0]
+record("j1d_divergent_strike_repaired", abs(val - 0.02) < 1e-9, f"val={val}")
+
+# 29. J1-D: logger carries units lineage; changed units conflict
+c = Ctx()
+f1 = feed()
+f1["gamma"]["gex_units"] = "USD millions per 1% spot move"
+c.run(f1)
+f2 = feed()
+f2["gamma"]["gex_units"] = "USD millions per $1 spot move"
+c.run(f2)
+rec = json.loads(c.journal_lines()[0])
+record("j1d_units_lineage",
+       c.conflicts() >= 1 and
+       rec.get("gex_units") == "USD millions per 1% spot move",
+       f"conflicts={c.conflicts()} units={rec.get('gex_units')}")
+
+# 30. J1-D: ambiguous legacy aliases are quarantined
+c = Ctx()
+with c.con() as con:
+    # Two rows, same normalized instant, different content.
+    for ts, spot in [(TS, 100), ("2026-10-05T15:59:00-04:00", 200)]:
+        con.execute(
+            "INSERT INTO snapshots (ts, expiry, spot, gex_formula, payload_hash, gex_map_status) "
+            "VALUES (?, ?, ?, 'v2', 'x', 'explicit')", (ts, EXPIRY, spot))
+        con.execute(
+            "INSERT INTO gex_strikes (ts, expiry, strike, net_gex_m, gex_formula) "
+            "VALUES (?, ?, 100, 0.02, 'v2')", (ts, EXPIRY))
+    con.commit()
+with c.con() as con:
+    v = tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                               "gex_formula": "v2"}, {"100": 0.02}, con)
+    n = c.conflicts()
+record("j1d_ambiguous_alias_quarantined",
+       v["status"] == "conflict" and n >= 1,
+       f"status={v['status']} conflicts={n}")
+
+# 31. J1-D: direct superset mirror still conflicts (control)
+c = Ctx()
+with c.con() as con:
+    tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                           "gex_formula": "v2"}, {"100": 0.02}, con)
+    v = tape_db.mirror_record({"ts": TS, "expiry": EXPIRY, "spot": 100,
+                               "gex_formula": "v2"}, {"100": 0.02, "101": 0.03}, con)
+    n_strikes = len(c.strikes())
+record("j1d_direct_superset_conflict",
+       v["status"] == "conflict" and n_strikes == 1,
+       f"status={v['status']} strikes={n_strikes}")
+
+# 32. J1-D: genuine missing projection still repairs (control)
+c = Ctx()
+c.run()
+with c.con() as con:
+    # Add a second strike via the journal, then delete it from DB.
+    rec = json.loads(c.journal_lines()[0])
+    rec["gex_m"] = {"100.0": 0.02, "101.0": 0.03}
+    # First accept it properly via mirror.
+    tape_db.mirror_record(
+        {"ts": "2026-10-05T20:00:00+00:00", "expiry": EXPIRY, "spot": 100,
+         "gex_formula": "v2"}, {"100": 0.02, "101": 0.03}, con)
+    con.execute("DELETE FROM gex_strikes WHERE strike = 101")
+    con.commit()
+with c.con() as con:
+    # Write the journal line and backfill.
+    rec2 = {"ts": "2026-10-05T20:00:00+00:00", "expiry": EXPIRY, "spot": 100,
+            "gex_formula": "v2", "gex_m": {"100.0": 0.02, "101.0": 0.03}}
+    with open(c.p / "history.jsonl", "a") as f:
+        f.write(json.dumps(rec2) + "\n")
+    tape_db.backfill(con)
+    n_strikes = len([s for s in c.strikes() if s[0] in (100.0, 101.0)])
+record("j1d_genuine_repair", n_strikes == 2, f"strikes={n_strikes}")
+
+# 33. J1-D: digest proves original content across restart.
+# Write the accepted journal line, backfill, then backfill again (simulating
+# restart) — the second run should see duplicates via digest match.
+c = Ctx()
+with c.con() as con:
+    a = {"ts": TS, "expiry": EXPIRY, "spot": 100, "gex_formula": "v2",
+         "gex_m": {"100": 0.02}}
+    with open(c.p / "main.jsonl", "w") as f:
+        f.write(json.dumps(a) + "\n")
+    counts1 = tape_db.backfill(con)
+with c.con() as con:
+    counts2 = tape_db.backfill(con)
+record("j1d_digest_survives_restart",
+       counts1["snap_accepted"] == 1 and counts2["snap_duplicate"] == 1,
+       f"accepted={counts1['snap_accepted']} duplicates={counts2['snap_duplicate']}")
+
 failed = [n for n, ok, _ in results if not ok]
 print(f"\n{len(results) - len(failed)}/{len(results)} pass")
 sys.exit(1 if failed else 0)
