@@ -197,3 +197,135 @@ conflicts if the payload changed) with a receipt.
 The twelve numerical/provenance/dashboard failures remain open per the
 reviewer: R1-A solver numerics, R5/R7 interpreter admission/provenance,
 dashboard projection checks. No assertion was weakened to claim closure.
+
+## J1-D — prove accepted content before repair (2026-10-05)
+
+J1-D replaces the J1-C superset heuristic with digest-based proof of
+original accepted content.
+
+### Accepted payload digest
+
+The full semantic digest (`payload_hash`, covering core + embedded map)
+is retained at accept time and verified before any repair. A duplicate
+journal line must prove it is the original accepted payload via digest
+match; a different payload (including a later superset or growth from
+an explicitly empty map) is a conflict, not a repair. Legacy rows
+without a digest fall back to exact map comparison; an explicitly empty
+stored map can never grow.
+
+### Ambiguous legacy aliases
+
+`_resolve_identity()` now detects multiple distinct rows normalizing to
+the same instant. If they agree on content, the first is returned; if
+they differ, `_AMBIGUOUS` is returned and callers quarantine (conflict)
+rather than arbitrarily resolving. The same resolution is used in
+`fetch_stored`, `rec_from_row`, payload-hash lookup, mirror, snapshot/
+strike projection writes, and logger fallback.
+
+### Logger integrity
+
+The logger propagates source-reported `gex_units` from the feed to the
+accepted record (unknown stays unknown). On duplicate, the logger
+verifies DB strike projection values against accepted content, not just
+missing keys — divergent values are repaired via UPDATE with an explicit
+"integrity repaired" note. If direct mirror returns conflict/quarantine,
+the logger never appends the incoming payload as accepted history; it
+restores only the accepted legacy content or retains an explicit
+unavailable/integrity state.
+
+### Verification
+
+8/8 J1-D fixtures, 10/10 J1-B, 8/8 J1, 21/21 original controls, 5/5
+probes, 35/35 committed replay tests (27 prior + 8 new J1-D). The twelve
+out-of-scope failures remain explicitly open.
+
+## J1-E — finish proof across every recovery path (2026-10-05)
+
+J1-E closes the ten proof-extension contracts.
+
+### Full alias comparison
+
+`_resolve_identity()` now compares the full canonical core plus strike
+map/status for every alias candidate. Matching spot/formula alone is
+insufficient — any difference in core fields or map values yields
+`_AMBIGUOUS`, which callers quarantine. Ambiguity propagates to reads,
+hash lookups, writers, and logger; the logger never appends incoming
+content after mirror conflict or unresolved ambiguity.
+
+### Digest proof
+
+A present stored digest must match the incoming full digest. A mismatch
+is proof of tampering — conflict, not a fallback to map comparison.
+The exact-map legacy fallback applies only when the digest is truly
+absent (NULL). `mirror_record`, backfill, and logger all enforce this.
+
+### DB-only recovery
+
+When the journal is missing and the DB is the fallback, the logger
+verifies the DB projection against the retained digest before accepting
+it. A digest mismatch quarantines; the tampered projection is never
+adopted and the incoming feed is not appended.
+
+### Value and formula repair
+
+Backfill and logger repair divergent strike values (not just missing
+keys) via UPDATE on the resolved actual ts — never a zero-row UPDATE
+with a false success message. Formula lineage is verified alongside
+values; divergent formulas are repaired from accepted proof.
+
+### Unavailable maps
+
+An unavailable accepted map cannot silently adopt a later map. Without
+proof of original content, the incoming is a conflict.
+
+### Units lineage
+
+Primary (journal) and secondary (gex.jsonl) projections both carry the
+exact source-reported `gex_units`. No hardcoded defaults.
+
+### Verification
+
+10/10 J1-E fixtures, 8/8 J1-D, 10/10 J1-B, 8/8 J1, 21/21 original
+controls, 5/5 probes, 45/45 committed replay tests (35 prior + 10 new
+J1-E). The twelve out-of-scope failures remain explicitly open.
+
+## J1-F — durable complete projection convergence (2026-10-05)
+
+J1-F closes the eight restart/completeness contracts.
+
+### Durable repairs
+
+Backfill commits after repairs so they survive connection close/reopen.
+The CLI path (which does not use a connection context) now persists
+repairs. Dry runs never commit.
+
+### Dry/real overlay
+
+Dry runs simulate the full repair overlay (value, formula, missing
+strikes) so downstream secondary lines receive identical verdicts/counts
+as real replay. The overlay is updated in both modes; only the DB write
+is skipped in dry mode.
+
+### Complete projection checks
+
+Logger and backfill check every strike's formula (not just DISTINCT),
+detect extra strikes not in the accepted map (repaired via DELETE or
+quarantined), and verify the full resulting map on all paths.
+
+### Alias-aware inserts
+
+`insert_gex_snapshot` preserves the resolved actual ts (which may be a
+legacy alias) instead of normalizing it. Missing-strike repairs target
+the actual stored identity, never creating orphan canonical-ts
+projections.
+
+### Journal-present ambiguity
+
+Even with the journal present, DB alias ambiguity is detected and
+quarantined. The `_AMBIGUOUS` sentinel is never passed as a SQL value.
+
+### Verification
+
+8/8 J1-F fixtures, 10/10 J1-E, 8/8 J1-D, 10/10 J1-B, 8/8 J1, 21/21 original
+controls, 5/5 probes, 45/45 committed replay tests. The twelve
+out-of-scope failures remain explicitly open.
