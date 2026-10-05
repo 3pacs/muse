@@ -270,7 +270,8 @@ function renderBuild() {
   document.getElementById('fixture-hashes').innerHTML =
     `contract <span class="mono">${BUILD.contract_sha256.slice(0,12)}…</span> · input <span class="mono">${BUILD.input_sha256.slice(0,12)}…</span> · result <span class="mono">${BUILD.result_sha256.slice(0,12)}…</span>`;
   document.getElementById('build-info').innerHTML =
-    `UI-G2 revision <span class="mono">${BUILD.ui_revision||'uncommitted'}</span> · ` +
+    `UI-G3 base <span class="mono">${BUILD.ui_revision||'uncommitted'}</span> · ` +
+    `see MANIFEST.json for exact content identity · ` +
     `GRID origin <span class="mono">${BUILD.grid_origin}</span> · ` +
     `Open: <span class="mono">python3 -m http.server</span> in <span class="mono">uig1/frontend/</span> · ` +
     `No deployment; standalone artifact for review only.`;
