@@ -1,1 +1,18 @@
-ewogICJyZXZpc2lvbiI6ICJVSS1HMyIsCiAgInNjcmVlbnNob3RzIjogewogICAgImRlc2t0b3AtMTI4MCI6IHsKICAgICAgImZpbGUiOiAic2NyZWVuc2hvdHMvZGVza3RvcC0xMjgwLXVpZzMucG5nIiwKICAgICAgInNoYTI1NiI6ICI1NDIyYzUxNjVmYjNiY2E1MDE3ZTBhZjJkMGU3ZGQxMzc1YzBmMzg4MjAxZWQyMjE4MWZhNjhjNzRlMDk3ZDMzIiwKICAgICAgInZpZXdwb3J0IjogIjEyODB4OTAwIiwKICAgICAgImpzX2Vycm9ycyI6IFtdCiAgICB9LAogICAgIm1vYmlsZS0zOTAiOiB7CiAgICAgICJmaWxlIjogInNjcmVlbnNob3RzL21vYmlsZS0zOTAtdWlnMy5wbmciLAogICAgICAic2hhMjU2IjogImU2MjViNTc2OGE0ZDYwYWM0MDRiYTZmNWM4Y2Y3NjI2MDFjNzE3MjQ2NWU1YzU1ZDY3MDMzMDI5MTM5NTYyOWMiLAogICAgICAidmlld3BvcnQiOiAiMzkweDg0NCIsCiAgICAgICJub19wYWdlX292ZXJmbG93IjogdHJ1ZQogICAgfQogIH0sCiAgIm5vdGUiOiAiUE5HIGJ5dGVzIGFyZSBsb2NhbDsgaGFzaGVzIGFuY2hvciB0aGUgcmVjZWlwdHMuIFJlcHJvZHVjZSB2aWEgTUFOSUZFU1QuanNvbiBjb21tYW5kcy4iCn0K
+{
+  "revision": "UI-G3",
+  "screenshots": {
+    "desktop-1280": {
+      "file": "screenshots/desktop-1280-uig3.png",
+      "sha256": "5422c5165fb3bca5017e0af2d0e7dd1375c0f388201ed22181fa68c74e097d33",
+      "viewport": "1280x900",
+      "js_errors": []
+    },
+    "mobile-390": {
+      "file": "screenshots/mobile-390-uig3.png",
+      "sha256": "e625b5768a4d60ac404ba6f5c8cf762601c7172465e5c55d670330291395629c",
+      "viewport": "390x844",
+      "no_page_overflow": true
+    }
+  },
+  "note": "PNG bytes are local; hashes anchor the receipts. Reproduce via MANIFEST.json commands."
+}
