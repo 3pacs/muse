@@ -68,11 +68,12 @@ def main():
     smile = iv.get("smile_2pct") or {}
 
     rec = {
-        # R4: event identity comes from the FEED's own timestamps, not the
-        # logger clock. Replaying the same feed must converge to one record;
-        # the receipt clock is metadata, never identity.
-        "ts": d.get("updated_at") or d.get("quote_as_of")
-              or datetime.now(timezone.utc).isoformat(),
+        # J1: one authoritative accepted event. Identity is the feed's own
+        # timestamp normalized to UTC (equivalent offsets share one
+        # identity); the raw feed string is preserved as ts_original.
+        # Replaying the same feed converges; the receipt clock is metadata.
+        "ts": None,  # set below after normalization
+        "ts_original": (d.get("updated_at") or d.get("quote_as_of")),
         "logged_at": datetime.now(timezone.utc).isoformat(),
         "market_open": d.get("market_open"),
         "expiry": d.get("expiry"),
@@ -139,7 +140,14 @@ def main():
         "events": load_events().get(d.get("expiry"), []),
     }
     os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
-    gex, gex_line = {}, None
+    # J1: normalize the event identity up front; keep the raw feed string.
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import tape_db
+    feed_ts = (rec.pop("ts_original")
+               or datetime.now(timezone.utc).isoformat())
+    rec["ts_original"] = feed_ts
+    rec["ts"] = tape_db.normalize_ts(feed_ts)
+    gex, gex_dict = {}, None
     try:
         spot = d.get("spot") or 0
         snap_rows = (g.get("by_strike") or [])
@@ -147,19 +155,25 @@ def main():
                if spot and abs(r["strike"] - spot) / spot <= 0.04
                and isinstance(r.get("net_gex_m"), (int, float))}
         if gex:
-            # R6: every strike-history event carries its formula/units tag.
-            gex_line = json.dumps({"ts": rec["ts"], "expiry": rec["expiry"],
-                                   "spot": spot, "gex_m": gex,
-                                   "gex_formula": "v2",
-                                   "gex_units": "USD millions per 1% spot move"})
+            # J1: the strike map is part of the accepted event — embed it in
+            # the journal record so every projection can be repaired after
+            # restart from the ACCEPTED event, never the latest feed.
+            # Original key spellings are preserved in projections;
+            # canonical_strikes() normalizes only for comparison.
+            rec["gex_m"] = {str(k): float(v) for k, v in gex.items()}
+            # J1: formula fidelity — the tag follows the actual feed event,
+            # never an unconditional default.
+            gex_dict = {"ts": rec["ts"], "expiry": rec["expiry"],
+                        "spot": spot, "gex_m": rec["gex_m"],
+                        "gex_formula": rec.get("gex_formula"),
+                        "gex_units": "USD millions per 1% spot move"}
     except Exception:
         pass  # heatmap snapshot is best-effort; the main record is what matters
 
-    # F10/R3/R4: single-flight + reconcile against ALL projections.
-    # The main JSONL is the declared authoritative journal; a run converges
-    # every projection (DB snapshot, main JSONL, strike JSONL) independently,
-    # so a crash between appends is repaired by the next run instead of
-    # stranding a permanently incomplete strike history (R3).
+    # J1: one duplicate/conflict decision shared with mirror/backfill.
+    # The journal is the authoritative record of accepted events; the DB is
+    # the fallback projection. The incoming payload is VALIDATED against the
+    # accepted event — presence flags alone never decide.
     lock_fh = open(LOCK_PATH, "w")
     try:
         fcntl.flock(lock_fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -167,45 +181,107 @@ def main():
         print("another logger run in flight; skipping")
         return
     try:
-        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-        import tape_db
         con = tape_db.connect()
         tape_db.init_db(con)
-        in_db = tape_db.has_snapshot(con, rec["ts"], rec["expiry"])
-        in_jsonl = _jsonl_has_ts(LOG_PATH, rec["ts"])
-        in_gex = _jsonl_has_ts(GEX_SNAP_PATH, rec["ts"]) if gex_line else True
-        if in_db and in_jsonl and in_gex:
-            print(f"already logged | ts={rec['ts']}")
+        ts_c, expiry = rec["ts"], rec["expiry"]
+        accepted_rec = _journal_find_event(LOG_PATH, ts_c, expiry)
+        if accepted_rec is not None:
+            stored_core = tape_db.event_core(accepted_rec)
+            accepted_gex = accepted_rec.get("gex_m")
+        else:
+            stored_core, db_strikes = tape_db.fetch_stored(con, ts_c, expiry)
+            accepted_rec = (tape_db.rec_from_row(con, ts_c, expiry)
+                            if stored_core is not None else None)
+            accepted_gex = db_strikes
+        incoming_core = tape_db.event_core(rec)
+        incoming_gex = tape_db.canonical_strikes(gex)
+
+        if accepted_rec is None:
+            # brand-new event: write every projection
+            status = tape_db.mirror_record(rec, gex, con).get("status")
+            _append_line(LOG_PATH, rec)
+            if gex_dict:
+                _append_line(GEX_SNAP_PATH, gex_dict)
+            print(f"logged | spot={rec['spot']} max_pain={rec['max_pain']} "
+                  f"expiry={rec['expiry']} mirror={status}")
             return
-        mirror_status = "skipped"
-        if not in_db:
-            mirror_status = tape_db.mirror_record(rec, gex or {}, con).get("status")
-        if not in_jsonl:
-            with open(LOG_PATH, "a") as fh:
-                fh.write(json.dumps(rec) + "\n")
-        if gex_line and not in_gex:
-            with open(GEX_SNAP_PATH, "a") as fh:
-                fh.write(gex_line + "\n")
+
+        acc_gex = tape_db.canonical_strikes(accepted_gex)
+        strikes_agree = (not incoming_gex or not acc_gex
+                         or acc_gex == incoming_gex)
+        decision = tape_db.classify_event(stored_core, incoming_core)
+
+        def converge_missing():
+            """Complete every projection from the ACCEPTED event only.
+            Never uses the incoming payload."""
+            if not tape_db.has_snapshot(con, ts_c, expiry):
+                tape_db.mirror_record(accepted_rec, acc_gex, con)
+            if _journal_find_event(LOG_PATH, ts_c, expiry) is None:
+                _append_line(LOG_PATH, accepted_rec)
+            # strike map: prefer the accepted record's original key
+            # spellings; fall back to the canonical map for legacy rows.
+            acc_map = (accepted_rec.get("gex_m")
+                       if isinstance(accepted_rec.get("gex_m"), dict)
+                       else {k: v for k, v in acc_gex.items()})
+            if acc_map and _journal_find_event(GEX_SNAP_PATH, ts_c,
+                                               expiry) is None:
+                _append_line(GEX_SNAP_PATH, {
+                    "ts": ts_c, "expiry": expiry,
+                    "spot": accepted_rec.get("spot"), "gex_m": acc_map,
+                    "gex_formula": accepted_rec.get("gex_formula"),
+                    "gex_units": "USD millions per 1% spot move"})
+
+        if decision == "duplicate" and strikes_agree:
+            converge_missing()
+            print(f"already logged | ts={ts_c}")
+            return
+
+        # Changed payload for the same identity: first repair any missing
+        # projection from the ACCEPTED event (DB, journal and strike history
+        # must agree), then quarantine the incoming attempt. The rejected
+        # payload never becomes a projection.
+        converge_missing()
+        reason = ("core payload changed" if decision == "conflict"
+                  else "strike map changed for identical core")
+        tape_db.record_conflict(
+            con, ts_c, expiry, tape_db.core_hash(stored_core),
+            tape_db.core_hash(incoming_core),
+            "logger: " + reason + "; accepted event stands")
+        print(f"conflict quarantined | ts={ts_c} reason={reason}")
     finally:
         fcntl.flock(lock_fh, fcntl.LOCK_UN)
         lock_fh.close()
 
-    print(f"logged | spot={rec['spot']} max_pain={rec['max_pain']} "
-          f"expiry={rec['expiry']} mirror={mirror_status}")
 
-
-def _jsonl_has_ts(path, ts):
-    """Tail-scan for a record ts (F10 reconcile)."""
+def _journal_find_event(path, ts, expiry):
+    """J1: full-file tolerant scan for the accepted journal record with the
+    given (normalized ts, expiry). Malformed/truncated lines are skipped,
+    never fatal. Returns the parsed dict of the FIRST match, or None."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import tape_db
+    norm = tape_db.normalize_ts
     try:
-        with open(path, "rb") as fh:
-            fh.seek(0, os.SEEK_END)
-            size = fh.tell()
-            fh.seek(max(0, size - 65536))
-            tail = fh.read().decode("utf-8", "replace")
-        needle = f'"ts": "{ts}"'
-        return needle in tail
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except Exception:
+                    continue  # truncated tail / malformed line: skip
+                if not isinstance(d, dict):
+                    continue  # double-encoded or scalar line: skip
+                if norm(d.get("ts")) == ts and d.get("expiry") == expiry:
+                    return d
     except OSError:
-        return False
+        return None
+    return None
+
+
+def _append_line(path, obj):
+    with open(path, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(obj) + "\n")
 
 
 if __name__ == "__main__":

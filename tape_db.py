@@ -55,6 +55,181 @@ SNAP_COLS = [
 ]
 JSON_COLS = {"top_gamma", "top_unusual", "rev_conditions", "events"}
 
+# J1: one authoritative accepted event. The semantic payload is the
+# canonical core below: every SNAP_COLS field, normalized so the journal
+# record, the DB row and a replayed line all canonicalize identically.
+# Receipt clocks (logged_at and friends) are never semantic: they are not
+# in SNAP_COLS and are excluded from the hash. The strike map is compared
+# separately (see canonical_strikes); journal snapshot lines that predate
+# the embedded strike map compare on the core only.
+RECEIPT_FIELDS = {"logged_at"}
+
+
+def normalize_ts(ts):
+    """Canonical event-time identity: aware timestamps fold to UTC ISO.
+
+    Equivalent instants written with different offsets ('14:00+00:00' vs
+    '10:00-04:00') share one identity. Unparseable/naive values keep their
+    raw string (never silently rewritten)."""
+    if not isinstance(ts, str):
+        return ts
+    try:
+        dt = datetime.fromisoformat(ts)
+    except (ValueError, TypeError):
+        return ts
+    if dt.tzinfo is None:
+        return ts
+    return dt.astimezone(timezone.utc).isoformat()
+
+
+def _canon_num(v):
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (int, float)):
+        return float(v)
+    return v
+
+
+def _canon_val(col, v):
+    """Normalize one column value so journal dicts and DB rows agree."""
+    if v is None:
+        return None
+    if col in JSON_COLS:
+        try:
+            obj = json.loads(v) if isinstance(v, str) else v
+        except (ValueError, TypeError):
+            return str(v)
+        try:
+            return json.dumps(obj, sort_keys=True, separators=(",", ":"),
+                              default=str)
+        except (ValueError, TypeError):
+            return str(obj)
+    if col in ("rev_stretched", "market_open"):
+        return 1 if v else 0
+    return _canon_num(v)
+
+
+def event_core(rec):
+    """Canonical semantic payload of an event (no strike map, no receipt
+    fields). Two records describing the same accepted event produce equal
+    dicts whether they come from the journal, the DB row or a replay."""
+    core = {}
+    for c in SNAP_COLS:
+        v = rec.get(c)
+        if c == "ts":
+            v = normalize_ts(v)
+        core[c] = _canon_val(c, v)
+    return core
+
+
+def core_hash(core):
+    return hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":"),
+                   default=str).encode()).hexdigest()
+
+
+def _strike_key(k):
+    try:
+        return str(float(k))
+    except (ValueError, TypeError):
+        return str(k)
+
+
+def canonical_strikes(gex_m):
+    """Normalized strike map: canonical keys, float values, sorted."""
+    out = {}
+    for k, v in (gex_m or {}).items():
+        try:
+            out[_strike_key(k)] = float(v)
+        except (ValueError, TypeError):
+            continue
+    return out
+
+
+def classify_event(stored_core, incoming_core):
+    """The ONE duplicate/conflict decision (J1): logger, mirror and backfill
+    all route through here. Returns 'new', 'duplicate' or 'conflict'."""
+    if stored_core is None:
+        return "new"
+    return "duplicate" if stored_core == incoming_core else "conflict"
+
+
+def fetch_stored(con, ts, expiry):
+    """Reconstruct the accepted event from the DB projection: canonical core
+    from the snapshot row + strike map from gex_strikes. Returns
+    (core, strikes) or (None, None) when nothing is stored. Used for
+    validated legacy comparison — never blind hash adoption."""
+    ts = normalize_ts(ts)
+    row = con.execute(
+        "SELECT * FROM snapshots WHERE ts = ? AND expiry = ?",
+        (ts, expiry)).fetchone()
+    if row is None:
+        return None, None
+    rec = {c: row[c] for c in SNAP_COLS if c in row.keys()}
+    strikes = canonical_strikes(
+        {r["strike"]: r["net_gex_m"]
+         for r in con.execute(
+             "SELECT strike, net_gex_m FROM gex_strikes WHERE ts = ? AND expiry = ?",
+             (ts, expiry))})
+    return event_core(rec), strikes
+
+
+def rec_from_row(con, ts, expiry):
+    """Rebuild the accepted journal record from the DB projection (inverse
+    of _norm, best-effort). Used to repair a missing journal line after a
+    crash when the DB is the only surviving projection."""
+    ts = normalize_ts(ts)
+    row = con.execute(
+        "SELECT * FROM snapshots WHERE ts = ? AND expiry = ?",
+        (ts, expiry)).fetchone()
+    if row is None:
+        return None
+    rec = {}
+    for c in SNAP_COLS:
+        if c not in row.keys():
+            continue
+        v = row[c]
+        if c in JSON_COLS and isinstance(v, str):
+            try:
+                v = json.loads(v)
+            except (ValueError, TypeError):
+                pass
+        if c in ("rev_stretched", "market_open") and v is not None:
+            v = bool(v)
+        rec[c] = v
+    strikes = {r["strike"]: r["net_gex_m"] for r in con.execute(
+        "SELECT strike, net_gex_m FROM gex_strikes WHERE ts = ? AND expiry = ?",
+        (ts, expiry))}
+    if strikes:
+        rec["gex_m"] = {_strike_key(k): v for k, v in strikes.items()}
+    return rec
+
+
+def record_conflict(con, ts, expiry, kept_hash, incoming_hash, reason,
+                    commit=True):
+    """Quarantine receipt for a changed-payload attempt. The accepted event
+    stands; the incoming payload never becomes a projection."""
+    ts = normalize_ts(ts)
+    try:
+        con.execute(
+            "INSERT INTO mirror_conflicts "
+            "(ts, expiry, kept_hash, incoming_hash, received_at, reason) "
+            "VALUES (?,?,?,?,?,?)",
+            (ts, expiry, kept_hash or "", incoming_hash or "",
+             datetime.now(timezone.utc).isoformat(), reason))
+    except Exception:
+        # pre-migration table without the reason column
+        con.execute(
+            "INSERT INTO mirror_conflicts "
+            "(ts, expiry, kept_hash, incoming_hash, received_at) "
+            "VALUES (?,?,?,?,?)",
+            (ts, expiry, kept_hash or "", incoming_hash or "",
+             datetime.now(timezone.utc).isoformat()))
+    if commit:
+        con.commit()
+    return {"status": "conflict", "reason": reason,
+            "kept": kept_hash, "incoming": incoming_hash}
+
 
 def connect():
     os.makedirs(HIDDEN, exist_ok=True)
@@ -134,6 +309,11 @@ def init_db(con=None):
             con.execute(f"ALTER TABLE snapshots ADD COLUMN {coldef}")
         except Exception:
             pass  # column already exists
+    # J1: conflict receipts carry the reason the payload was rejected.
+    try:
+        con.execute("ALTER TABLE mirror_conflicts ADD COLUMN reason TEXT")
+    except Exception:
+        pass  # column already exists
     # R6: formula tag travels with strike rows (joinable to the snapshot row)
     try:
         con.execute("ALTER TABLE gex_strikes ADD COLUMN gex_formula TEXT")
@@ -156,12 +336,10 @@ def _norm(rec):
     return vals
 
 
-def _payload_hash(rec, gex_m):
-    """Identity payload hash (R4): full record + strike map, canonicalized."""
-    h = hashlib.sha256()
-    h.update(json.dumps(rec, sort_keys=True, default=str).encode())
-    h.update(json.dumps(gex_m or {}, sort_keys=True, default=str).encode())
-    return h.hexdigest()
+def _payload_hash(rec, gex_m=None):
+    """J1: canonical semantic hash. Kept name for compatibility; now hashes
+    the canonical core (receipt clocks excluded, ts normalized)."""
+    return core_hash(event_core(rec))
 
 
 def insert_snapshot(rec, con=None):
@@ -169,13 +347,14 @@ def insert_snapshot(rec, con=None):
     cols = ", ".join(SNAP_COLS + ["payload_hash"])
     qs = ", ".join("?" * (len(SNAP_COLS) + 1))
     con.execute(f"INSERT OR IGNORE INTO snapshots ({cols}) VALUES ({qs})",
-                _norm(rec) + [_payload_hash(rec, {})])
+                _norm(rec) + [_payload_hash(rec)])
     con.commit()
 
 
 def insert_gex_snapshot(ts, expiry, gex_m, con=None, formula=None):
     """gex_m: {strike_str: net_gex_m}; formula: 'v1'/'v2'/None (R6)."""
     con = con or connect()
+    ts = normalize_ts(ts)
     rows = [(ts, expiry, float(k), v, formula) for k, v in gex_m.items()]
     con.executemany(
         "INSERT OR IGNORE INTO gex_strikes (ts, expiry, strike, net_gex_m, gex_formula)"
@@ -187,51 +366,63 @@ def insert_gex_snapshot(ts, expiry, gex_m, con=None, formula=None):
 def has_snapshot(con, ts, expiry):
     return con.execute(
         "SELECT 1 FROM snapshots WHERE ts = ? AND expiry = ?",
-        (ts, expiry)).fetchone() is not None
+        (normalize_ts(ts), expiry)).fetchone() is not None
 
 
 def mirror_record(rec, gex_m, con=None):
-    """Insert a logger record + its gex rows in ONE transaction (F10/R4).
+    """J1: the single duplicate/conflict decision, shared by logger, direct
+    mirror and backfill.
 
-    R4 identity policy:
-      * identical (ts, expiry) + identical payload hash -> "duplicate" no-op
-      * same (ts, expiry) + changed payload          -> "conflict": the first
-        record stands, NO partial strike merge, and the attempt is receipted
-        in mirror_conflicts
-      * legacy rows with NULL payload_hash adopt the incoming hash and are
-        treated as duplicates (no strike rewrite)
-    Returns {"status": "inserted"|"duplicate"|"conflict", ...}."""
+      * no stored event                      -> "inserted"
+      * same identity + equal canonical core -> "duplicate" (no-op; a
+        validated legacy NULL hash is filled in, never blind-adopted)
+      * same identity + changed core         -> "conflict": the accepted
+        event stands, NO strike merge, attempt receipted in mirror_conflicts
+        with a reason. A rejected payload cannot add a strike.
+
+    Strike maps are compared alongside the core: same core but changed
+    strikes is also a conflict. Returns {"status": ...}."""
     con = con or connect()
-    phash = _payload_hash(rec, gex_m)
+    ts, expiry = normalize_ts(rec["ts"]), rec["expiry"]
+    incoming_core = event_core(rec)
+    incoming_hash = core_hash(incoming_core)
+    incoming_strikes = canonical_strikes(gex_m)
     formula = rec.get("gex_formula")
     with con:  # single transaction; auto-rollback on error (F10)
-        row = con.execute(
-            "SELECT payload_hash FROM snapshots WHERE ts = ? AND expiry = ?",
-            (rec["ts"], rec["expiry"])).fetchone()
-        if row is not None:
-            kept = row["payload_hash"]
-            if kept is None:
-                # legacy row (pre-R4): adopt the hash, treat as duplicate
-                con.execute("UPDATE snapshots SET payload_hash = ? "
-                            "WHERE ts = ? AND expiry = ?",
-                            (phash, rec["ts"], rec["expiry"]))
-                return {"status": "duplicate", "legacy_adopted": True}
-            if kept == phash:
+        stored_core, stored_strikes = fetch_stored(con, ts, expiry)
+        if stored_core is not None:
+            row = con.execute(
+                "SELECT payload_hash FROM snapshots WHERE ts = ? AND expiry = ?",
+                (ts, expiry)).fetchone()
+            kept_hash = row["payload_hash"] if row else None
+            # J1: legacy NULL hashes are VALIDATED by reconstructing the
+            # stored accepted content, never by adopting the incoming hash.
+            if kept_hash is None:
+                if stored_core == incoming_core and stored_strikes == incoming_strikes:
+                    con.execute("UPDATE snapshots SET payload_hash = ? "
+                                "WHERE ts = ? AND expiry = ?",
+                                (incoming_hash, ts, expiry))
+                    return {"status": "duplicate", "legacy_validated": True}
+                return record_conflict(
+                    con, ts, expiry, None, incoming_hash,
+                    "legacy NULL hash: stored content differs from incoming; "
+                    "quarantined, not adopted", commit=False)
+            decision = classify_event(stored_core, incoming_core)
+            strikes_ok = (stored_strikes == incoming_strikes)
+            if decision == "duplicate" and strikes_ok:
                 return {"status": "duplicate"}
-            con.execute(
-                "INSERT INTO mirror_conflicts "
-                "(ts, expiry, kept_hash, incoming_hash, received_at) "
-                "VALUES (?,?,?,?,?)",
-                (rec["ts"], rec["expiry"], kept, phash,
-                 datetime.now(timezone.utc).isoformat()))
-            return {"status": "conflict", "kept": kept, "incoming": phash}
+            reason = ("core payload changed" if decision == "conflict"
+                      else "strike map changed for identical core")
+            return record_conflict(con, ts, expiry, kept_hash, incoming_hash,
+                                   reason, commit=False)
         cols = ", ".join(SNAP_COLS + ["payload_hash"])
         qs = ", ".join("?" * (len(SNAP_COLS) + 1))
+        rec_n = dict(rec, ts=ts)
         con.execute(f"INSERT INTO snapshots ({cols}) VALUES ({qs})",
-                    _norm(rec) + [phash])
-        if gex_m:
-            rows = [(rec["ts"], rec["expiry"], float(k), v, formula)
-                    for k, v in gex_m.items()]
+                    _norm(rec_n) + [incoming_hash])
+        if incoming_strikes:
+            rows = [(ts, expiry, float(k), v, formula)
+                    for k, v in incoming_strikes.items()]
             con.executemany(
                 "INSERT OR IGNORE INTO gex_strikes (ts, expiry, strike, net_gex_m, gex_formula)"
                 " VALUES (?,?,?,?,?)", rows)
@@ -245,73 +436,145 @@ def insert_alert(ts, alert_type, detail="", con=None):
     con.commit()
 
 
-def _classify_snapshot_line(con, rec):
-    """R9: one validation/duplicate policy shared by dry-run and real replay.
-    Returns 'accepted' | 'ignored' | 'rejected' without writing."""
+class ReplayState:
+    """J1: evolving validation state shared by dry-run and real replay.
+
+    Wraps the DB connection with an overlay of events accepted earlier in
+    THIS run, so a dry-run simulates exactly what the real run will do
+    (intra-file A,A duplicates, A,C,B,A sequences) without writing.
+    The single duplicate/conflict decision (classify_event) is used for
+    snapshot lines, gex lines and direct mirrors alike."""
+
+    def __init__(self, con):
+        self.con = con
+        self.events = {}   # (ts, expiry) -> canonical core accepted this run
+        self.strikes = {}  # (ts, expiry) -> {skey: value} accepted this run
+
+    @staticmethod
+    def ident(ts, expiry):
+        return (normalize_ts(ts), expiry)
+
+    def stored(self, ts, expiry):
+        ident = self.ident(ts, expiry)
+        if ident in self.events:
+            return self.events[ident], self.strikes.get(ident, {})
+        return fetch_stored(self.con, ts, expiry)
+
+    def accept_event(self, ts, expiry, core):
+        self.events[self.ident(ts, expiry)] = core
+
+    def accept_strikes(self, ts, expiry, smap):
+        ident = self.ident(ts, expiry)
+        cur = dict(self.strikes.get(ident, {}))
+        cur.update(smap)
+        self.strikes[ident] = cur
+
+
+def _classify_snapshot_line(state, rec):
+    """J1: verdicts 'accepted' | 'duplicate' | 'conflict' | 'rejected'."""
     ts, expiry = rec.get("ts"), rec.get("expiry")
     if not ts or not expiry:
         return "rejected"
-    return "ignored" if has_snapshot(con, ts, expiry) else "accepted"
+    stored_core, _ = state.stored(ts, expiry)
+    decision = classify_event(stored_core, event_core(rec))
+    return "accepted" if decision == "new" else decision
 
 
-def _classify_gex_line(con, d):
-    """R9: shared policy for strike-history lines. 'partial' = some strikes
-    already present (would insert a subset). Returns (verdict, gex_m)."""
+def _classify_gex_line(state, d):
+    """J1: a gex line must agree with the accepted event's strike map.
+    Any value change (including partial overlaps) is a conflict — the
+    rejected payload cannot add or alter a strike."""
     ts, expiry = d.get("ts"), d.get("expiry")
-    gex_m = d.get("gex_m") or {}
-    if not ts or not expiry or not gex_m:
+    smap = canonical_strikes(d.get("gex_m") or {})
+    if not ts or not expiry or not smap:
         return "rejected", {}
-    try:
-        strikes = [float(k) for k in gex_m]
-    except (ValueError, TypeError):
-        return "rejected", {}
-    have = sum(1 for s in strikes if con.execute(
-        "SELECT 1 FROM gex_strikes WHERE ts = ? AND expiry = ? AND strike = ?",
-        (ts, expiry, s)).fetchone() is not None)
-    if have == len(strikes):
-        return "ignored", gex_m
-    return ("partial" if have else "accepted"), gex_m
+    _, stored_strikes = state.stored(ts, expiry)
+    if stored_strikes is None:
+        stored_strikes = {}
+    overlap = [k for k in smap if k in stored_strikes]
+    if overlap and any(smap[k] != stored_strikes[k] for k in overlap):
+        return "conflict", smap
+    if all(k in stored_strikes for k in smap):
+        return "duplicate", smap
+    return "accepted", smap
 
 
 def backfill(con=None, dry_run=False):
-    """Additive backfill: never deletes rows (F10). R9: dry-run and real
-    replay run the SAME validation, conflict and duplicate policy, so the
-    predicted counts match the actual ones. A dry-run never writes."""
+    """Additive backfill: never deletes rows (F10). J1: dry-run and real
+    replay run the SAME evolving validation/duplicate/conflict state, so
+    predicted counts match actual ones. A dry-run never writes. Verdicts:
+    accepted / duplicate / conflict (receipted, not inserted) / rejected
+    (malformed)."""
     con = con or connect()
-    counts = {"snap_accepted": 0, "snap_ignored": 0, "snap_rejected": 0,
-              "gex_accepted": 0, "gex_ignored": 0, "gex_rejected": 0,
-              "gex_partial": 0}
-    if os.path.exists(LOG_PATH):
+    counts = {"snap_accepted": 0, "snap_duplicate": 0, "snap_conflict": 0,
+              "snap_rejected": 0,
+              "gex_accepted": 0, "gex_duplicate": 0, "gex_conflict": 0,
+              "gex_rejected": 0}
+    state = ReplayState(con)
+
+    def snap_lines():
+        if not os.path.exists(LOG_PATH):
+            return
         with open(LOG_PATH) as fh:
             for line in fh:
                 line = line.strip()
                 if not line:
                     continue
                 try:
-                    rec = json.loads(line)
+                    yield json.loads(line)
                 except Exception:
-                    counts["snap_rejected"] += 1
-                    continue
-                verdict = _classify_snapshot_line(con, rec)
-                counts["snap_" + verdict] += 1
-                if verdict == "accepted" and not dry_run:
-                    insert_snapshot(rec, con)
-    if os.path.exists(GEX_PATH):
+                    yield None
+
+    def gex_lines():
+        if not os.path.exists(GEX_PATH):
+            return
         with open(GEX_PATH) as fh:
             for line in fh:
                 line = line.strip()
                 if not line:
                     continue
                 try:
-                    d = json.loads(line)
+                    yield json.loads(line)
                 except Exception:
-                    counts["gex_rejected"] += 1
-                    continue
-                verdict, gex_m = _classify_gex_line(con, d)
-                counts["gex_" + verdict] += 1
-                if verdict in ("accepted", "partial") and not dry_run:
-                    insert_gex_snapshot(d["ts"], d["expiry"], gex_m, con,
-                                        formula=d.get("gex_formula"))
+                    yield None
+
+    for rec in snap_lines():
+        if rec is None:
+            counts["snap_rejected"] += 1
+            continue
+        verdict = _classify_snapshot_line(state, rec)
+        counts["snap_" + verdict] += 1
+        if verdict == "accepted":
+            state.accept_event(rec.get("ts"), rec.get("expiry"),
+                               event_core(rec))
+            if not dry_run:
+                insert_snapshot(rec, con)
+        elif verdict == "conflict" and not dry_run:
+            ts, expiry = normalize_ts(rec.get("ts")), rec.get("expiry")
+            stored_core, _ = state.stored(ts, expiry)
+            record_conflict(
+                con, ts, expiry,
+                core_hash(stored_core) if stored_core else None,
+                core_hash(event_core(rec)),
+                "backfill: journal line conflicts with accepted event; "
+                "not inserted")
+    for d in gex_lines():
+        if d is None:
+            counts["gex_rejected"] += 1
+            continue
+        verdict, smap = _classify_gex_line(state, d)
+        counts["gex_" + verdict] += 1
+        ts, expiry = normalize_ts(d.get("ts")), d.get("expiry")
+        if verdict == "accepted":
+            state.accept_strikes(ts, expiry, smap)
+            if not dry_run:
+                insert_gex_snapshot(ts, expiry, smap, con,
+                                    formula=d.get("gex_formula"))
+        elif verdict == "conflict" and not dry_run:
+            record_conflict(
+                con, ts, expiry, None, None,
+                "backfill: strike line changes accepted strike map; no "
+                "strike added")
     return counts
 
 
