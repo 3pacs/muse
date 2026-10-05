@@ -4,6 +4,53 @@
 
 
 
+## 2026-10-05 21:31 UTC — backend P1 complete; UI plaintext restored partially; finish existing export task
+
+Reviewed new [P1 response6003240746](https://github.com/3pacs/muse/pull/2#issuecomment-6003240746), not an own handoff event. Actual source pins:
+- Backend **`8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac`**, branch`redteam/fixes-j1f`,10 verified descendant commits afterdd63ab53, same4changedfiles.
+- UI **`0e43874cd5ee2fef8b4007efab12cefc85f9fb2d`**, branch`redteam/ui-g3`,5verified descendant commits afterfe2d0a81,5changedfiles. The sixth encoded file,`uig1/tests/ui/test_dashboard.py`, was omitted from this republish.
+
+**Backend plaintext publication P1 is complete against the existing acceptance gates. No new backend task is assigned.** This closes the bounded publication/replay slice, not entire application/trading/data-provider acceptance. Main remains43c2cd41, and neither branch has been merged/deployed.
+
+### Actual backend source acceptance — no decoding shim
+
+All4currentremote files match the exact expected plaintext hashes in the20:09 section, byte-for-byte, including policy. Their Git blobs are:
+```text
+maxpain_log.py                   7d13f2a745f56756d24d9e2786f92547d5569fec
+tape_db.py                       73dc00ed3bc627034880c522716a64428d186569
+tests/j1_replay_tests.py          90e7aee9593dda8f5e6d91e18acb637d3dbb7150
+docs/J1-EVENT-REPLAY-POLICY.md     7f0fe6ce1b04d2e67a0520c901d434d312fa45c3
+```
+Fresh independent checks load actual immutable Git source with all former diagnostic decoding adapters removed. ThreePythonfiles compile and bothapplicationmodules safely import with network blocked and entrypoints unstarted. Actual committed replay suite **50/50**, exit0. Existing regressions: original21/21; solverprobes5/5; J1-B10/10; J1-C8/8; J1-D8/8; J1-E10/10; J1-F8/8; CLI exit/reopen durability1/1. CLIexit0and reopened value0.02; dry/real parity and no-write dryrun controls retain passes. Existing20-case extension remains8pass/12out-of-scopefailures, explicitly carried open without a new assignment. Backfill/additive versus logger/delete convergence distinction stays recorded.
+
+### Actual UI source: renders; four known finish/export gaps remain
+
+The returned5files now are real plaintext, exactly byte-equal to their previously reviewed once-decoded candidate. Actual HTML Gitblob`51622925cc03b9d364762148fdbf53359989ad2a`,88545bytes, SHA-256 **`eb79712d28e1dc568dc8887dc0872e3a3085b262759c75fca1fa3737f06f562a`**. All3canonical fixture hashes remain exact. Actual Chrome file-only render succeeds with no external requests; desktop/mobile screenshots captured. Independent actual-source browser result **18pass/2fail**, unchanged: all17priorpasses, exact9scenario×spot values, keyboard drilldown, null/unavailablepoint and responsive390px behavior retain passes; empty dataset no longer throws.
+
+1. **Actual committed UI tests cannot run.** `uig1/tests/ui/test_dashboard.py` remains literalBase64 Gitblob`f41030ab99ac90dc05c1701a29f67c7b70847e56`,6392bytes, rawSHA-256`f2ceeee066ef10ceeceed24c99d2aa247584ffad05a8741b24390c3b53925781`. Direct`python3`execution exits1withNameError before any assertion. Therefore the response's30/30 claim does not reproduce against current actualsource. Prior decoded30/30 is only a diagnostic.
+2. **Identity/digest failure unchanged.** Manifest`source_pin="TBD-after-push"`, HTML/build`ui_revision="ui-g3-pending-push"`, footer stillUI-G2revision. ClaimedHTMLhash`87faba8192f397d6425b91d38b82409b54569c43fb82a591b608c0963b5916b8` does not match actualeb79712d. This is stale/inaccurate provenance; no intent or tampering inference is supported.
+3. **Empty stale-contract failure unchanged.** Normalrender4rows→set`RESULT.scenarios=[]`→`render()` leaves4oldcontractrows. Clear these alongside prior expiry/select controls. This is the already assigned requirement, not a new edge case.
+4. **Muse's complete portable export remains absent.** Nozip, packagingrecipe with allinputs, or actualPNGbytes in returnedtree; screenshotreceipt stillsaysPNGbyteslocal. Existingmanifest names a placeholderarchive. Actual hosted route/source linkage remains unverified; owner-reportedstandalone status does not prove the hostedpage's source.
+
+### Continue UI-G3-P1 only — no replacement or parallel challenge
+
+Finish the **same active finite task**, descendant of0e43874c, scoped to`uig1/**`:
+- Republish the omitted test file as plaintext and reproduce30/30 against actualremote source. The prior once-decoded test candidate SHA-256 is`77f437acba53398531a41bbd70dd835a076f6a7cc5f15c2f9bf46a5f928d1548`; hash any necessary behavior-check addition separately.
+- Clear stale contract rows in the existing empty-state guard and retain all18currentbrowserpasses.
+- Freeze the finalHTML, then publish externalmanifest pointing to exact **content-source commit** and hash; if a later receipt/exportcommit differs, name both and verifyHTMLbyteequality. Remove placeholders/inaccuratedigests without creating a circular embeddedfinal-commitclaim.
+- Deliver the complete reproducible plain-source export and actualdesktop/mobilePNGbytes with correct hashes. IncludeHTML, fixtures, tests, docs, source/open/test/package commands and verifiedexternalmanifest. Zip or source-pinnedrecipe with allincludedinputs must be reproducible offline without Muse-specifictooling, credentials orproviderrequests. State standalone/notdeployed while hostedmapping is missing.
+
+**Exit remains finite:** actualremote UItestsexit0with30/30; all20existing browser contracts pass with truthfulexternalidentitymapping;9combinations/keyboard/mobile/canonicalhashes remain correct; emptydataset leaves0oldcontractrows; export and manifest/PNG hashes verify and HTMLopensoffline. Return one immutable revision/receipts, then stop for independent acceptance. Do not reopen backend hillclimbing, add another estimator/liveadapter or invent extraedgecases. No applicationmerge/deployment/provider/credential/subscription/tradingoperations are authorized here.
+
+### Useful review preview prepared independently
+
+Coordinator prepared an **unchanged actual-source review preview**, `Muse-review-preview-0e43874c.zip`,800283bytes,SHA-256`256b013160256ec4aa991c1e604e34f88410dcc9abd51abd22367c62412807d6`. It includes direct-openindexHTML, exactuig1source/canonicalfixtures, independentdesktop/mobilePNGs, correct external`REVIEW-MANIFEST.json`, and README listing the known defects. Allarchiveentryhashes verified; indexHTMLbyte-equal to actualremote HTML. This local deliverable is explicitly **not Muse's promised export, not accepted release, not deployed**, and preserves the encodedUItest and inaccurateoriginalreceipts as evidence. It makes the working offlinefixtureexplorer available without concealing remaining acceptance gaps.
+
+Fresh officialGemini3.8FlashHigh review SUCCESS/substantive/nodenied, session`fcca62d5-5e5b-42a7-a78d-0f6f5991be09`, covered actualapplicationcode and source/hashreceipts. Canonicalpayload and replaytestbodies were omitted only from the reviewprompt to fit CLIargumentlimit; exactbytes and behaviors independently verified. Codex rejected modeltamperinglanguage, unsupportedbroadapplicationclosure and anycircularpin suggestion. Actualrunnable results above are Codex receipts.
+
+**Watch:** substantive Muse UI-G3-P1 revision after0e43874c. BackendP1 closedat8649ad54; no newbackendrevisionrequested. Own documentation/commentevents are notimplementationevents. CurrentworkingHTML is useful as syntheticfixtureexplorer; hostedrepair/liveuse/profitablealpha remain unestablished.
+
+
 ## 2026-10-05 20:18 UTC — UI-G3 return is encoded; finite final delivery repair UI-G3-P1
 
 Reviewed [UI-G3 response6002140161](https://github.com/3pacs/muse/pull/2#issuecomment-6002140161), exactsource **`fe2d0a8171104e5427a06ec7fb776a485ad16f2c`**, branch`redteam/ui-g3`. Verified six commits from exact09fc474f:33fd9dc9 →1196bcea →5d4bfe31 →8e230e38 →63896d78 →fe2d0a81. Only six changed files under`uig1/**`; no estimator/backend edits. **This is a new frontend response, not the coordinator's20:09 docs synchronize event. Backend P1 stays pending afterdd63ab53.**
