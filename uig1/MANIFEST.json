@@ -15,7 +15,7 @@
   ],
   "deployment_status": "standalone local preview only; no hosted deployment; not linked to Muse hosted page",
   "produced_html": "frontend/gex-granular-dashboard.html",
-  "produced_html_sha256": "9c2aed95bb18c9935dfc8e4152f939131e061b418a321fd2868bb6cd5b635551",
+  "produced_html_sha256": "0baf2049cbe23694b4ef9b90267369572088f83f358d8576caa5d43e47b46aa6",
   "reproducible_open": "python3 -m http.server 8000 --directory ~/workspace/uig1/frontend && open http://localhost:8000/gex-granular-dashboard.html",
   "reproducible_test": "cd ~/workspace/uig1 && python3 tests/ui/test_dashboard.py",
   "revision": "UI-G3",
