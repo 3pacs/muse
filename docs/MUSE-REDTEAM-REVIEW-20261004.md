@@ -4,6 +4,479 @@
 
 
 
+## 2026-10-05 17:33 UTC — J1-E verified; backend next J1-F, UI-G2 still pending
+
+Reviewed [Muse J1-E response5999574489](https://github.com/3pacs/muse/pull/2#issuecomment-5999574489) at exact source `2dfcb5396fde94499c46f05fb4cc9bee7f9f5134`, branch `redteam/fixes-j1e`, exact parent `0aea3a3dd8eb636ae099ffe5d9ba61604020c695`. One immutable commit changes only `maxpain_log.py`, `tape_db.py`, `tests/j1_replay_tests.py`, `docs/J1-EVENT-REPLAY-POLICY.md`; all four fetched source Git blobs independently recomputed and matched remote diff metadata. DraftPR2/shared index remain the same. **Current backend task J1-F replaces the completed narrow J1-E dispatch. UI-G2 remains unchanged and pending after58fffe85; do not restart or duplicate it.**
+
+### Reproduced before/after acceptance
+
+| Check set | Result at2dfcb539 |
+| --- | --- |
+| Original controls |21/21 pass |
+| Prior solver probes |5/5 pass |
+| RequiredJ1 |8/8 pass |
+| J1-B boundaries |10/10 pass |
+| J1-C continuity |8/8 pass |
+| J1-D repair policy |8/8 pass |
+| J1-E full-proof extension |10/10 pass (previous0/10) |
+| Committed replay tests |45/45 pass |
+| Earlier20-case numerical/admission/dashboard extension |8 pass /12 open outside this recovery slice |
+| New restart/completeness extension |**0 pass /8 fail**, plus actual CLI reproduction of the same durability failure |
+
+This revision closes every previously published J1-E contract. The new failures are additional boundaries in the same recovery requirements; they are not eight claimed regressions. The dry/real verdict mismatch alone includes an exact parent comparison: parent0aea3a3d dry/real both reject secondaryline, while current real repairs and accepts it but dry still rejects.
+
+Fixed synthetic event identities, fresh logger subprocesses, disposable DBs/journals and blocked transports were used. Projection changes are explicit fault injections; no live corruption or provider-operation claim. Prior source/checkouts/receipts remain preserved. Actual CLI proof executes the immutable source as `__main__` with arguments `backfill`; only its HIDDEN path expansion is redirected to the disposable directory. Code, transaction handling and replay decisions are unchanged. It exits0, printsduplicate1/conflict0, but a new connection after process exit still reads.5 instead of accepted.02.
+
+### Executed failures and exact source anchors
+
+| Contract | Reproduced result | Required result |
+| --- | --- | --- |
+| `backfill_value_repair_survives_connection_restart` | Inside repair connection .02, pending transaction true; reopen .5. Actual CLI also exits0/duplicate1 and leaves.5 | repair must persist across close/reopen (including CLI caller path), or be explicit integrity quarantine |
+| `divergent_repair_dryrun_overlay_matches_real` | Current dry: gex_conflict1; real: gex_duplicate1. Exact parent fixture0aea3a3d dry=real both conflict1 | dry run simulates value/formula repair without writes; downstream secondary verdict/counts equal real replay |
+| `secondary_recovery_keeps_original_units` | Delete secondary journal then rerun: accepted primary millions per$1 becomes recovered secondary millions per1% | missing secondary journal is rebuilt with exact accepted source units (including unknown), never a hardcoded default |
+| `logger_checks_every_strike_formula` | Two accepted strikes;100=v2,101 fault-injected v1: first DISTINCT formula matches, logger says already logged;101 staysv1 | all strike formulas checked, not first DISTINCT row; mixed lineage repaired/quarantined |
+| `backfill_checks_and_persists_formula_lineage` | Wrong strike formula v1 remains after replay and close/reopen despite accepted v2 and duplicate1/conflict0 | replay checks and persists accepted formula lineage alongside values, or explicitly quarantines |
+| `extra_projection_strike_not_called_complete` | Extra fault-injected101=.5 survives next logger; prints already logged against accepted map containing only100=.02 | complete accepted map excludes extra strike projections; exact repair or truthful quarantine |
+| `journal_present_alias_ambiguity_safe` | Journal-present path plus genuinely conflicting alias: returncode1, object sentinel passed to SQL, no conflict receipt | journal-present path detects/proclaims ambiguity without sentinel-as-SQL-value crash, arbitrary accepted overwrite or incoming append |
+| `alias_missing_strike_repair_targets_actual_identity` | Missing101 restored under canonical ts instead of actualoffset alias; resolved map stillonly100 and digest mismatches; already logged | missing strike repair uses resolved stored alias, never creates orphan canonical-ts projection then reports already logged |
+
+Root paths: [uncommitted value UPDATE and real-only overlay](https://github.com/3pacs/muse/blob/2dfcb5396fde94499c46f05fb4cc9bee7f9f5134/tape_db.py#L828); [backfill returns without durability boundary](https://github.com/3pacs/muse/blob/2dfcb5396fde94499c46f05fb4cc9bee7f9f5134/tape_db.py#L878); [recovery's hardcoded units](https://github.com/3pacs/muse/blob/2dfcb5396fde94499c46f05fb4cc9bee7f9f5134/maxpain_log.py#L308); [first DISTINCT formula and canonical missing-row insert](https://github.com/3pacs/muse/blob/2dfcb5396fde94499c46f05fb4cc9bee7f9f5134/maxpain_log.py#L326); [journal-present sentinel leak](https://github.com/3pacs/muse/blob/2dfcb5396fde94499c46f05fb4cc9bee7f9f5134/maxpain_log.py#L285).
+
+The existing test for backfill value repair inspects the same connection; its surrounding context can later commit on successful exit, so it does not exercise the actual CLI's missing commit. The new fixture checks close/reopen, and the supplemental fixture verifies the advertised CLI directly. Do not weaken this into a same-connection check.
+
+Fresh official Gemini3.8 source review `fcb50a11-2cb1-444e-858a-cbc780515d02` completed SUCCESS with substantive text and no denied actions. Codex independently executed the eight listed failures and actual CLI. Incorrect model source links/line numbers, unproved stale-digest assertions and its changed-superset dry-run setup were rejected: restoration of a fault-injected core can restore the retained original hash, and a changed superset is not an accepted original event. Our dry/real test uses a proven original journal/digest with only projection value faulted, not a later changed accepted payload. No unexecuted model assertion is counted.
+
+### One next backend task J1-F — durable complete projection convergence
+
+Start exact `2dfcb539`; keep ownership in the same two Python files plus focused offline tests/`tests/j1_replay_tests.py` and `docs/J1-EVENT-REPLAY-POLICY.md`. No solver, interpreter, dashboard, shared GRID, frontend or provider scope expansion.
+
+1. Make real backfill/CLI reconciliation durable with explicit transaction ownership and restart-visible receipts. A successful value/formula repair must survive actual CLI process exit; do not rely on callers incidentally entering a connection context. Preserve caller transaction semantics and avoid claiming success before complete accepted projection proof. Dry runs write nothing.
+2. Simulate the entire repair overlay for dry and real replay, including existing DB-backed events, original values, map state and formula. Subsequent journal/secondary lines must receive identical decisions/counts. Do not hide the mismatch by mutating the DB during dry run.
+3. Check the full resulting map, including extra rows and every formula, on logger/direct mirror/replay recovery paths. Repair only from trusted complete accepted content; when proof is inadequate, explicit integrity/ambiguity quarantine is acceptable. Mixed formulas and extra rows cannot be called complete.
+4. Thread actual resolved stored aliases through inserts as well as UPDATEs; never create orphan canonical-ts repairs that alias-aware readers cannot see. Handle ambiguity safely in journal-present and DB-fallback paths; the sentinel is not a DB value. An explicit safe quarantine receipt is acceptable; crash or arbitrary overwrite is not.
+5. Recover secondary journal units from accepted lineage, including unknown units; initial writes and recovery must agree. Preserve true explicit-empty/unavailable state and complete digest/content fidelity across restart.
+6. Close all eight published contracts, preserve21/5/8/10/8/8/10/45 preceding controls, and add committed tests that actually restart connections/processes, exercise the actual CLI, match dry/real counts after repair, cover mixed formulas/extra rows, and journal-present ambiguity/offset missing-row recovery.
+
+Return one immutable backend revision with exact parent, owned file list and before/after receipts here, then stop for independent review. Continue reporting the twelve numerical/admission/dashboard failures open. **UI-G2 remains active separately; return its own revision when ready.** Canonical GRID artifacts and estimator ownership remain unchanged. No merge/deploy/provider/credential operations or predictive/trading claims.
+
+### Runnable restart/completeness script
+
+Save as `outputs/iteration-2dfcb539/j1-restart.py` in a workspace containing immutable public Muse objects under `muse-audit/`; run `python3 outputs/iteration-2dfcb539/j1-restart.py`. It loads exact2dfcb539 and exactparent0aea3a3d via git show, blocks network, and mutates only disposable synthetic stores. SHA-256 `fbc82fcd82a5da8bb4721edd9f0b7cf5867b23a3528c5575b921860e93f3bfc3`.
+
+```python
+"""Additional source-pinned J1 boundary contracts, synthetic and offline."""
+import datetime as dt, hashlib, json, pathlib, socket, sqlite3, subprocess, sys, tempfile, types, urllib.request
+ROOT=pathlib.Path(__file__).resolve().parents[2]
+SHA='2dfcb5396fde94499c46f05fb4cc9bee7f9f5134'
+TS='2026-10-05T19:59:00+00:00'; EXP='2026-10-05'
+def blocked(*a,**k): raise AssertionError('unmocked network attempted')
+socket.socket.connect=blocked;socket.create_connection=blocked;urllib.request.urlopen=blocked
+def load(name):
+    source=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',SHA+':'+name+'.py'],text=True)
+    m=types.ModuleType(name);m.__file__=str(ROOT/'muse-audit'/name)+'.py'
+    exec(compile(source,m.__file__,'exec'),m.__dict__)
+    return m
+def feed(ts=TS,empty=False):
+    return dict(status='ok',updated_at=ts,quote_as_of=TS,expiry=EXP,spot=100,
+                gamma=dict(gex_formula='v2',by_strike=[] if empty else [dict(strike=100,net_gex_m=.02)]))
+def worker(folder):
+    p=pathlib.Path(folder);db=load('tape_db');sys.modules['tape_db']=db;m=load('maxpain_log')
+    db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db')
+    m.LOG_PATH=str(p/'main.jsonl');m.GEX_SNAP_PATH=str(p/'gex.jsonl')
+    m.LOCK_PATH=str(p/'lock');m.EVENTS_PATH=str(p/'absent')
+    m.fetch=lambda:json.loads((p/'feed.json').read_text())
+    m.main()
+if len(sys.argv)>1 and sys.argv[1]=='worker':
+    worker(sys.argv[2]);raise SystemExit(0)
+def run(p,f):
+    (p/'feed.json').write_text(json.dumps(f))
+    r=subprocess.run([sys.executable,str(pathlib.Path(__file__).resolve()),'worker',str(p)],capture_output=True,text=True,check=True)
+    return r.stdout
+def context(p):
+    db=load('tape_db');db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db');db.LOG_PATH=str(p/'main.jsonl');db.GEX_PATH=str(p/'gex.jsonl')
+    con=db.connect();db.init_db(con);return db,con
+def row(ts=TS,spot=100):
+    return dict(ts=ts,expiry=EXP,spot=spot,gex_formula='v2')
+def strike_line(gex,formula='v2'):
+    return dict(ts=TS,expiry=EXP,spot=100,gex_m=gex,gex_formula=formula)
+def write(p,fn,records): (p/fn).write_text(''.join(json.dumps(r)+'\n' for r in records))
+
+def old_module(sha):
+    source=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',sha+':tape_db.py'],text=True)
+    m=types.ModuleType('legacy');m.__file__='legacy.py';exec(compile(source,m.__file__,'exec'),m.__dict__);return m
+
+# Full accepted-content proof and all-alias boundary contracts. Synthetic only.
+
+# Restart and completed-projection contracts; all stores disposable/synthetic.
+results=[]
+def record(name,ok,observed,expected):
+    results.append(dict(name=name,pass_contract=bool(ok),observed=observed,expected=expected))
+def strikes(c):return [tuple(r) for r in c.execute('SELECT ts,strike,net_gex_m,gex_formula FROM gex_strikes ORDER BY ts,strike')]
+def raw_alias(c):
+    alias='2026-10-05T15:59:00-04:00'
+    for table in ['snapshots','gex_strikes']:c.execute('UPDATE '+table+' SET ts=?',(alias,))
+    c.commit();return alias
+def twostrike_feed():
+    f=feed();f['gamma']['by_strike'].append(dict(strike=101,net_gex_m=.03));return f
+def lines(p,fn):return [json.loads(s) for s in (p/fn).read_text().splitlines()] if (p/fn).exists() else []
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);a=dict(row(),gex_m={'100':.02});write(p,'main.jsonl',[a]);db.backfill(c)
+    c.execute('UPDATE gex_strikes SET net_gex_m=.5');c.commit()
+    counts=db.backfill(c);inside=c.execute('SELECT net_gex_m FROM gex_strikes').fetchone()[0];pending=c.in_transaction;c.close()
+    db,c=context(p);after=c.execute('SELECT net_gex_m FROM gex_strikes').fetchone()[0]
+    record('backfill_value_repair_survives_connection_restart',after==.02 or counts['snap_conflict']>0,
+        dict(counts=counts,value_inside=inside,transaction_pending=pending,value_after_reopen=after),
+        'repair must persist across close/reopen (including CLI caller path), or be explicit integrity quarantine');c.close()
+
+def overlay_fixture(p,sha):
+    db=old_module(sha);db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db');db.LOG_PATH=str(p/'main.jsonl');db.GEX_PATH=str(p/'gex.jsonl')
+    c=db.connect();db.init_db(c);a=dict(row(),gex_m={'100':.02})
+    write(p,'main.jsonl',[a]);db.backfill(c);c.execute('UPDATE gex_strikes SET net_gex_m=.5');c.commit()
+    write(p,'gex.jsonl',[dict(row(),gex_m={'100':.02})])
+    dry=db.backfill(c,dry_run=True);real=db.backfill(c);res=dict(dry=dry,actual=real,strikes=strikes(c));c.close();return res
+with tempfile.TemporaryDirectory() as td,tempfile.TemporaryDirectory() as oldtd:
+    current=overlay_fixture(pathlib.Path(td),SHA);parent=overlay_fixture(pathlib.Path(oldtd),'0aea3a3dd8eb636ae099ffe5d9ba61604020c695')
+    record('divergent_repair_dryrun_overlay_matches_real',current['dry']==current['actual'],
+       dict(current=current,parent=parent),'dry run simulates value/formula repair without writes; downstream secondary verdict/counts equal real replay')
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);f=feed();f['gamma']['gex_units']='USD millions per $1 spot move';run(p,f);(p/'gex.jsonl').unlink();stdout=run(p,f)
+    primary=lines(p,'main.jsonl')[0];secondary=lines(p,'gex.jsonl')[0]
+    record('secondary_recovery_keeps_original_units',primary.get('gex_units')==secondary.get('gex_units')=='USD millions per $1 spot move',
+       dict(stdout=stdout,primary_units=primary.get('gex_units'),secondary_units=secondary.get('gex_units')),
+       'missing secondary journal is rebuilt with exact accepted source units (including unknown), never a hardcoded default')
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);f=twostrike_feed();run(p,f);db,c=context(p);c.execute("UPDATE gex_strikes SET gex_formula='v1' WHERE strike=101");c.commit();c.close()
+    stdout=run(p,f);db,c=context(p);rows=strikes(c)
+    record('logger_checks_every_strike_formula',all(r[3]=='v2' for r in rows) or ('quarantin' in stdout.lower() and 'already logged' not in stdout.lower()),
+       dict(stdout=stdout,rows=rows),'all strike formulas checked, not first DISTINCT row; mixed lineage repaired/quarantined');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db,c=context(p);a=dict(row(),gex_m={'100':.02});write(p,'main.jsonl',[a]);db.backfill(c)
+    c.execute("UPDATE gex_strikes SET gex_formula='v1'");c.commit();counts=db.backfill(c);rows=strikes(c);c.close()
+    db,c=context(p);after=strikes(c)
+    record('backfill_checks_and_persists_formula_lineage',all(r[3]=='v2' for r in after) or counts['snap_conflict']>0,
+       dict(counts=counts,inside=rows,after_reopen=after),'replay checks and persists accepted formula lineage alongside values, or explicitly quarantines');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);run(p,feed());db,c=context(p)
+    c.execute("INSERT INTO gex_strikes (ts,expiry,strike,net_gex_m,gex_formula) VALUES (?, ?, 101,.5,'v2')",(TS,EXP));c.commit();c.close()
+    stdout=run(p,feed());db,c=context(p);rows=strikes(c)
+    record('extra_projection_strike_not_called_complete',len(rows)==1 or ('quarantin' in stdout.lower() and 'already logged' not in stdout.lower()),
+       dict(stdout=stdout,rows=rows),'complete accepted map excludes extra strike projections; exact repair or truthful quarantine');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);run(p,feed());accepted=lines(p,'main.jsonl')[0];db,c=context(p)
+    alias='2026-10-05T15:59:00-04:00';cols=db.SNAP_COLS+['payload_hash','gex_map_status']
+    r=dict(accepted,ts=alias,spot=200)
+    c.execute('INSERT INTO snapshots ('+','.join(cols)+') VALUES ('+','.join('?' for _ in cols)+')',db._norm(r)+[db._payload_hash(r),'explicit'])
+    c.execute("INSERT INTO gex_strikes (ts,expiry,strike,net_gex_m,gex_formula) VALUES (?,?,100,.02,'v2')",(alias,EXP));c.commit();c.close()
+    (p/'feed.json').write_text(json.dumps(feed()))
+    attempt=subprocess.run([sys.executable,str(pathlib.Path(__file__).resolve()),'worker',str(p)],capture_output=True,text=True)
+    db,c=context(p);n=c.execute('SELECT COUNT(*) FROM mirror_conflicts').fetchone()[0]
+    record('journal_present_alias_ambiguity_safe',attempt.returncode==0 and n>0,
+       dict(returncode=attempt.returncode,stdout=attempt.stdout,stderr=attempt.stderr,conflicts=n),
+       'journal-present path detects/proclaims ambiguity without sentinel-as-SQL-value crash, arbitrary accepted overwrite or incoming append');c.close()
+
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);f=twostrike_feed();run(p,f);db,c=context(p);alias=raw_alias(c)
+    c.execute('DELETE FROM gex_strikes WHERE strike=101');c.commit();c.close()
+    stdout=run(p,f);db,c=context(p);core,smap,status,digest=db.fetch_stored(c,TS,EXP);rows=strikes(c)
+    good=smap=={'100.0':.02,'101.0':.03} and all(r[0]==alias for r in rows)
+    record('alias_missing_strike_repair_targets_actual_identity',good or ('quarantin' in stdout.lower() and 'already logged' not in stdout.lower()),
+       dict(stdout=stdout,rows=rows,resolved_map=smap,status=status,digest_matches=db.semantic_hash(core,smap)==digest),
+       'missing strike repair uses resolved stored alias, never creates orphan canonical-ts projection then reports already logged');c.close()
+
+out=dict(source_head=SHA,synthetic_only=True,network_blocked=True,results=results,passes=sum(r['pass_contract'] for r in results),failures=sum(not r['pass_contract'] for r in results),harness_sha256=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest())
+(pathlib.Path(__file__).parent/'j1-restart-results.json').write_text(json.dumps(out,indent=2)+'\n')
+print(json.dumps(out,indent=2))
+```
+
+Exact machine receipt:
+```json
+{
+  "source_head": "2dfcb5396fde94499c46f05fb4cc9bee7f9f5134",
+  "synthetic_only": true,
+  "network_blocked": true,
+  "results": [
+    {
+      "name": "backfill_value_repair_survives_connection_restart",
+      "pass_contract": false,
+      "observed": {
+        "counts": {
+          "snap_accepted": 0,
+          "snap_duplicate": 1,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_orphan": 0,
+          "gex_rejected": 0
+        },
+        "value_inside": 0.02,
+        "transaction_pending": true,
+        "value_after_reopen": 0.5
+      },
+      "expected": "repair must persist across close/reopen (including CLI caller path), or be explicit integrity quarantine"
+    },
+    {
+      "name": "divergent_repair_dryrun_overlay_matches_real",
+      "pass_contract": false,
+      "observed": {
+        "current": {
+          "dry": {
+            "snap_accepted": 0,
+            "snap_duplicate": 1,
+            "snap_conflict": 0,
+            "snap_rejected": 0,
+            "gex_accepted": 0,
+            "gex_duplicate": 0,
+            "gex_conflict": 1,
+            "gex_orphan": 0,
+            "gex_rejected": 0
+          },
+          "actual": {
+            "snap_accepted": 0,
+            "snap_duplicate": 1,
+            "snap_conflict": 0,
+            "snap_rejected": 0,
+            "gex_accepted": 0,
+            "gex_duplicate": 1,
+            "gex_conflict": 0,
+            "gex_orphan": 0,
+            "gex_rejected": 0
+          },
+          "strikes": [
+            [
+              "2026-10-05T19:59:00+00:00",
+              100,
+              0.02,
+              "v2"
+            ]
+          ]
+        },
+        "parent": {
+          "dry": {
+            "snap_accepted": 0,
+            "snap_duplicate": 1,
+            "snap_conflict": 0,
+            "snap_rejected": 0,
+            "gex_accepted": 0,
+            "gex_duplicate": 0,
+            "gex_conflict": 1,
+            "gex_orphan": 0,
+            "gex_rejected": 0
+          },
+          "actual": {
+            "snap_accepted": 0,
+            "snap_duplicate": 1,
+            "snap_conflict": 0,
+            "snap_rejected": 0,
+            "gex_accepted": 0,
+            "gex_duplicate": 0,
+            "gex_conflict": 1,
+            "gex_orphan": 0,
+            "gex_rejected": 0
+          },
+          "strikes": [
+            [
+              "2026-10-05T19:59:00+00:00",
+              100,
+              0.5,
+              "v2"
+            ]
+          ]
+        }
+      },
+      "expected": "dry run simulates value/formula repair without writes; downstream secondary verdict/counts equal real replay"
+    },
+    {
+      "name": "secondary_recovery_keeps_original_units",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "already logged | ts=2026-10-05T19:59:00+00:00\n",
+        "primary_units": "USD millions per $1 spot move",
+        "secondary_units": "USD millions per 1% spot move"
+      },
+      "expected": "missing secondary journal is rebuilt with exact accepted source units (including unknown), never a hardcoded default"
+    },
+    {
+      "name": "logger_checks_every_strike_formula",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "already logged | ts=2026-10-05T19:59:00+00:00\n",
+        "rows": [
+          [
+            "2026-10-05T19:59:00+00:00",
+            100,
+            0.02,
+            "v2"
+          ],
+          [
+            "2026-10-05T19:59:00+00:00",
+            101,
+            0.03,
+            "v1"
+          ]
+        ]
+      },
+      "expected": "all strike formulas checked, not first DISTINCT row; mixed lineage repaired/quarantined"
+    },
+    {
+      "name": "backfill_checks_and_persists_formula_lineage",
+      "pass_contract": false,
+      "observed": {
+        "counts": {
+          "snap_accepted": 0,
+          "snap_duplicate": 1,
+          "snap_conflict": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_duplicate": 0,
+          "gex_conflict": 0,
+          "gex_orphan": 0,
+          "gex_rejected": 0
+        },
+        "inside": [
+          [
+            "2026-10-05T19:59:00+00:00",
+            100,
+            0.02,
+            "v1"
+          ]
+        ],
+        "after_reopen": [
+          [
+            "2026-10-05T19:59:00+00:00",
+            100,
+            0.02,
+            "v1"
+          ]
+        ]
+      },
+      "expected": "replay checks and persists accepted formula lineage alongside values, or explicitly quarantines"
+    },
+    {
+      "name": "extra_projection_strike_not_called_complete",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "already logged | ts=2026-10-05T19:59:00+00:00\n",
+        "rows": [
+          [
+            "2026-10-05T19:59:00+00:00",
+            100,
+            0.02,
+            "v2"
+          ],
+          [
+            "2026-10-05T19:59:00+00:00",
+            101,
+            0.5,
+            "v2"
+          ]
+        ]
+      },
+      "expected": "complete accepted map excludes extra strike projections; exact repair or truthful quarantine"
+    },
+    {
+      "name": "journal_present_alias_ambiguity_safe",
+      "pass_contract": false,
+      "observed": {
+        "returncode": 1,
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/home/anik/Documents/Codex/2026-10-05/task-5/outputs/iteration-2dfcb539/j1-restart.py\", line 24, in <module>\n    worker(sys.argv[2]);raise SystemExit(0)\n    ~~~~~~^^^^^^^^^^^^^\n  File \"/home/anik/Documents/Codex/2026-10-05/task-5/outputs/iteration-2dfcb539/j1-restart.py\", line 22, in worker\n    m.main()\n    ~~~~~~^^\n  File \"/home/anik/Documents/Codex/2026-10-05/task-5/muse-audit/maxpain_log.py\", line 370, in main\n  File \"/home/anik/Documents/Codex/2026-10-05/task-5/muse-audit/maxpain_log.py\", line 294, in converge_missing\nsqlite3.ProgrammingError: Error binding parameter 1: type 'object' is not supported\n",
+        "conflicts": 0
+      },
+      "expected": "journal-present path detects/proclaims ambiguity without sentinel-as-SQL-value crash, arbitrary accepted overwrite or incoming append"
+    },
+    {
+      "name": "alias_missing_strike_repair_targets_actual_identity",
+      "pass_contract": false,
+      "observed": {
+        "stdout": "already logged | ts=2026-10-05T19:59:00+00:00\n",
+        "rows": [
+          [
+            "2026-10-05T15:59:00-04:00",
+            100,
+            0.02,
+            "v2"
+          ],
+          [
+            "2026-10-05T19:59:00+00:00",
+            101,
+            0.03,
+            "v2"
+          ]
+        ],
+        "resolved_map": {
+          "100.0": 0.02
+        },
+        "status": "explicit",
+        "digest_matches": false
+      },
+      "expected": "missing strike repair uses resolved stored alias, never creates orphan canonical-ts projection then reports already logged"
+    }
+  ],
+  "passes": 0,
+  "failures": 8,
+  "harness_sha256": "fbc82fcd82a5da8bb4721edd9f0b7cf5867b23a3528c5575b921860e93f3bfc3"
+}
+```
+
+### Supplemental actual CLI durability proof
+
+This independently exercises the public CLI path of immutable source with only the data directory redirected; no fake transaction wrapper or application code edit. Save as `outputs/iteration-2dfcb539/cli-durability.py`. SHA-256 `e5af1dcb68ccce20ad63715cc33d17319123088aa6d0fbcb9603d1dd4f000bad`.
+
+```python
+"""Actual immutable tape_db CLI proof with only path expansion redirected to disposable storage."""
+import hashlib,json,os,pathlib,socket,subprocess,sys,tempfile,types,urllib.request
+ROOT=pathlib.Path(__file__).resolve().parents[2]
+SHA='2dfcb5396fde94499c46f05fb4cc9bee7f9f5134'
+def blocked(*a,**k):raise AssertionError('network prohibited')
+socket.socket.connect=blocked;socket.create_connection=blocked;urllib.request.urlopen=blocked
+source=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',SHA+':tape_db.py'],text=True)
+if len(sys.argv)>1 and sys.argv[1]=='worker':
+    p=sys.argv[2];original=os.path.expanduser
+    os.path.expanduser=lambda s:p if s=='~/workspace/goals/0dte-tape-alert-watch/hidden_files' else original(s)
+    sys.argv=['tape_db.py','backfill']
+    exec(compile(source,'immutable-tape_db.py','exec'),{'__name__':'__main__'})
+    raise SystemExit(0)
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);db=types.ModuleType('cli_review');exec(compile(source,'tape_db.py','exec'),db.__dict__)
+    db.HIDDEN=str(p);db.DB_PATH=str(p/'tape.db');db.LOG_PATH=str(p/'maxpain_history.jsonl');db.GEX_PATH=str(p/'gex_history.jsonl')
+    c=db.connect();db.init_db(c);rec=dict(ts='2026-10-05T19:59:00+00:00',expiry='2026-10-05',spot=100,gex_formula='v2',gex_m={'100':.02})
+    (p/'maxpain_history.jsonl').write_text(json.dumps(rec)+'\n');db.backfill(c)
+    c.execute('UPDATE gex_strikes SET net_gex_m=.5');c.commit();c.close()
+    r=subprocess.run([sys.executable,str(pathlib.Path(__file__).resolve()),'worker',str(p)],capture_output=True,text=True)
+    c=db.connect();value=c.execute('SELECT net_gex_m FROM gex_strikes').fetchone()[0];c.close()
+    receipt=dict(source_head=SHA,network_blocked=True,synthetic_only=True,only_path_expansion_mocked=True,cli_returncode=r.returncode,stdout=r.stdout,stderr=r.stderr,value_after_cli_exit=value,expected=.02,pass_contract=r.returncode==0 and value==.02,harness_sha256=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest())
+(pathlib.Path(__file__).parent/'cli-durability-results.json').write_text(json.dumps(receipt,indent=2)+'\n')
+print(json.dumps(receipt,indent=2))
+```
+
+```json
+{
+  "source_head": "2dfcb5396fde94499c46f05fb4cc9bee7f9f5134",
+  "network_blocked": true,
+  "synthetic_only": true,
+  "only_path_expansion_mocked": true,
+  "cli_returncode": 0,
+  "stdout": "backfill: {\"snap_accepted\": 0, \"snap_duplicate\": 1, \"snap_conflict\": 0, \"snap_rejected\": 0, \"gex_accepted\": 0, \"gex_duplicate\": 0, \"gex_conflict\": 0, \"gex_orphan\": 0, \"gex_rejected\": 0}\n{\n \"snapshots\": 1,\n \"gex_rows\": 1,\n \"alerts\": 0,\n \"days\": [\n  \"2026-10-05\"\n ]\n}\n",
+  "stderr": "",
+  "value_after_cli_exit": 0.5,
+  "expected": 0.02,
+  "pass_contract": false,
+  "harness_sha256": "e5af1dcb68ccce20ad63715cc33d17319123088aa6d0fbcb9603d1dd4f000bad"
+}
+```
+
+**Watch:** J1-F source-pinned response after2dfcb539 and the already pending independent UI-G2 response after58fffe85. Ignore our own docs-only sync/comment events. This remains the shared repo handoff/index; parent handles event cadence.
+
+
+
 ## 2026-10-05 17:08 UTC — J1-D and UI-G1 reviewed; next owned stages J1-E / UI-G2
 
 This is the independent response to [J1-D comment 5999019626](https://github.com/3pacs/muse/pull/2#issuecomment-5999019626) and [UI-G1 comment 5999069765](https://github.com/3pacs/muse/pull/2#issuecomment-5999069765). It advances the two existing authorized lanes; it does not create another handoff or duplicate pending work. Earlier dated tasks are historical. **Current backend task: J1-E. Current frontend task: UI-G2.** GRID remains the canonical estimator owner.
