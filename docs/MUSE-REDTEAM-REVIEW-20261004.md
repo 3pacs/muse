@@ -2,6 +2,59 @@
 
 **Verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
+
+## 2026-10-05 checkpoint — same source, one active task
+
+**Status at 2026-10-05 08:20:44 UTC: awaiting Muse implementation response.** Remote `main` remains `43c2cd41f3823adcda5222d4648131a374c47a59`; `redteam/fixes` remains `ed3b8741c21b58438be1da65a1dca17d0c5e3bac`. Draft PRs #1 and #2 remain open; their README handoff entrypoints and exact docs were read. No response comments are present on either PR. The prior review checkout was preserved; a separate local clone was used, and all ten source blobs matched the remote implementation tree. No tracked tests, repository AGENTS.md, or .coordination.md exist at that implementation head. No separately identified cross-project shared index was available in this local execution environment; no new lane or parallel PR was created.
+
+### Fresh verification
+
+The exact published Python appendix was rerun with blocked network transport and disposable stores: **21 checks, 10 pass, 11 fail**, unchanged. Harness SHA-256 remains `97061b71e2f34f7a944403158cf2a73215d2e5e1ebe5b5c1bc2a571153ebb81c`; fresh JSON receipt is byte-identical to the published receipt, SHA-256 `1000fd5a507d7d2b24f1cb1243121a70d07284ac42d687a3bab1624b355e1d4f`. This is a fresh execution on unchanged code, not a new implementation result. R1–R9 remain unresolved under their original numbering. GEX scaling, sampled charm, cache bounds, real POSIX lock contention, transaction rollback and canonical-UTC ordering retain their previously passing evidence.
+
+Five supplementary R1 probes below produced **2 pass, 3 fail**, counted separately because they overlap existing cases. They add a negative one-sided inventory and a healthy genuine crossing:
+
+| Frozen synthetic fixture | Expected discrete flips | Actual at ed3b8741 | Baseline verdict |
+| --- | --- | --- | --- |
+| Single call, S=K=100, IV=.001, OI=100, 60s to expiry | none | [100.05] | FAIL |
+| Single put, same parameters | none | [100.05] | FAIL |
+| Call OI=0 | none | [] | PASS for root list only |
+| Same K/IV, call and put OI=100 each | none; identically zero objective | [] | PASS for root list only |
+| Call K=99.95, put K=100.05, each IV=.4/OI=100, S=100, 60s, r=.043/q=.013 | one raw root 99.99996658586606; display 100.00 | [100.00, 102.25] | FAIL: extra tail root |
+
+The last fixture has an independent closed-form oracle `sqrt(Kc*Kp)*exp(-(r-q+sigma²/2)*T)`. Signed oracle values at 99.99/100.01 are +15529.8065258/-15626.7909302 shares per dollar. A repair that simply returns no roots would fail this control.
+
+### Active assignment R1-A — remove underflow flips and retain true crossings
+
+This expands the existing R1 assignment into a reviewable acceptance contract; it is the **same active task**, not a second handoff. Start from exact `ed3b8741`. Limit application changes to the gamma-root block/helpers in `interpreter.py`, plus focused offline solver tests and receipts. Preserve the existing ±10% spot domain, dealer-inventory convention and unrelated calculations. Do not change logger, database, dashboard, collectors or GRID integration in this patch.
+
+1. Distinguish a certified sign-changing root from floating-point tail zero and from an identically zero inventory. Extend the existing solver; an isolated helper inside interpreter is appropriate if it makes independent objective tests possible. Do not treat `v == 0` as sufficient evidence, use a sign-product susceptible to underflow, or use an arbitrary absolute exposure floor to erase tiny valid crossings. Specify stable term scaling/sign evaluation and honest unresolved-conditioning behavior.
+2. Polish genuine brackets; keep raw root values and convergence diagnostics separate from two-decimal presentation. For the healthy closed-form fixture, require exactly one raw root within **1e-6 dollar**, with displayed 100.00 and no 102.25 tail root. Retain brackets, domain, iterations/evaluations, conditioning or unavailable reason and a scale-aware residual definition. Choose the nearest certified raw root before display rounding.
+3. Add automated blocked-network cases for every row above. Zero-OI and exactly offsetting inventory must gain explicit distinct reasons; their current root-list PASS is not a diagnostics acceptance. Test true crossings on a scan node and between nodes, input-order permutations and positive OI rescaling. Add an independent solver-level positive-tail objective to prove tiny sign values are handled without multiplication or magnitude cutoffs.
+4. Declare and test boundary/tangency policy. A simple injected `f(x)=x-lo` tests an exact endpoint; `f(x)=(x-mid)²` tests a touch without sign reversal. A genuine endpoint zero may be reported separately with a supported one-sided certificate; it must not be fabricated from underflow. A tangency must not become a directional gamma flip. A finite mesh certifies resolved brackets, not exhaustive discovery of arbitrary continuous roots.
+5. Keep **R2 explicitly open**. The current solver averages IV per strike; label that scenario accurately while R2 remains separate. Do not claim per-leg frozen-IV correctness or silently invent a missing leg IV. R2's unchanged acceptance fixture is S=K=100, call IV=.1, put IV=.4, OI=100 each, 60s to expiry: independent roots 99.97628442356458 and 100.02370979163823. The existing mesh samples 100 exactly, so IV averaging is the demonstrated cause of that fixture's missed roots; off-grid narrow-root discovery needs its own later oracle fixture.
+6. Return one immutable implementation commit, runnable tests, raw before/after receipts and a compact response in this docs folder linking R1-A. Run the original 21 checks and report each assertion without redefining failed expectations. R1-A must pass the new cases while preserving the original ten passing controls. R2–R9 failures remain separately reported. Stop for the next independent review; no merge, deployment, provider polling, credential change, alerts, orders or trading recommendation is part of this assignment.
+
+Staged queue after R1-A review: R2 per-leg roots; R3/R4/R9 recovery and replay; R5/R6 temporal/formula projection; R7 provenance and known-at admission; R8 horizon semantics. These are acceptance gates, not concurrently dispatched tasks. Frontend source/deployment receipts remain a separate requested dependency; additive read-only GRID data and prettier dashboard implementation retain the original challenge and cannot certify research value without its held-out evaluation.
+
+### Published dashboard — changed page, unlinked code
+
+Fresh read-only browser inspection of the existing share URL shows **Monday October 5**, an **overnight 00:50 ET** snapshot, SPY **769.86**, call wall **770**, **11 GEX observations/records**, and displayed generation time **2026-10-05 04:55:37 UTC**. The page now has populated expected-move, hedge-pressure, reversal-condition and heatmap sections. This supersedes the October 2 / COLLECTING observations as a description of today's visible page, while preserving them as historical observations.
+
+The page says heatmap cells normalize each event by its formula tag. That is a **visible page claim**, not verification: remote `ed3b8741` still fails the mixed-formula fixture with [[200],[2]], and no frontend source, immutable deployed build, backend revision or schema mapping is committed. Do not infer that the displayed page runs this repo head. Request those exact artifacts and a synthetic-data run path before code-linked visual acceptance.
+
+At the normal 1280px viewport and a temporary 390×844 viewport, the top surface renders and cards stack; the decorative ring crosses the mobile hero text, and the large hero plus quote card push the main chart below the first screen. This is a top-surface observation, not full responsive/accessibility acceptance. The attempted footer keyboard scroll timed out; exports, full mobile heatmap interaction, contrast and latency remain unverified. The viewport override was reset. The affirmative “Pinned into 770” / “Trust the levels” copy and prominent SELL notional should carry the scenario assumptions and source/availability reason nearby, particularly while false roots and provenance gates remain unresolved. This review makes no inference of profitable alpha, stale live feed or observed dealer position from those labels.
+
+### Gemini review boundary and next watch
+
+Official `gemini-3.8-flash-high` reviewed supplied public Muse source and synthetic receipts in a fresh session `79462bd0-3880-4674-b4d7-3db879435481`, then received a corrective review request. Both CLI runs returned nonempty SUCCESS with no denied actions and no tool calls; the existing shared session lock was respected. Codex independently executed the evidence above.
+
+Gemini's proposals were treated as proposals. Codex rejected fixture-input drift, wrong root numbers, a widened domain, magnitude cutoffs and coarse deduplication; the corrective response still misquoted the supplementary tail root, so its unchecked text is not an acceptance oracle. The concrete fixture parameters/numbers in this checkpoint come only from the independent receipts.
+
+**Next revision to watch:** a new `redteam/fixes` commit after `ed3b8741c21b58438be1da65a1dca17d0c5e3bac`, or a source-pinned Muse response on draft PR #2. Review that revision against R1-A before dispatching R2. The parent owns the reasonable check cadence; this agent has not created another watcher or polling loop.
+
+Session report: changed—this existing docs handoff checkpoint/assignment and supplementary offline receipts; verified—unchanged remote source, original rerun, five extra probes, narrow visible-page inspection; blocked—Muse response, data gates, deployed source linkage and full visual/research acceptance; left—R1-A implementation and staged queue. `agent-report` and the Mac report script are absent on this local host; local session evidence is retained, with no hub-delivery claim.
+
+
 ## Source and evidence boundary
 
 - Reviewed [Muse `ed3b8741c21b58438be1da65a1dca17d0c5e3bac`](https://github.com/3pacs/muse/tree/ed3b8741c21b58438be1da65a1dca17d0c5e3bac), `redteam/fixes`, exactly four commits after [original main `43c2cd41f3823adcda5222d4648131a374c47a59`](https://github.com/3pacs/muse/tree/43c2cd41f3823adcda5222d4648131a374c47a59). Changed source: interpreter, logger, tape database, dashboard builder.
@@ -659,4 +712,140 @@ record('mixed_formula_heatmap',mixed['heatmap']['values']==[[2.0],[2.0]],{'heatm
 output={'source_head':HEAD,'baseline':BASE,'python':sys.version,'synthetic_only':True,'network_blocked':True,'results':results,'passes':sum(r['pass_contract'] for r in results),'failures':sum(not r['pass_contract'] for r in results),'harness_sha256':hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()}
 pathlib.Path(sys.argv[2]).write_text(json.dumps(output,indent=2)+'\n')
 print(json.dumps(output,indent=2))
+```
+
+
+## Supplementary R1 baseline probes — 2026-10-05
+
+Save as `solver-probes.py` in a folder whose parent contains a source clone named `muse-audit`, then run `python3 solver-probes.py`. Like the original harness, exit zero means execution completed; individual assertions below remain failed. No market data or external dependencies are used.
+
+```python
+"""Supplementary R1 baseline probes. Synthetic data; no network."""
+import datetime as dt
+import hashlib
+import json
+import math
+import pathlib
+import socket
+import subprocess
+import types
+import urllib.request
+
+ROOT=pathlib.Path(__file__).resolve().parent.parent
+HEAD='ed3b8741c21b58438be1da65a1dca17d0c5e3bac'
+NOW=dt.datetime(2026,10,5,19,59,tzinfo=dt.timezone.utc)
+def blocked(*a,**k): raise AssertionError('network prohibited')
+urllib.request.urlopen=blocked
+socket.socket.connect=blocked
+socket.create_connection=blocked
+class Clock(dt.datetime):
+    @classmethod
+    def now(cls,tz=None): return NOW.astimezone(tz) if tz else NOW.replace(tzinfo=None)
+def leg(side='C',iv=.001,oi=100,k=100):
+    return dict(expiry='2026-10-05',strike=k,side=side,iv=iv,open_interest=oi,
+        gamma=.02,volume=600,delta=.5 if side=='C' else -.5,bid=1.,ask=1.)
+def snap(rows):
+    m=types.ModuleType('interpreter')
+    raw=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',HEAD+':interpreter.py'],text=True)
+    exec(compile(raw,'interpreter.py','exec'),m.__dict__)
+    m.datetime=Clock
+    m.fetch_json=lambda u: {'quote':{'price':100,'as_of':NOW.isoformat()}} if u==m.STATE_URL else {'contracts':rows}
+    m.fetch_nasdaq_0dte=lambda _: []
+    return m.build_snapshot()['gamma']
+results=[]
+for name,rows in [('single_call',[leg()]),('single_put',[leg('P')]),('zero_oi',[leg(oi=0)]),
+                  ('identical_offsetting_legs',[leg(),leg('P')])]:
+    g=snap(rows)
+    results.append(dict(name=name,pass_contract=g['gamma_flip'] is None and g['gamma_flip_roots']==[],
+        observed={'flip':g['gamma_flip'],'roots':g['gamma_flip_roots']},
+        expected='no isolated sign-changing root; degenerate cases require separate diagnostic'))
+# Equal-IV, equal-OI, separated strikes: closed-form root is geometric mean,
+# adjusted for carry/variance drift. This fixture deliberately has a genuine flip.
+T=60/(365.25*24*3600)
+root=math.sqrt(99.95*100.05)*math.exp(-(.043-.013+.5*.4**2)*T)
+g=snap([leg(iv=.4,k=99.95),leg('P',iv=.4,k=100.05)])
+def oracle(s,k):
+    d=(math.log(s/k)+(.043-.013+.5*.4**2)*T)/(.4*math.sqrt(T))
+    return math.exp(-.013*T-.5*d*d)/(math.sqrt(2*math.pi)*s*.4*math.sqrt(T))
+signs=[10000*(oracle(s,99.95)-oracle(s,100.05)) for s in (99.99,100.01)]
+results.append(dict(name='genuine_equal_iv_crossing',pass_contract=len(g['gamma_flip_roots'])==1 and
+    abs(g['gamma_flip_roots'][0]-root)<=.005000001,
+    observed={'flip':g['gamma_flip'],'roots':g['gamma_flip_roots'],'oracle_root':root,'oracle_signs':signs},
+    expected='one sign-changing root, display within half-cent; no underflow tail roots'))
+out={'source_head':HEAD,'synthetic_only':True,'network_blocked':True,
+     'results':results,'passes':sum(x['pass_contract'] for x in results),
+     'failures':sum(not x['pass_contract'] for x in results),
+     'probe_sha256':hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()}
+(ROOT/'outputs/solver-probes.json').write_text(json.dumps(out,indent=2)+'\n')
+print(json.dumps(out,indent=2))
+```
+
+```json
+{
+  "source_head": "ed3b8741c21b58438be1da65a1dca17d0c5e3bac",
+  "synthetic_only": true,
+  "network_blocked": true,
+  "results": [
+    {
+      "name": "single_call",
+      "pass_contract": false,
+      "observed": {
+        "flip": 100.05,
+        "roots": [
+          100.05
+        ]
+      },
+      "expected": "no isolated sign-changing root; degenerate cases require separate diagnostic"
+    },
+    {
+      "name": "single_put",
+      "pass_contract": false,
+      "observed": {
+        "flip": 100.05,
+        "roots": [
+          100.05
+        ]
+      },
+      "expected": "no isolated sign-changing root; degenerate cases require separate diagnostic"
+    },
+    {
+      "name": "zero_oi",
+      "pass_contract": true,
+      "observed": {
+        "flip": null,
+        "roots": []
+      },
+      "expected": "no isolated sign-changing root; degenerate cases require separate diagnostic"
+    },
+    {
+      "name": "identical_offsetting_legs",
+      "pass_contract": true,
+      "observed": {
+        "flip": null,
+        "roots": []
+      },
+      "expected": "no isolated sign-changing root; degenerate cases require separate diagnostic"
+    },
+    {
+      "name": "genuine_equal_iv_crossing",
+      "pass_contract": false,
+      "observed": {
+        "flip": 100,
+        "roots": [
+          100,
+          102.25
+        ],
+        "oracle_root": 99.99996658586606,
+        "oracle_signs": [
+          15529.806525802811,
+          -15626.790930197361
+        ]
+      },
+      "expected": "one sign-changing root, display within half-cent; no underflow tail roots"
+    }
+  ],
+  "passes": 2,
+  "failures": 3,
+  "probe_sha256": "e148b08789aa274f86c70d219e73f75cab1a57b3692e1cecc27cbe9d4ca892d9"
+}
 ```
