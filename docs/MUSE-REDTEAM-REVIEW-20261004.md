@@ -3,6 +3,68 @@
 **Verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
 
+
+## 2026-10-05 09:01 UTC — PR #3 response independently verified
+
+**New response:** [PR #3](https://github.com/3pacs/muse/pull/3), `redteam/fixes-r1-r9`, source [`e201a45cc68d117176c0e057af630f22b7397da8`](https://github.com/3pacs/muse/tree/e201a45cc68d117176c0e057af630f22b7397da8). Main remains `43c2cd41`; the earlier `redteam/fixes` branch remains `ed3b8741`. This new branch descends from the docs branch at `8559733e`, rather than from `ed3b8741`; local Git objects and every remote blob identity were verified. The application delta from its docs parent changes only interpreter, logger, tape DB and dashboard builder (568 additions / 104 deletions); no frontend, tracked tests or repository AGENTS.md/.coordination.md were added. The claimed separate F01–F11 packet tests are not tracked here and their execution was not independently verified.
+
+This is the single continuing handoff. **The new response fixes every original narrow fixture; broader stage acceptance remains PROVISIONAL.** Original failures are preserved below as historical evidence, not claimed to remain failing on this new head.
+
+### Passing evidence — material progress
+
+- Original 21-check harness, with only its reviewed `HEAD` literal replaced by `e201a45c`: **21 pass, 0 fail**. Baseline expectations, frozen clocks, independent oracles, blocked network, disposable stores and subprocess/POSIX checks were retained. Run hash `f32623b5e693de6a499da4662d9c3591009257c6caad6e05b0bde2cb20fda415`; machine receipt `9b93207f1cacd24a62c751f3b383a0a7c4735931fd175d4749e8968af732b42b`.
+- Prior five supplementary R1 root-list probes, retargeted to the same source: **5 pass, 0 fail**, counted separately because they overlap the original cases. Single call/put underflow artifacts disappear and the healthy equal-IV fixture now returns [100.00] without 102.25. Receipt `6bafdec63dc6b352526535b0c0ac0387b92b83691393958e6defe1a713e5eaf7`.
+- Per-leg IV now recovers both original roots near 99.9762844236 / 100.0237097916. The original same-payload strike-append retry repairs its missing file; direct mirror conflicts no longer add hybrid strikes; logger receipt-clock replay retains one snapshot; valid mixed-offset timestamps and explicit v1/v2 cells reconcile; the delayed-chain and future-quote fixtures and current-straddle horizon pass.
+- These are exact fixture improvements, not a certificate for arbitrary inventories, crash points, data vintages or deployment.
+
+### Remaining source-pinned failures
+
+A separate **20-case adversarial extension produced 1 pass, 19 fail**. This is a deliberately targeted contract set, not an existing project test suite, and is not combined with the passing sets above. The one PASS is the dry-run no-write control. Every proposed failure below was executed against actual source imported via `git show`, not a copied model of its implementation. Logger recovery/conflict cases use real separate processes, real fcntl and temporary stores. The appendix contains the complete script and result.
+
+| Original finding / contract | Executed fixture and actual result at e201a45c | Required behavior |
+| --- | --- | --- |
+| R1/R2: close roots | S=K=100, 60s, call IV=.02/put IV=.08, OI=100 each: independent roots **99.99525187189647 / 100.00473694530879**, output **[100.00]**. | Retain two distinct raw roots; rounding/dedup cannot discard a sign reversal. |
+| R1/R2: off-grid narrow peak | K=100.005, call IV=.004/put IV=.016, otherwise same: independent roots **100.00404574559192 / 100.00594285512352**, output **[]**. | Strike/width-aware refinement or explicit unresolved-conditioning status; absence of sampled sign change is not proof of no root. |
+| R1-A raw/degeneracy diagnostics | Healthy closed-form root **99.99996658586606** still has no raw-root field. Zero OI gets the same generic no-sign-change note and 2000 “underflow/touch” samples. | Preserve raw root to 1e-6 as requested; distinguish zero inventory, cancellation and numerical underflow. Residuals currently refer to hidden raw roots while exposed roots are rounded. |
+| R3/R4: revised-payload recovery | First process accepts spot100/GEX .02, then strike append fails. Same source identity retried with spot101/GEX .5 writes **spot101/.5 to strike JSONL while main remains100 and DB remains .02**. | Repair from the immutable accepted event; quarantine the changed incoming payload separately. |
+| R4: logger conflict bypass | After complete logging, same identity with changed spot/GEX prints “already logged”, **0 conflict receipts**. | Check canonical payload identity before all-projections-present early return. |
+| R4: receipt clock in payload hash | Direct mirror of identical semantic event with changed `logged_at` returns **conflict**, not duplicate. | Exclude receipt metadata from semantic hash; preserve receipt separately. This is a mirror-layer defect, distinct from the original passing logger-count fixture. |
+| R4: legacy hash adoption | Stored legacy spot100/hash NULL + incoming spot200 is labeled **duplicate, legacy_adopted=true** while stored spot stays100. | Never assign the incoming hash to unverified different stored content; compare/reconstruct or quarantine. |
+| R9: intra-file duplicates | Empty DB + two identical snapshot and strike lines: dry-run **accepted2/ignored0**, actual **accepted1/ignored1** for both. Dry-run itself writes nothing (PASS). | Simulate accepted/duplicate/conflict state across the whole input with exact counts. |
+| R9/R4: backfill conflict bypass | Existing strike100=.02; changed same-identity replay with strike100=2 and new101=3 is ignored for parent but appends **101=3**. | Same conflict policy through logger, mirror and backfill; no hybrid event. |
+| R5: invalid clocks become latest | For each of invalid, naive and next-day timestamps, a poison spot999 is selected over valid spot100. | Quarantine before latest/range/heatmap selection. Sorting bad rows last makes them the selected last row; the parser's “future” reason is ignored. |
+| R6: formula truth | Synthetic feed event tagged v1 writes strike JSONL tagged **v2**. Dashboard `unknown-v9` value200 becomes canonical **200**, not unavailable. | Preserve actual event formula and units; unknown stays unavailable or segregated. This does not assert the current live interpreter normally emits v1. |
+| R7: remaining provider/time gates | Missing top-level provider despite a delayed row becomes **rtd/realtime**. Naive and invalid quote times return **ok**. Declared RTD chain dated next day also returns **ok**. | Unknown source/time cannot be upgraded; validate quote and chain known-at clocks independently for every provider. |
+
+Source anchors: [solver](https://github.com/3pacs/muse/blob/e201a45cc68d117176c0e057af630f22b7397da8/interpreter.py#L473), [provider/time admission](https://github.com/3pacs/muse/blob/e201a45cc68d117176c0e057af630f22b7397da8/interpreter.py#L328), [logger reconciliation](https://github.com/3pacs/muse/blob/e201a45cc68d117176c0e057af630f22b7397da8/maxpain_log.py#L177), [hash and mirror](https://github.com/3pacs/muse/blob/e201a45cc68d117176c0e057af630f22b7397da8/tape_db.py#L159), [backfill](https://github.com/3pacs/muse/blob/e201a45cc68d117176c0e057af630f22b7397da8/tape_db.py#L268), [dashboard ordering/formula](https://github.com/3pacs/muse/blob/e201a45cc68d117176c0e057af630f22b7397da8/dashboard_build.py#L63).
+
+Do not interpret the root-list improvements as full R1-A completion: raw precision, degeneracy and boundary/tangency requirements remain unmet or untested. Missing-IV fallback and magnitude-floor conditioning remain static concerns beyond these fixtures. Do not infer all R1–R9 gates passed from 21/21. Calendar/early-close coverage, source skew and alert gating retain the original challenge's outstanding requirements. No held-out research value or alpha evidence is present.
+
+### Next single assignment J1 — preserve the accepted event during recovery and replay
+
+**Active task:** J1 replaces the earlier pending R1-A dispatch as the next scoped cycle, because the response now changes the entire persistence path and the reproduced hybrid event violates immutable-history requirements. R1-A's remaining numerical acceptance is retained in the queue; it is not silently accepted or concurrently dispatched.
+
+Start from exact `e201a45c`. Limit application edits to **maxpain_log.py and tape_db.py**, plus focused offline tests/receipts. Extend the current journal/mirror/replay capabilities. No interpreter/dashboard changes in this patch; no historical journal rewrite, production/schema operation, provider request, merge or deployment.
+
+1. Declare one authoritative accepted event whose complete normalized semantic payload includes its strike map, source times and formula/units. Retain enough original accepted content to repair every projection after restart; the latest fetched feed is not the accepted old event. Extend the existing storage rather than inventing a parallel ingestion path. Receipt clocks remain metadata, not semantic event identity or payload.
+2. Route logger, direct mirror and backfill through **one** duplicate/conflict decision: same identity and semantic hash is duplicate; changed spot, strikes, lineage or formula is explicit conflict/revision under a declared availability-time policy. A rejected payload cannot add a strike or become a projection. The logger's fast path must validate the incoming payload, not only presence flags. Preserve conflict reasons and immutable accepted content.
+3. On the exact revised-payload failure fixture above, repair the absent strike history with **original .02 / spot100**, and receipt/quarantine the incoming .5 / spot101 attempt. DB, main JSONL and strike JSONL must agree. Exercise separate-process restarts after each write, including DB/main missing, strike missing, locked DB and truncated tail. Preserve real POSIX contention coverage.
+4. Remove `logged_at` from the semantic hash; normalize the declared semantic key consistently. Legacy NULL hashes require validated reconstruction from stored accepted content or explicit quarantine, never blind adoption of a changed incoming hash. Preserve raw legacy records and provide an additive compatibility policy.
+5. Dry-run must use the same evolving validation/duplicate/conflict state as real replay without writes. Test A,A and A,C,B,A input, conflicts, partial strike conflicts, malformed/truncated lines, equivalent timestamps, same ts/different expiry and replay outside the previous 64KiB tail. Match per-event/per-row counters and reasons; no substring-only existence certificate. Preserve actual formula/units in every accepted projection rather than unconditional v2.
+6. Required J1 PASS cases from the appended receipt: `logger_changed_payload_conflict`, `recovery_original_payload`, `receipt_clock_excluded_from_hash`, `legacy_no_unverified_hash_adoption`, `intrafile_duplicate_dryrun`, `backfill_conflict_no_hybrid`, `logger_formula_fidelity`, plus the already-passing `dryrun_no_writes` control. Add the broader restart/replay cases above. Original 21 controls and the five supplementary root-list controls must remain passing. Report other appended failures as open; do not alter expected assertions to count them as fixed.
+7. Return one immutable implementation commit, committed runnable tests, normalized event/replay policy and before/after machine receipts. Reply here with J1's exact source pin and stop for independent verification before another task. No rewrite of raw history or staged research acceptance is authorized.
+
+**Staged after J1:** finish R1/R2 raw roots, close/off-grid crossings and conditioning; R5/R6/R7 trustworthy admission/projection; frontend source/build/deployment mapping and the visual challenge; held-out incremental evaluation under the original challenge. There is still no evidence for a useful trading edge.
+
+### Review and frontend boundaries
+
+Official Gemini `gemini-3.8-flash-high` supplied a fresh source-only proposal in session `905de2d9-27f6-4453-8e73-6b297e31eb02`, nonempty SUCCESS, no denied actions and no tool calls under the shared lock. It identified the same broad solver/replay/provenance classes. Codex used actual imported source, independent numerical oracles and real subprocesses for the published evidence. Unexecuted Gemini copied-implementation examples, line references and proposed fixes were not accepted as validation.
+
+The new tree still lacks frontend source/build instructions and a deployed frontend/backend/schema mapping. Earlier October 5 visible-page observations remain separate; this check did not re-open the page or certify it runs e201a45c. The backend passing mixed-formula fixture alone cannot certify the share page or its export. No new browser, provider polling, alert, credential, order, live data or production action occurred.
+
+**Watch:** the next PR #3/`redteam/fixes-r1-r9` revision after `e201a45cc68d117176c0e057af630f22b7397da8`, or a source-pinned J1 response. PR #2 remains the single review/task handoff. Parent owns the reasonable check cadence.
+
+
 ## 2026-10-05 checkpoint — same source, one active task
 
 **Status at 2026-10-05 08:20:44 UTC: awaiting Muse implementation response.** Remote `main` remains `43c2cd41f3823adcda5222d4648131a374c47a59`; `redteam/fixes` remains `ed3b8741c21b58438be1da65a1dca17d0c5e3bac`. Draft PRs #1 and #2 remain open; their README handoff entrypoints and exact docs were read. No response comments are present on either PR. The prior review checkout was preserved; a separate local clone was used, and all ten source blobs matched the remote implementation tree. No tracked tests, repository AGENTS.md, or .coordination.md exist at that implementation head. No separately identified cross-project shared index was available in this local execution environment; no new lane or parallel PR was created.
@@ -847,5 +909,501 @@ print(json.dumps(out,indent=2))
   "passes": 2,
   "failures": 3,
   "probe_sha256": "e148b08789aa274f86c70d219e73f75cab1a57b3692e1cecc27cbe9d4ca892d9"
+}
+```
+
+
+## e201a45c adversarial extension — executable script and machine receipt
+
+Run in a clone containing e201a45c and the earlier commits. Put this script at `outputs/iteration-e201a45c/adversarial.py` with a source clone named `muse-audit` at the same project root, then run `python3 outputs/iteration-e201a45c/adversarial.py`. It exits zero on completed execution; inspect individual `pass_contract` fields. Transport is blocked and writes are disposable. Harness SHA-256: `d89570b26a8050e3c3936ab5707ecc877688efefd1f80f3e44c910689a354a3a`; receipt SHA-256: `a4eeca5ae8eb0fb8791a3af9cb222a45161bab7502bfc7745a7fe8fba50173ab`.
+
+```python
+"""Source-pinned, offline follow-up contracts; zero market data."""
+import contextlib
+import datetime as dt
+import hashlib
+import io
+import json
+import math
+import pathlib
+import socket
+import sqlite3
+import subprocess
+import sys
+import tempfile
+import types
+import urllib.request
+from unittest.mock import patch
+
+ROOT=pathlib.Path(__file__).resolve().parents[2]
+SHA='e201a45cc68d117176c0e057af630f22b7397da8'
+NOW=dt.datetime(2026,10,5,19,59,tzinfo=dt.timezone.utc)
+def blocked(*a,**k): raise AssertionError('unmocked network attempted')
+urllib.request.urlopen=blocked
+socket.create_connection=blocked
+socket.socket.connect=blocked
+class Clock(dt.datetime):
+    @classmethod
+    def now(cls,tz=None): return NOW.astimezone(tz) if tz else NOW.replace(tzinfo=None)
+def load(name):
+    raw=subprocess.check_output(['git','-C',str(ROOT/'muse-audit'),'show',SHA+':'+name+'.py'],text=True)
+    m=types.ModuleType(name);m.__file__=str(ROOT/'muse-audit'/name)+'.py'
+    exec(compile(raw,m.__file__,'exec'),m.__dict__)
+    if hasattr(m,'datetime'):m.datetime=Clock
+    return m
+def leg(side='C',iv=.2,k=100,oi=100,**kw):
+    return dict(expiry='2026-10-05',strike=k,side=side,iv=iv,open_interest=oi,
+        gamma=.02,volume=600,delta=.5 if side=='C' else -.5,bid=1.,ask=1.,**kw)
+def snapshot(rows,provider='cboe_delayed',chain_ts=NOW.isoformat(),quote_ts=NOW.isoformat()):
+    m=load('interpreter');chain={'contracts':rows,'as_of':chain_ts}
+    if provider is not None:chain['provider']=provider
+    m.fetch_json=lambda u: {'quote':{'price':100,'as_of':quote_ts,'source':'yahoo'}} if u==m.STATE_URL else chain
+    m.fetch_nasdaq_0dte=lambda _: []
+    return m.build_snapshot()
+def feed(spot=100,gex=.02,formula='v2'):
+    return {'status':'ok','updated_at':NOW.isoformat(),'quote_as_of':NOW.isoformat(),
+        'expiry':'2026-10-05','spot':spot,'gamma':{'gex_formula':formula,
+        'by_strike':[{'strike':100,'net_gex_m':gex}]}}
+def worker(folder,bad):
+    folder=pathlib.Path(folder);m=load('maxpain_log');db=load('tape_db');sys.modules['tape_db']=db
+    db.HIDDEN=str(folder);db.DB_PATH=str(folder/'tape.db')
+    m.LOG_PATH=str(folder/'history.jsonl');m.GEX_SNAP_PATH=str(folder/('bad-dir' if bad else 'gex.jsonl'))
+    m.LOCK_PATH=str(folder/'logger.lock');m.EVENTS_PATH=str(folder/'absent.json')
+    m.fetch=lambda:json.loads((folder/'feed.json').read_text())
+    if bad:(folder/'bad-dir').mkdir(exist_ok=True)
+    try:m.main()
+    except IsADirectoryError:print('injected strike append failure')
+if len(sys.argv)>1 and sys.argv[1]=='worker':
+    worker(sys.argv[2],sys.argv[3]=='bad');raise SystemExit(0)
+results=[]
+def record(name,ok,observed,expected):
+    results.append({'name':name,'pass_contract':bool(ok),'observed':observed,'expected':expected})
+def oracle_roots(k,vc,vp):
+    T=60/(365.25*86400)
+    def gamma(s,v):
+        x=(math.log(s/k)+(.043-.013+.5*v*v)*T)/(v*math.sqrt(T))
+        return math.exp(-.013*T-.5*x*x)/(math.sqrt(2*math.pi)*s*v*math.sqrt(T))
+    def net(s):return 10000*(gamma(s,vc)-gamma(s,vp))
+    def bis(a,b):
+        assert net(a)*net(b)<0
+        for _ in range(80):
+            c=(a+b)/2
+            if (net(a)<0)==(net(c)<0):a=c
+            else:b=c
+        return (a+b)/2
+    w=k*vp*math.sqrt(T)*5
+    return [bis(k-w,k),bis(k,k+w)]
+for name,k,vc,vp in [('close_roots',100,.02,.08),('off_grid_peak',100.005,.004,.016)]:
+    g=snapshot([leg(iv=vc,k=k),leg('P',iv=vp,k=k)])['gamma'];expected=oracle_roots(k,vc,vp)
+    record(name,len(g['gamma_flip_roots'])==2,
+        {'roots':g['gamma_flip_roots'],'oracle_roots':expected,'residuals':g.get('gamma_flip_residuals')},
+        'retain two independently verified sign reversals, with distinct raw roots')
+g=snapshot([leg(iv=.4,k=99.95),leg('P',iv=.4,k=100.05)])['gamma']
+raw=g.get('gamma_flip_roots_raw');expected=math.sqrt(99.95*100.05)*math.exp(-(.043-.013+.5*.4**2)*60/(365.25*86400))
+record('raw_root_precision',isinstance(raw,list) and len(raw)==1 and abs(raw[0]-expected)<1e-6,
+    {'raw':raw,'display':g['gamma_flip_roots'],'expected':expected},'raw root retained within1e-6 before formatting')
+g=snapshot([leg(oi=0)])['gamma']
+record('degeneracy_reason',any(x in (g.get('gamma_flip_note') or '').lower() for x in
+    ('zero_inventory','zero inventory','zero_open_interest','zero open interest','offsetting_inventory')),
+    {'note':g.get('gamma_flip_note'),'underflow_samples':g.get('gamma_flip_underflow_samples')},'explicit zero-inventory reason')
+for name,qt in [('naive_quote','2026-10-05T19:59:00'),('invalid_quote','not-a-time')]:
+    s=snapshot([leg()],quote_ts=qt)
+    record(name,s['status']!='ok',{'status':s['status'],'quote_as_of':s.get('quote_as_of')},'ambiguous clock unavailable or quarantined')
+s=snapshot([leg(provider='cboe_delayed',as_of='2026-10-05T19:44:00+00:00')],provider=None,chain_ts=None)
+record('unknown_chain_source',s['gamma']['by_strike'][0]['src']!='rtd',
+    {'src':s['gamma']['by_strike'][0]['src'],'sources':s['sources']},'unknown provider never upgraded to realtime')
+s=snapshot([leg()],provider='rtd',chain_ts='2026-10-06T19:59:00+00:00')
+record('future_rtd_chain',s['status']!='ok',{'status':s['status'],'sources':s.get('sources')},'future chain known-at gate applies to every provider')
+
+def run_worker(folder,bad=False):
+    r=subprocess.run([sys.executable,str(pathlib.Path(__file__).resolve()),'worker',str(folder),'bad' if bad else 'ok'],
+        text=True,capture_output=True,check=True)
+    return r.stdout
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);(p/'feed.json').write_text(json.dumps(feed()))
+    run_worker(p);(p/'feed.json').write_text(json.dumps(feed(spot=101,gex=.5)))
+    msg=run_worker(p)
+    with sqlite3.connect(p/'tape.db') as con:
+        n=con.execute('select count(*) from mirror_conflicts').fetchone()[0]
+    record('logger_changed_payload_conflict',n==1,{'conflicts':n,'retry':msg},'same identity, changed payload explicitly quarantined/receipted')
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);(p/'feed.json').write_text(json.dumps(feed()))
+    first=run_worker(p,True);(p/'feed.json').write_text(json.dumps(feed(spot=101,gex=.5)))
+    retry=run_worker(p)
+    main=json.loads((p/'history.jsonl').read_text().splitlines()[0]);strike=json.loads((p/'gex.jsonl').read_text().splitlines()[0])
+    with sqlite3.connect(p/'tape.db') as con:
+        v=con.execute('select net_gex_m from gex_strikes').fetchone()[0]
+    record('recovery_original_payload',strike['gex_m']['100']==v,
+        {'main_spot':main['spot'],'DB_gex':v,'strike_jsonl':strike,'first':first,'retry':retry},
+        'recovery uses immutable accepted payload, never revised incoming feed')
+with tempfile.TemporaryDirectory() as td:
+    p=pathlib.Path(td);(p/'feed.json').write_text(json.dumps(feed(formula='v1')))
+    run_worker(p);s=json.loads((p/'gex.jsonl').read_text().splitlines()[0])
+    record('logger_formula_fidelity',s['gex_formula']=='v1',s,'strike formula follows actual feed event rather than unconditionalv2')
+
+def init(folder):
+    db=load('tape_db');db.HIDDEN=str(folder);db.DB_PATH=str(pathlib.Path(folder)/'tape.db')
+    con=db.connect();db.init_db(con);db.LOG_PATH=str(pathlib.Path(folder)/'main.jsonl');db.GEX_PATH=str(pathlib.Path(folder)/'gex.jsonl')
+    return db,con
+rec={'ts':NOW.isoformat(),'expiry':'2026-10-05','spot':100,'gex_formula':'v2'}
+with tempfile.TemporaryDirectory() as td:
+    db,con=init(td);a=dict(rec,logged_at='2026-10-05T20:00:00+00:00');b=dict(rec,logged_at='2026-10-05T20:01:00+00:00')
+    db.mirror_record(a,{'100.0':.02},con);r=db.mirror_record(b,{'100.0':.02},con)
+    record('receipt_clock_excluded_from_hash',r['status']=='duplicate',r,'receipt-only change is duplicate, not payload conflict')
+    con.close()
+with tempfile.TemporaryDirectory() as td:
+    db,con=init(td);main=json.dumps(rec)+'\n';g=json.dumps({'ts':rec['ts'],'expiry':rec['expiry'],'gex_m':{'100.0':.02},'gex_formula':'v2'})+'\n'
+    pathlib.Path(db.LOG_PATH).write_text(main*2);pathlib.Path(db.GEX_PATH).write_text(g*2)
+    before=con.total_changes;dry=db.backfill(con,dry_run=True)
+    record('dryrun_no_writes',con.total_changes==before,{'changes':con.total_changes-before},'dryrun preservesDB')
+    actual=db.backfill(con)
+    record('intrafile_duplicate_dryrun',dry==actual,{'dry':dry,'actual':actual},'simulate each preceding accepted line before classifying next line')
+    con.close()
+with tempfile.TemporaryDirectory() as td:
+    db,con=init(td);db.mirror_record(rec,{'100.0':.02},con)
+    pathlib.Path(db.LOG_PATH).write_text(json.dumps(dict(rec,spot=200))+'\n')
+    pathlib.Path(db.GEX_PATH).write_text(json.dumps({'ts':rec['ts'],'expiry':rec['expiry'],'gex_m':{'100.0':2,'101.0':3},'gex_formula':'v2'})+'\n')
+    r=db.backfill(con);strikes=[tuple(s) for s in con.execute('select strike,net_gex_m from gex_strikes order by strike')]
+    record('backfill_conflict_no_hybrid',strikes==[(100.,.02)],{'strikes':strikes,'counts':r},'same mirror conflict policy; no newstrike from rejected payload')
+    con.close()
+with tempfile.TemporaryDirectory() as td:
+    db,con=init(td);db.insert_snapshot(dict(rec,spot=100),con)
+    con.execute('update snapshots set payload_hash=NULL');con.commit()
+    r=db.mirror_record(dict(rec,spot=200),{'100.0':3},con)
+    spot=con.execute('select spot from snapshots').fetchone()[0]
+    record('legacy_no_unverified_hash_adoption',r['status']=='conflict' or not r.get('legacy_adopted'),
+        {'status':r,'retained_spot':spot},'verify stored legacy content before assigning incominghash')
+    con.close()
+
+def dashboard(recs,snaps=[]):
+    with tempfile.TemporaryDirectory() as td:
+        m=load('dashboard_build');m.OUT_PATH=str(pathlib.Path(td)/'dashboard.json')
+        m.load_jsonl=lambda p:recs if p==m.LOG_PATH else snaps
+        with patch.object(sys,'argv',['dashboard_build.py','2026-10-05','--force']),contextlib.redirect_stdout(io.StringIO()):m.main()
+        return json.loads(pathlib.Path(m.OUT_PATH).read_text())
+good={'expiry':'2026-10-05','ts':NOW.isoformat(),'spot':100}
+for name,ts in [('invalid_dashboard_ts','bad'),('naive_dashboard_ts','2026-10-05T19:58:00'),('future_dashboard_ts','2026-10-06T19:59:00+00:00')]:
+    o=dashboard([good,dict(good,ts=ts,spot=999)])
+    record(name,o['latest']['spot']==100,{'selected_spot':o['latest']['spot'],'quality':o['data_quality']},'bad clocks excluded/quarantined before latest/ranges selection')
+o=dashboard([good],[{'expiry':'2026-10-05','ts':NOW.isoformat(),'gex_m':{'100.0':200},'gex_formula':'unknown-v9'}])
+record('unknown_formula_unavailable',o['heatmap']['values']==[[None]],o['heatmap'],'unknownformula cannot become canonicalnumeric v2')
+out={'source_head':SHA,'synthetic_only':True,'network_blocked':True,'results':results,
+    'passes':sum(x['pass_contract'] for x in results),'failures':sum(not x['pass_contract'] for x in results),
+    'harness_sha256':hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()}
+(pathlib.Path(__file__).parent/'adversarial-results.json').write_text(json.dumps(out,indent=2)+'\n')
+print(json.dumps(out,indent=2))
+```
+
+```json
+{
+  "source_head": "e201a45cc68d117176c0e057af630f22b7397da8",
+  "synthetic_only": true,
+  "network_blocked": true,
+  "results": [
+    {
+      "name": "close_roots",
+      "pass_contract": false,
+      "observed": {
+        "roots": [
+          100
+        ],
+        "oracle_roots": [
+          99.99525187189647,
+          100.00473694530879
+        ],
+        "residuals": [
+          0
+        ]
+      },
+      "expected": "retain two independently verified sign reversals, with distinct raw roots"
+    },
+    {
+      "name": "off_grid_peak",
+      "pass_contract": false,
+      "observed": {
+        "roots": [],
+        "oracle_roots": [
+          100.00404574559192,
+          100.00594285512352
+        ],
+        "residuals": []
+      },
+      "expected": "retain two independently verified sign reversals, with distinct raw roots"
+    },
+    {
+      "name": "raw_root_precision",
+      "pass_contract": false,
+      "observed": {
+        "raw": null,
+        "display": [
+          100
+        ],
+        "expected": 99.99996658586606
+      },
+      "expected": "raw root retained within1e-6 before formatting"
+    },
+    {
+      "name": "degeneracy_reason",
+      "pass_contract": false,
+      "observed": {
+        "note": "spot level(s) where net dealer gamma changes sign (per-leg frozen IV/OI scenario); tangencies and floating-point underflow zeros are never roots; None = no sign change in ±10% domain",
+        "underflow_samples": 2000
+      },
+      "expected": "explicit zero-inventory reason"
+    },
+    {
+      "name": "naive_quote",
+      "pass_contract": false,
+      "observed": {
+        "status": "ok",
+        "quote_as_of": "2026-10-05T19:59:00"
+      },
+      "expected": "ambiguous clock unavailable or quarantined"
+    },
+    {
+      "name": "invalid_quote",
+      "pass_contract": false,
+      "observed": {
+        "status": "ok",
+        "quote_as_of": "not-a-time"
+      },
+      "expected": "ambiguous clock unavailable or quarantined"
+    },
+    {
+      "name": "unknown_chain_source",
+      "pass_contract": false,
+      "observed": {
+        "src": "rtd",
+        "sources": {
+          "rtd": {
+            "as_of": "2026-10-05T19:44:00+00:00",
+            "delay": "realtime",
+            "n_strikes": 1
+          },
+          "nasdaq": {
+            "as_of": null,
+            "delay": "~15min",
+            "n_strikes": 0,
+            "stale": false
+          }
+        }
+      },
+      "expected": "unknown provider never upgraded to realtime"
+    },
+    {
+      "name": "future_rtd_chain",
+      "pass_contract": false,
+      "observed": {
+        "status": "ok",
+        "sources": {
+          "rtd": {
+            "as_of": "2026-10-06T19:59:00+00:00",
+            "delay": "realtime",
+            "n_strikes": 1
+          },
+          "nasdaq": {
+            "as_of": null,
+            "delay": "~15min",
+            "n_strikes": 0,
+            "stale": false
+          }
+        }
+      },
+      "expected": "future chain known-at gate applies to every provider"
+    },
+    {
+      "name": "logger_changed_payload_conflict",
+      "pass_contract": false,
+      "observed": {
+        "conflicts": 0,
+        "retry": "already logged | ts=2026-10-05T19:59:00+00:00\n"
+      },
+      "expected": "same identity, changed payload explicitly quarantined/receipted"
+    },
+    {
+      "name": "recovery_original_payload",
+      "pass_contract": false,
+      "observed": {
+        "main_spot": 100,
+        "DB_gex": 0.02,
+        "strike_jsonl": {
+          "ts": "2026-10-05T19:59:00+00:00",
+          "expiry": "2026-10-05",
+          "spot": 101,
+          "gex_m": {
+            "100": 0.5
+          },
+          "gex_formula": "v2",
+          "gex_units": "USD millions per 1% spot move"
+        },
+        "first": "injected strike append failure\n",
+        "retry": "logged | spot=101 max_pain=None expiry=2026-10-05 mirror=skipped\n"
+      },
+      "expected": "recovery uses immutable accepted payload, never revised incoming feed"
+    },
+    {
+      "name": "logger_formula_fidelity",
+      "pass_contract": false,
+      "observed": {
+        "ts": "2026-10-05T19:59:00+00:00",
+        "expiry": "2026-10-05",
+        "spot": 100,
+        "gex_m": {
+          "100": 0.02
+        },
+        "gex_formula": "v2",
+        "gex_units": "USD millions per 1% spot move"
+      },
+      "expected": "strike formula follows actual feed event rather than unconditionalv2"
+    },
+    {
+      "name": "receipt_clock_excluded_from_hash",
+      "pass_contract": false,
+      "observed": {
+        "status": "conflict",
+        "kept": "8da9def9d51aabb18bd386e80a78685264f3cee20998606226b3bfbeaa6f2279",
+        "incoming": "93e48c0bbcb969c48cfdb163977d18eb51726b4d79bde1b31eed31cd3861ea9e"
+      },
+      "expected": "receipt-only change is duplicate, not payload conflict"
+    },
+    {
+      "name": "dryrun_no_writes",
+      "pass_contract": true,
+      "observed": {
+        "changes": 0
+      },
+      "expected": "dryrun preservesDB"
+    },
+    {
+      "name": "intrafile_duplicate_dryrun",
+      "pass_contract": false,
+      "observed": {
+        "dry": {
+          "snap_accepted": 2,
+          "snap_ignored": 0,
+          "snap_rejected": 0,
+          "gex_accepted": 2,
+          "gex_ignored": 0,
+          "gex_rejected": 0,
+          "gex_partial": 0
+        },
+        "actual": {
+          "snap_accepted": 1,
+          "snap_ignored": 1,
+          "snap_rejected": 0,
+          "gex_accepted": 1,
+          "gex_ignored": 1,
+          "gex_rejected": 0,
+          "gex_partial": 0
+        }
+      },
+      "expected": "simulate each preceding accepted line before classifying next line"
+    },
+    {
+      "name": "backfill_conflict_no_hybrid",
+      "pass_contract": false,
+      "observed": {
+        "strikes": [
+          [
+            100,
+            0.02
+          ],
+          [
+            101,
+            3
+          ]
+        ],
+        "counts": {
+          "snap_accepted": 0,
+          "snap_ignored": 1,
+          "snap_rejected": 0,
+          "gex_accepted": 0,
+          "gex_ignored": 0,
+          "gex_rejected": 0,
+          "gex_partial": 1
+        }
+      },
+      "expected": "same mirror conflict policy; no newstrike from rejected payload"
+    },
+    {
+      "name": "legacy_no_unverified_hash_adoption",
+      "pass_contract": false,
+      "observed": {
+        "status": {
+          "status": "duplicate",
+          "legacy_adopted": true
+        },
+        "retained_spot": 100
+      },
+      "expected": "verify stored legacy content before assigning incominghash"
+    },
+    {
+      "name": "invalid_dashboard_ts",
+      "pass_contract": false,
+      "observed": {
+        "selected_spot": 999,
+        "quality": [
+          "GEX heatmap starts collecting Monday — per-strike snapshots were added after this session",
+          "source mix unknown; Nasdaq wings ~15 min delayed; walls/flip can flicker on mixed snapshots",
+          "GEX $m units changed 2026-10-05 (v2 = USD per 1% move, canonical); snapshot net-GEX before that date is v1 and reads 100x larger; heatmap cells normalize each event by its own formula tag",
+          "GEX/charm/vanna dollar magnitudes swing on feed mixing — treat levels as signal, dollar sizes as rough",
+          "Dealer positioning assumes long calls / short puts (standard GEX convention) — a prior, not observed truth"
+        ]
+      },
+      "expected": "bad clocks excluded/quarantined before latest/ranges selection"
+    },
+    {
+      "name": "naive_dashboard_ts",
+      "pass_contract": false,
+      "observed": {
+        "selected_spot": 999,
+        "quality": [
+          "GEX heatmap starts collecting Monday — per-strike snapshots were added after this session",
+          "source mix unknown; Nasdaq wings ~15 min delayed; walls/flip can flicker on mixed snapshots",
+          "GEX $m units changed 2026-10-05 (v2 = USD per 1% move, canonical); snapshot net-GEX before that date is v1 and reads 100x larger; heatmap cells normalize each event by its own formula tag",
+          "GEX/charm/vanna dollar magnitudes swing on feed mixing — treat levels as signal, dollar sizes as rough",
+          "Dealer positioning assumes long calls / short puts (standard GEX convention) — a prior, not observed truth"
+        ]
+      },
+      "expected": "bad clocks excluded/quarantined before latest/ranges selection"
+    },
+    {
+      "name": "future_dashboard_ts",
+      "pass_contract": false,
+      "observed": {
+        "selected_spot": 999,
+        "quality": [
+          "GEX heatmap starts collecting Monday — per-strike snapshots were added after this session",
+          "source mix unknown; Nasdaq wings ~15 min delayed; walls/flip can flicker on mixed snapshots",
+          "GEX $m units changed 2026-10-05 (v2 = USD per 1% move, canonical); snapshot net-GEX before that date is v1 and reads 100x larger; heatmap cells normalize each event by its own formula tag",
+          "GEX/charm/vanna dollar magnitudes swing on feed mixing — treat levels as signal, dollar sizes as rough",
+          "Dealer positioning assumes long calls / short puts (standard GEX convention) — a prior, not observed truth"
+        ]
+      },
+      "expected": "bad clocks excluded/quarantined before latest/ranges selection"
+    },
+    {
+      "name": "unknown_formula_unavailable",
+      "pass_contract": false,
+      "observed": {
+        "strikes": [
+          100
+        ],
+        "times": [
+          "15:59"
+        ],
+        "values": [
+          [
+            200
+          ]
+        ],
+        "time_zone": "America/New_York"
+      },
+      "expected": "unknownformula cannot become canonicalnumeric v2"
+    }
+  ],
+  "passes": 1,
+  "failures": 19,
+  "harness_sha256": "d89570b26a8050e3c3936ab5707ecc877688efefd1f80f3e44c910689a354a3a"
 }
 ```
