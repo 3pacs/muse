@@ -4,6 +4,515 @@
 
 
 
+## 2026-10-05 17:50 UTC — UI-G2 works locally; prioritize small UI-G3 delivery, J1-F stays parallel
+
+The user's report that the frontend is not working makes usable frontend delivery the priority. Reviewed [UI-G2 response5999855885](https://github.com/3pacs/muse/pull/2#issuecomment-5999855885) at **`09fc474f1d77946f48f01cbe6caa5b58e9ee0b4c`**, branch `redteam/ui-g2`. Exact chain:58fffe85 → cd8a5d26 → e9a2c75b →09fc474f; only five changed files under `uig1/`. All five changed Git blobs independently recomputed and matched remote diff metadata. Unchanged canonical contract/input/result hashes and declared embedded payload equality are verified.
+
+**Local canonical fixture is usable now. It is not a verified fix to the hosted Muse page.** All15 prior independent UI behavior contracts now pass, including the eight UI-G1 failures.30/30 committed checks reproduce. Added end-to-end verification passes all9scenario×spot combinations and actual keyboard Enter/Space operation. Independent browser result **17 pass /2 fail**: only immutable frontend identity and empty-dataset handling remain in this bounded receipt. This advances UI-G2 to **UI-G3**. Backend **J1-F remains pending and unchanged after2dfcb539**; it must not block this frontend slice. GRID retains estimator ownership.
+
+### Concrete usable preview prepared
+
+The coordinator prepared `Muse-GEX-offline-preview-09fc474f.zip` (920847 bytes), SHA-256 `692993222ae4a38b42ee448acd864f998ce91ba3a7c9e90f1a634489873e6c92`, from the exact immutable source with **no application code edit**. It contains:
+- `index.html`, byte-identical to [reviewed frontend source](https://github.com/3pacs/muse/blob/09fc474f1d77946f48f01cbe6caa5b58e9ee0b4c/uig1/frontend/gex-granular-dashboard.html), SHA-256 `f23deae43fda1f0ec82548be8bb529596649cbfc40f8a53ac60f8d7bc1753bee`.
+- Exact canonical input/result/contract, an external `PREVIEW-MANIFEST.json` identifying source09fc474f and every artifact hash, clear README, independent desktop/mobile screenshots.
+- Direct-file opening instructions: extract the archive and open `index.html`. No install, live feed, provider call or server is required for this self-contained fixture. Optional local HTTP serving is documented, not required.
+
+The archive is a coordinator-local review deliverable, **not uploaded to GitHub or deployed**. Every archived manifest file was extracted/read and its hash matched; preview HTML equals exact source bytes. The user-facing response provides clickable local artifact/package links. The external manifest identifies this reviewed package truthfully; it does not silently fix the source's `uncommitted` footer or replace Muse's required source/build receipt.
+
+This proves a functioning offline demo, not current market data, observed inventory, a live tracker or an external published-page repair. The included fixture valuation is2026-09-28, four admitted of seven declared contracts.0DTE is UTC-date matching only; unknown OI/source vintage stays unknown; provider gamma remains NOT_FRESH.
+
+### Milestone timeline and smallest end-to-end acceptance
+
+| Milestone | State / remaining work | Planning expectation |
+| --- | --- | --- |
+| M1: open and use canonical fixture locally | **Ready now**: exact reviewed HTML/package; scenario/spot selection, correct provided signs/units, strike/expiry drill, clocks/unknowns, desktop/mobile containment and keyboard all executed | No backend prerequisite; use the attached preview now |
+| M1b: release-ready local frontend UI-G3 | Two bounded delivery fixes below; complete source/build/artifact manifest plus empty-state fallback and compact mobile presentation; preserve17 passes | One focused frontend implementation and one independent review. Rough planning budget **1–2 focused hours**, assuming prompt owner execution; this is effort guidance, not a guaranteed calendar ETA |
+| M2: working shared/hosted preview mapped to exact source | Identify actual hosted frontend source/route/release mechanism, prepare concrete artifact/integration and immutable mapping; deployment remains a separate authorized action | Cannot give an honest hosted completion estimate until that source/route is identified. Do not wait for backend J1-F to prepare this mapping/release candidate |
+| M3: useful live granular tracker | Separate GRID-approved runtime adapter with actual field/source/receipt clocks, honest coverage/units/unknown states and authenticated data; later market/inventory/prediction validation remains distinct | Separate scoped integration milestone; no date promised from a synthetic fixture pass |
+
+Smallest local end-to-end acceptance: someone can extract and open the exact source-bound artifact, choose any of the9provided combinations, inspect correctly signed supplied expiry/strike/contract values and source/unknown metadata, and use it at1280 or390×844 without JS errors or page overflow. An empty result displays unavailable rather than crashing. A hosted acceptance additionally requires opening the **actual target URL** and matching its artifact/schema/source identity to the reviewed release. Static artifact tests alone cannot establish that.
+
+### Two executed remaining delivery failures
+
+| Contract | Reproduced result | Required outcome |
+| --- | --- | --- |
+| `immutable_frontend_identity_in_delivery` | HTML footer, `build_receipt.json` and `screenshot_receipt.json` still say `ui_revision="uncommitted"`. Their hashes bind GRID fixtures, not frontend code | External release manifest/source identity identifies exact committed frontend, exact produced HTML digest, fixture origin/hashes and actual deployment status; visible identity or link agrees |
+| `empty_dataset_renders_unavailable` | With `RESULT.scenarios=[]`, render throws “Cannot read properties of undefined (reading 'kind')” | Global empty/missing payload/scenario/spot fallback clears prior data and shows honest unavailable state with no exception or zero data substitute |
+
+The canonical included payload renders correctly; **it is not missing from the actual source**. The model prompt omitted its long JSON line for review brevity and the model incorrectly treated that omission as an application placeholder—discarded. No causal claim is made that these local defects explain the user's hosted complaint. The published [Muse dashboard](https://muse.ai/s/0dte-dashboard-xlk6gxicxxxtxwxnxp) remains without demonstrated source/deployed revision mapping. A fresh public-page open attempt was not accessible through the review web tool; that tool limitation **does not establish service downtime**.
+
+### Next frontend task UI-G3 — finish usable preview delivery, independent of backend
+
+Start exact09fc474f; keep all application changes under existing `uig1/**`. This is one small delivery task, not another estimator or broad new research cycle.
+
+1. Add top-level empty/absent dataset/scenario/spot guard and meaningful empty-derived-point fallback; clear stale tables, selector/status context and reasons consistently. Preserve canonical NOT_SUPPORTED/null points, legitimate OI0 and all precomputed values. No fresh/live/provider labels fabricated.
+2. Deliver a portable release artifact and external source/build manifest, with exact source revision, produced HTML SHA-256, canonical fixture origin/digests, reproducible open/build command and deployment status. Fix the `uncommitted` receipts/visible identity without pretending a prior commit identifies changed code or requiring a self-referential artifact hash. Metadata/help/launch commands belong in delivery docs; keep the product footer concise and meaningful.
+3. Make the small mobile presentation useful: source-pinned screenshot now fits390px, but long offscreen provenance makes contract rows tall while the left columns show large blank areas. Prefer compact metric summaries with keyboard-operable expandable provenance/details and a clear table-scroll affordance. Keep source clocks/unknowns inspectable, not deleted or substituted. Preserve exact scenario/spot/units/sign behavior; this is contained UI polish, not pixel-perfect redesign or a new testing campaign.
+4. Name/link the actual existing hosted frontend source/route and release mechanism if available, and prepare a concrete mapping/integration/release candidate. If unavailable, report the exact missing source dependency and return the standalone preview fully packaged; do not infer the hosted page runs this file, invent a release receipt or deploy under this review's authority.
+5. Return one immutable UI revision, exact artifact/package digest and before/after DOM/desktop1280/mobile390 screenshots. Preserve30 committed checks and17 independent browser passes; close the two failed delivery contracts and demonstrate empty-derived display, all9combinations and keyboard use. Use behavior-based checks rather than embedded-string presence. Do not add another series of unrelated edge cases before delivering the usable artifact.
+
+Backend J1-F and its integrity acceptance continue in parallel. UI-G3 must not edit its files or wait for it to make the synthetic frontend usable. No J1/GRID/interpreter/dashboard_build application changes, no live adapter activation, no deploy/merge/provider/credential operations, no profitable-alpha or observed-position claim.
+
+### Independent verification and model review
+
+Fresh official Gemini3.8 session `945932f8-c069-4944-be0e-84ebe6016efd` completed SUCCESS, substantive response, no denied actions. Codex independently rendered and tested the exact source. Discarded model assertions included the omitted-payload placeholder as a real-source failure, an unproved hosted root cause, treating fixture hashes as complete frontend identity, and hardcoding an old revision for changed future code. All reported pass/fail counts below come from executed browser/committed checks, not model opinion.
+
+Browser file-only navigation used a temporary isolated profile and blocked external requests. All15 previous behavior contracts pass; changes to the old probe selectors recognize the actual now-visible OI “0 unknown”, “Spot765” labels and per-contract clock text, preserving the behavior requirements. The new9-combination check compares provided signed expiry numbers, not reconstructed Greek calculations. Source-grounded screenshots were captured and inspected; their SHA-256s are in the preview manifest.
+
+### Executed browser receipt
+
+```json
+{
+  "source_head": "09fc474f1d77946f48f01cbe6caa5b58e9ee0b4c",
+  "synthetic_only": true,
+  "local_file_browser": true,
+  "network_requests_intercepted": true,
+  "results": [
+    {
+      "name": "renders_without_runtime_error",
+      "pass_contract": true,
+      "observed": {
+        "errors": []
+      },
+      "expected": "canonical fixture renders without JS errors"
+    },
+    {
+      "name": "embedded_result_exact_semantics",
+      "pass_contract": true,
+      "observed": {},
+      "expected": "declared embedded object is semantically identical to provided canonical fixture before render adds view state"
+    },
+    {
+      "name": "scenario_selection_uses_provided_signed_values",
+      "pass_contract": true,
+      "observed": [
+        {
+          "name": "oi_sign_baseline",
+          "actual": [
+            "−$7,380,753",
+            "$9,487,720"
+          ],
+          "expected": [
+            "−$7,380,753",
+            "$9,487,720"
+          ],
+          "ok": true
+        },
+        {
+          "name": "all_short",
+          "actual": [
+            "−$68,932,841",
+            "−$9,487,720"
+          ],
+          "expected": [
+            "−$68,932,841",
+            "−$9,487,720"
+          ],
+          "ok": true
+        },
+        {
+          "name": "partial_neutral",
+          "actual": [
+            "−$3,690,377",
+            "$0"
+          ],
+          "expected": [
+            "−$3,690,377",
+            "$0"
+          ],
+          "ok": true
+        }
+      ],
+      "expected": "all three scenarios render exact formatted signed values for selected spot"
+    },
+    {
+      "name": "zero_oi_contract_preserved",
+      "pass_contract": true,
+      "observed": {},
+      "expected": "admitted OI=0 remains a visible contract"
+    },
+    {
+      "name": "utc_date_and_synthetic_disclaimers",
+      "pass_contract": true,
+      "observed": {},
+      "expected": "synthetic inventory and UTC-date 0DTE limitation remain visible"
+    },
+    {
+      "name": "source_authentication_axis_visible",
+      "pass_contract": true,
+      "observed": {
+        "axis": "SYNTHETIC",
+        "visible": true
+      },
+      "expected": "source_authentication=SYNTHETIC is fourth status axis; units is an independent unit label"
+    },
+    {
+      "name": "valuation_and_spot_source_clocks_visible",
+      "pass_contract": true,
+      "observed": {
+        "valuation": "2026-09-28T15:00:00Z",
+        "spot_source": "2026-09-28T14:59:55Z",
+        "visible": false
+      },
+      "expected": "show fixture valuation and spot source/receipt instants rather than a runtime Built date"
+    },
+    {
+      "name": "all_precomputed_spots_selectable",
+      "pass_contract": true,
+      "observed": {
+        "available": [
+          {
+            "id": "scenario-sel",
+            "options": [
+              "oi_sign_baseline",
+              "all_short",
+              "partial_neutral"
+            ]
+          },
+          {
+            "id": "spot-sel",
+            "options": [
+              "Spot 760",
+              "Spot 765",
+              "Spot 770"
+            ]
+          }
+        ]
+      },
+      "expected": "provided spots760/765/770 selectable, evaluated spot clearly identified; no estimator"
+    },
+    {
+      "name": "contract_provenance_and_unknown_oi_visible",
+      "pass_contract": true,
+      "observed": {
+        "first_contract_text": "\n    SPY-20260928-765-Ccall765\n    1,234 unknown\n    $30,776,044$30,776,044\n    $30,776,0441\n    0.0432\n    0.0123 NOT_FRESH\n    Q:grid_svr_pull src:2026-09-28T14:59:50Z rcv:2026-09-28T15:00:00ZG:grid_svr_pull src:2026-09-28T14:59:50Z rcv:2026-09-28T15:00:00ZOI:grid_svr_pull src:null rcv:2026-09-28T09:00:00Zunknown: oi_as_of, oi_source_atIV:0.2 (direct)\n  "
+      },
+      "expected": "inspect actual per-contract source/receipt clocks, unknown OI vintage/source dates and numeric provider gamma with NOT_FRESH"
+    },
+    {
+      "name": "expiry_drilldown_keyboard_accessible",
+      "pass_contract": true,
+      "observed": {
+        "tag": "TR",
+        "tabIndex": 0,
+        "role": "row"
+      },
+      "expected": "expiry drilldown has a keyboard control/focus and Enter/Space operation"
+    },
+    {
+      "name": "expiry_click_drilldown_control",
+      "pass_contract": true,
+      "observed": {},
+      "expected": "click reveals strike decomposition"
+    },
+    {
+      "name": "mobile_page_width_fits",
+      "pass_contract": true,
+      "observed": {
+        "viewport": 390,
+        "pageWidth": 390,
+        "bodyWidth": 390,
+        "tableWidth": 1058.46875
+      },
+      "expected": "390px page fits viewport; wide tables scroll within dedicated region rather than page overflow"
+    },
+    {
+      "name": "build_provenance_not_runtime_clock",
+      "pass_contract": true,
+      "observed": {
+        "buildText": "UI-G2 revision uncommitted · GRID origin ad2330886ce8f97758bd4c599fbfc731adc1d742 · Open: python3 -m http.server in uig1/frontend/ · No deployment; standalone artifact for review only."
+      },
+      "expected": "actual immutable frontend source/build identity, not current page-load time labeled Built"
+    },
+    {
+      "name": "all_nine_precomputed_combinations_exact",
+      "pass_contract": true,
+      "observed": [
+        {
+          "scenario": "oi_sign_baseline",
+          "spot": 760,
+          "actual": [
+            "−$7,380,753",
+            "$9,487,720"
+          ],
+          "expected": [
+            "−$7,380,753",
+            "$9,487,720"
+          ],
+          "ok": true
+        },
+        {
+          "scenario": "oi_sign_baseline",
+          "spot": 765,
+          "actual": [
+            "$1,060,767",
+            "$9,545,078"
+          ],
+          "expected": [
+            "$1,060,767",
+            "$9,545,078"
+          ],
+          "ok": true
+        },
+        {
+          "scenario": "oi_sign_baseline",
+          "spot": 770,
+          "actual": [
+            "−$7,423,146",
+            "$9,511,768"
+          ],
+          "expected": [
+            "−$7,423,146",
+            "$9,511,768"
+          ],
+          "ok": true
+        },
+        {
+          "scenario": "all_short",
+          "spot": 760,
+          "actual": [
+            "−$68,932,841",
+            "−$9,487,720"
+          ],
+          "expected": [
+            "−$68,932,841",
+            "−$9,487,720"
+          ],
+          "ok": true
+        },
+        {
+          "scenario": "all_short",
+          "spot": 765,
+          "actual": [
+            "−$156,570,947",
+            "−$9,545,078"
+          ],
+          "expected": [
+            "−$156,570,947",
+            "−$9,545,078"
+          ],
+          "ok": true
+        },
+        {
+          "scenario": "all_short",
+          "spot": 770,
+          "actual": [
+            "−$69,569,928",
+            "−$9,511,768"
+          ],
+          "expected": [
+            "−$69,569,928",
+            "−$9,511,768"
+          ],
+          "ok": true
+        },
+        {
+          "scenario": "partial_neutral",
+          "spot": 760,
+          "actual": [
+            "−$3,690,377",
+            "$0"
+          ],
+          "expected": [
+            "−$3,690,377",
+            "$0"
+          ],
+          "ok": true
+        },
+        {
+          "scenario": "partial_neutral",
+          "spot": 765,
+          "actual": [
+            "$530,383",
+            "$0"
+          ],
+          "expected": [
+            "$530,383",
+            "$0"
+          ],
+          "ok": true
+        },
+        {
+          "scenario": "partial_neutral",
+          "spot": 770,
+          "actual": [
+            "−$3,711,573",
+            "$0"
+          ],
+          "expected": [
+            "−$3,711,573",
+            "$0"
+          ],
+          "ok": true
+        }
+      ],
+      "expected": "all9providedscenario×spot signedexpiryvalues matchcanonical payload"
+    },
+    {
+      "name": "keyboard_enter_opens_space_closes",
+      "pass_contract": true,
+      "observed": {
+        "opened": true,
+        "closed": true
+      },
+      "expected": "actual keyboard operation toggles visible expiry drilldown"
+    },
+    {
+      "name": "immutable_frontend_identity_in_delivery",
+      "pass_contract": false,
+      "observed": {
+        "buildText": "UI-G2 revision uncommitted · GRID origin ad2330886ce8f97758bd4c599fbfc731adc1d742 · Open: python3 -m http.server in uig1/frontend/ · No deployment; standalone artifact for review only."
+      },
+      "expected": "frontend receipt/footer names exact immutable source/build identity, not uncommitted fixture-only hashes"
+    },
+    {
+      "name": "unsupported_null_aggregate_is_unavailable",
+      "pass_contract": true,
+      "observed": {
+        "error": null,
+        "text": "EXPIRY\t0DTE\tOI GROSS\tINVENTORY GROSS\tSIGNED NET\tCALL SIGNED\tPUT SIGNED\n\nUnavailable: NOT_SUPPORTED — no aggregates for this precomputed point. No zero substitution."
+      },
+      "expected": "schema-supported NOT_SUPPORTED point with null aggregates renders explicit unavailable, not exception/zero"
+    },
+    {
+      "name": "empty_dataset_renders_unavailable",
+      "pass_contract": false,
+      "observed": {
+        "error": "Cannot read properties of undefined (reading 'kind')"
+      },
+      "expected": "empty payload/scenario result gives truthful unavailable screen, no TypeError or stale prior tables"
+    },
+    {
+      "name": "no_external_requests",
+      "pass_contract": true,
+      "observed": {
+        "requests": [
+          "file:///home/anik/Documents/Codex/2026-10-05/task-5/outputs/iteration-ui09fc474f/source/uig1/frontend/gex-granular-dashboard.html"
+        ]
+      },
+      "expected": "local fixture makes no HTTP network calls"
+    }
+  ],
+  "passes": 17,
+  "failures": 2,
+  "errors": [],
+  "harness_sha256": "7ddb03eac51b8e100c8bcc76e097a5494dc2b392e490f4d9a1d00bfce08df984"
+}
+```
+
+### Reproducible browser script
+
+Saved at `outputs/iteration-ui09fc474f/browser-review.mjs`, exact UI source extracted under `source/uig1/`. Uses the reviewer's existing local bundled Puppeteer/Chrome; adapt only those installed browser paths when reproducing elsewhere. Pure file navigation, HTTP requests blocked. SHA-256 `7ddb03eac51b8e100c8bcc76e097a5494dc2b392e490f4d9a1d00bfce08df984`.
+
+```javascript
+import {puppeteer} from '/opt/antigravity-2.19.1/resources/app.asar.unpacked/node_modules/chrome-devtools-mcp/build/src/third_party/index.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {pathToFileURL} from 'node:url';
+import {isDeepStrictEqual} from 'node:util';
+const out=path.resolve('outputs/iteration-ui09fc474f');
+const file=path.join(out,'source/uig1/frontend/gex-granular-dashboard.html');
+const fixture=JSON.parse(fs.readFileSync(path.join(out,'source/uig1/fixtures/gex-granular-v1/result.json'),'utf8'));
+const expected=(v)=>v==null?'—':(v<0?'−':'')+'$'+Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:0});
+const browser=await puppeteer.launch({executablePath:'/opt/google/chrome/chrome',headless:true,userDataDir:fs.mkdtempSync('/tmp/muse-ui-review-'),args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND']});
+const page=await browser.newPage();
+const requests=[],errors=[],results=[];
+await page.setRequestInterception(true);
+page.on('request',r=>{requests.push(r.url()); if(r.url().startsWith('file:')||r.url().startsWith('data:'))r.continue();else r.abort();});
+page.on('pageerror',e=>errors.push(e.message));
+const record=(name,ok,observed,contract)=>results.push({name,pass_contract:!!ok,observed,expected:contract});
+try {
+await page.setViewport({width:1280,height:900});
+await page.goto(pathToFileURL(file).href,{waitUntil:'load'});
+record('renders_without_runtime_error',errors.length===0,{errors:[...errors]},'canonical fixture renders without JS errors');
+const embedded=JSON.parse(fs.readFileSync(file,'utf8').split('const RESULT = ')[1].split('\n;\n')[0]);
+record('embedded_result_exact_semantics',isDeepStrictEqual(embedded,fixture),{},'declared embedded object is semantically identical to provided canonical fixture before render adds view state');
+const scenarios=[];
+for(let i=0;i<fixture.scenarios.length;i++){
+ await page.select('#scenario-sel',String(i));
+ const cells=await page.$$eval('#expiry-table tbody tr.expiry-row',rs=>rs.map(r=>Array.from(r.cells).map(c=>c.textContent.trim())));
+ const actual=cells.map(c=>c[4]),want=fixture.scenarios[i].spots[0].aggregates.by_expiry.map(a=>expected(a.signed_net));
+ scenarios.push({name:fixture.scenarios[i].name,actual,expected:want,ok:JSON.stringify(actual)===JSON.stringify(want)});
+}
+record('scenario_selection_uses_provided_signed_values',scenarios.every(s=>s.ok),scenarios,'all three scenarios render exact formatted signed values for selected spot');
+await page.select('#scenario-sel','0');
+record('zero_oi_contract_preserved',(await page.$$eval('#contract-table tbody tr',rs=>rs.some(r=>r.cells[3].textContent.trim().startsWith('0 ')))),{},'admitted OI=0 remains a visible contract');
+const originalText=await page.evaluate(()=>document.body.innerText);
+record('utc_date_and_synthetic_disclaimers',originalText.includes('UTC')&&originalText.includes('not exchange-session')&&originalText.includes('Synthetic'),{},'synthetic inventory and UTC-date 0DTE limitation remain visible');
+record('source_authentication_axis_visible',originalText.includes(fixture.source_authentication),{axis:fixture.source_authentication,visible:originalText.includes(fixture.source_authentication)},'source_authentication=SYNTHETIC is fourth status axis; units is an independent unit label');
+record('valuation_and_spot_source_clocks_visible',originalText.includes(fixture.input_metadata.valuation_at)&&originalText.includes(fixture.input_metadata.spot_clocks.source_at),{valuation:fixture.input_metadata.valuation_at,spot_source:fixture.input_metadata.spot_clocks.source_at,visible:false},'show fixture valuation and spot source/receipt instants rather than a runtime Built date');
+record('all_precomputed_spots_selectable',await page.evaluate(()=>Array.from(document.querySelectorAll('select option,button')).some(e=>/Spot\s+765$/.test(e.textContent.trim()))&&Array.from(document.querySelectorAll('select option,button')).some(e=>/Spot\s+770$/.test(e.textContent.trim()))),{available:await page.$$eval('select',es=>es.map(e=>({id:e.id,options:Array.from(e.options).map(o=>o.text)})))},'provided spots760/765/770 selectable, evaluated spot clearly identified; no estimator');
+const provenance=await page.$eval('#contract-table tbody tr',r=>r.textContent);
+record('contract_provenance_and_unknown_oi_visible',provenance.includes('src:2026-09-28T14:59:50Z')&&provenance.includes('rcv:2026-09-28T15:00:00Z')&&provenance.includes('src:null')&&provenance.includes('unknown')&&provenance.includes('0.0123')&&provenance.includes('NOT_FRESH'),{first_contract_text:provenance},'inspect actual per-contract source/receipt clocks, unknown OI vintage/source dates and numeric provider gamma with NOT_FRESH');
+const keyboard=await page.$eval('tr.expiry-row',e=>({tag:e.tagName,tabIndex:e.tabIndex,role:e.getAttribute('role')}));
+record('expiry_drilldown_keyboard_accessible',keyboard.tabIndex>=0||keyboard.tag==='BUTTON',keyboard,'expiry drilldown has a keyboard control/focus and Enter/Space operation');
+await page.screenshot({path:path.join(out,'desktop-1280.png'),fullPage:true});
+await page.click('tr.expiry-row');
+record('expiry_click_drilldown_control',await page.$eval('tr.detail',e=>e.classList.contains('open')),{},'click reveals strike decomposition');
+await page.screenshot({path:path.join(out,'desktop-1280-drilldown.png'),fullPage:true});
+await page.setViewport({width:390,height:844});
+await page.screenshot({path:path.join(out,'mobile-390.png'),fullPage:true});
+const layout=await page.evaluate(()=>({viewport:innerWidth,pageWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth,tableWidth:document.querySelector('#contract-table').getBoundingClientRect().width}));
+record('mobile_page_width_fits',layout.pageWidth<=390,layout,'390px page fits viewport; wide tables scroll within dedicated region rather than page overflow');
+const buildText=await page.$eval('#build-info',e=>e.textContent);
+record('build_provenance_not_runtime_clock',!buildText.startsWith('Built '),{buildText},'actual immutable frontend source/build identity, not current page-load time labeled Built');
+const nine=[];
+for(let i=0;i<fixture.scenarios.length;i++){
+ await page.select('#scenario-sel',String(i));
+ for(let j=0;j<fixture.scenarios[i].spots.length;j++){
+  await page.select('#spot-sel',String(j));
+  const rows=await page.$$eval('#expiry-table tbody tr.expiry-row',rs=>rs.map(r=>Array.from(r.cells).map(c=>c.textContent.trim())));
+  const actual=rows.map(r=>r[4]);const want=fixture.scenarios[i].spots[j].aggregates.by_expiry.map(a=>expected(a.signed_net));
+  nine.push({scenario:fixture.scenarios[i].name,spot:fixture.scenarios[i].spots[j].spot,actual,expected:want,ok:JSON.stringify(actual)===JSON.stringify(want)});
+ }
+}
+record('all_nine_precomputed_combinations_exact',nine.length===9&&nine.every(r=>r.ok),nine,'all9providedscenario×spot signedexpiryvalues matchcanonical payload');
+await page.select('#scenario-sel','0');await page.select('#spot-sel','0');
+await page.focus('tr.expiry-row');await page.keyboard.press('Enter');
+const opened=await page.$eval('tr.expiry-row',r=>r.getAttribute('aria-expanded')==='true');await page.keyboard.press('Space');
+const closed=await page.$eval('tr.expiry-row',r=>r.getAttribute('aria-expanded')==='false');
+record('keyboard_enter_opens_space_closes',opened&&closed,{opened,closed},'actual keyboard operation toggles visible expiry drilldown');
+record('immutable_frontend_identity_in_delivery',!buildText.includes('uncommitted'),{buildText},'frontend receipt/footer names exact immutable source/build identity, not uncommitted fixture-only hashes');
+const unsupported=await page.evaluate(()=>{curScenario=0;curSpot=0;const p=RESULT.scenarios[0].spots[0];p.status='NOT_SUPPORTED';p.reason='synthetic primitive boundary probe';p.contracts=null;p.aggregates=null;try{renderScenario();return {error:null,text:document.querySelector('#expiry-table').innerText};}catch(e){return {error:e.message,text:document.querySelector('#expiry-table').innerText};}});
+record('unsupported_null_aggregate_is_unavailable',!unsupported.error&&/NOT_SUPPORTED|unavailable|unsupported/i.test(unsupported.text),unsupported,'schema-supported NOT_SUPPORTED point with null aggregates renders explicit unavailable, not exception/zero');
+const empty=await page.evaluate(()=>{RESULT.scenarios=[];try{render();return {error:null,text:document.body.innerText};}catch(e){return {error:e.message};}});
+record('empty_dataset_renders_unavailable',!empty.error&&/unavailable|empty|no scenarios/i.test(empty.text||''),empty,'empty payload/scenario result gives truthful unavailable screen, no TypeError or stale prior tables');
+record('no_external_requests',requests.every(u=>u.startsWith('file:')||u.startsWith('data:')),{requests},'local fixture makes no HTTP network calls');
+} finally { await browser.close(); }
+const receipt={source_head:'09fc474f1d77946f48f01cbe6caa5b58e9ee0b4c',synthetic_only:true,local_file_browser:true,network_requests_intercepted:true,results,passes:results.filter(r=>r.pass_contract).length,failures:results.filter(r=>!r.pass_contract).length,errors,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};
+fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify(receipt,null,2)+'\n');
+console.log(JSON.stringify({passes:receipt.passes,failures:receipt.failures,results},null,2));
+```
+
+### Coordinator preview manifest
+
+```json
+{
+  "source_revision": "09fc474f1d77946f48f01cbe6caa5b58e9ee0b4c",
+  "source_repository": "https://github.com/3pacs/muse",
+  "source_path": "uig1/frontend/gex-granular-dashboard.html",
+  "grid_origin": "ad2330886ce8f97758bd4c599fbfc731adc1d742",
+  "synthetic_only": true,
+  "deployed": false,
+  "application_code_modified": false,
+  "files": {
+    "README.md": "fb2e5bf83a7d9e5816c75eca9506b51144d9aabed836a5d455d73b48e9a39f88",
+    "fixtures/contract.md": "605bf83c7c5d30206031cf45e462c9a8918dd5597d2a925469c047c2a41c9d77",
+    "fixtures/input.json": "f979e97ebc8d86b14472edd4044fc83fbe49531c04ddde9b2edbf223962c3285",
+    "fixtures/result.json": "70b10bbbdd65e2b540e12049d279d146f9ff3abe020c6eda84113a64ba69831d",
+    "index.html": "f23deae43fda1f0ec82548be8bb529596649cbfc40f8a53ac60f8d7bc1753bee",
+    "screenshots/desktop-1280-drilldown.png": "e76569b1120d8971a31bd7a86e69c80d0ef962ffffab39debf017065e6aaa47b",
+    "screenshots/desktop-1280.png": "669f3ecda70ff903d80c3249cea1c78ef295ce7acdfdd384a3051619bb37ba2f",
+    "screenshots/mobile-390.png": "f15d65a1be9b31c67ab976408925ecb783639c6ef556f218bac331f4eb2fb553"
+  }
+}
+```
+
+**Watch:** new immutable UI-G3 response after09fc474f, and existing J1-F response after2dfcb539. UI delivery has its own milestone and does not wait behind backend review. Ignore our own docs/response events.
+
+
+
 ## 2026-10-05 17:33 UTC — J1-E verified; backend next J1-F, UI-G2 still pending
 
 Reviewed [Muse J1-E response5999574489](https://github.com/3pacs/muse/pull/2#issuecomment-5999574489) at exact source `2dfcb5396fde94499c46f05fb4cc9bee7f9f5134`, branch `redteam/fixes-j1e`, exact parent `0aea3a3dd8eb636ae099ffe5d9ba61604020c695`. One immutable commit changes only `maxpain_log.py`, `tape_db.py`, `tests/j1_replay_tests.py`, `docs/J1-EVENT-REPLAY-POLICY.md`; all four fetched source Git blobs independently recomputed and matched remote diff metadata. DraftPR2/shared index remain the same. **Current backend task J1-F replaces the completed narrow J1-E dispatch. UI-G2 remains unchanged and pending after58fffe85; do not restart or duplicate it.**
