@@ -1,9 +1,86 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: finite offline UI-G3-P1 delivery accepted at e5a8a0ce; backend P1 complete at 8649ad54. The source export is reproduced and verified. No further task is pending for these slices. Hosted/live application acceptance remains unestablished.**
+**Current status: LIVE-G1 is active under the user's new request to finish the actual hosted build. Verify the reported page replacement, preserve/restore primary-route continuity, and integrate genuine read-only data through a versioned adapter. Offline UI e5a8a0ce and backend P1 8649ad54 remain accepted for their bounded slices; hosted/live delivery is not yet verified.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
+
+
+## 2026-10-06 00:08 UTC — new user goal: LIVE-G1 hosted continuity and real-data integration
+
+**Active task: finish the actual hosted build, preserving continuity with the original page.** The user reported at 00:02–00:03 UTC that the Muse page looks like an offline fixture and appears replaced, then explicitly requested a prompt to finish the build. **This is a user report, not a verified finding about the current deployment.** The earlier site-check request was cancelled; no new live inspection or deployment was performed by this handoff publisher.
+
+This new goal supersedes the previous stop condition only for the bounded hosted integration task below. Offline UI-G3-P1 acceptance and the backend publication/replay acceptance remain intact. No duplicate handoff or new PR is created.
+
+### Prompt to Muse: LIVE-G1 — restore hosted continuity and connect genuine read-only data
+
+Finish the usable real-data dashboard at the existing hosted route:
+**[https://muse.ai/s/0dte-dashboard-xlk6gxicxxxtxwxnxp](https://muse.ai/s/0dte-dashboard-xlk6gxicxxxtxwxnxp)**.
+
+Reuse accepted backend **`8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac`** and accepted UI **`e5a8a0ceb8391a124a8459fbe13e91bbbcdc161e`** (exact UI content pin `de7027e0346e4e8fda1fc3d049df2ce596ae7dfd`). These acceptances cover replay/publication and an offline synthetic explorer; they do not establish a connected feed, validated live calculations or a deployed build. Keep GRID estimator ownership and the agreed `gex-granular-v1` schema.
+
+#### Stage 1 — identify the hosted application and preserve its behavior
+
+1. Inspect the exact existing URL using currently authorized access. Record the observed page, route/project identity, deployed build identifier, source repository/path/commit, build configuration and real data endpoint(s). Show which response feeds each visible view and where data collection, caching and projection occur. Capture source-linked evidence rather than inferring deployment from a local screenshot.
+2. Verify the reported replacement. Compare current behavior with available source history, deployment history and authentic previous captures. Determine whether the fixture explorer replaced the original page, was placed on a separate route, or whether the evidence is insufficient. Report the actual observation and any exact access gap.
+3. Preserve the original real-data views, refresh behavior and useful tracker history while exposing their actual data quality. If a replacement is verified, prepare a concrete restoration/continuity change with before/after evidence and a rollback plan. Do not silently replace the original route with a standalone fixture file.
+4. Keep the accepted synthetic explorer on a **separate, explicitly labeled fixture/demo route**. Return its proposed or actual URL and source mapping. The primary hosted route must never silently fall back to fixture values. If original source or deployment configuration is inaccessible, identify exactly what project/repository/access is missing and continue independent implementation work where possible.
+
+#### Stage 2 — integrate an explicit versioned read-only data adapter
+
+Implement one adapter between the existing authorized backend output and the dashboard view model. Reuse the accepted rendering behaviors; refactor the embedded fixture loader into an explicitly selected demo-only path. The real-data path must consume real backend responses, not generated replacements.
+
+- Define the adapter's versioned input/output contract and validation. Include producer/source identity, schema version, build/content identity, symbol/contract/expiry/multiplier identity, units, coverage and source authentication/connection status.
+- Carry distinct valuation time, source observation time, backend receipt time and UI fetch/display time. Preserve **per-field quote, Greek and OI clocks**, OI as-of/vintage, unknown flags, excluded/missing contracts and declared coverage. Do not refresh source timestamps when reloading cached data.
+- Clearly render observed/live, delayed, stale, disconnected, unknown and unavailable states using evidence from the existing producer. A provider name or a frontend toggle does not prove a live connection. Preserve zero versus missing/null; do not invent numbers or relabel incompatible units.
+- Declare freshness rules from the actual source cadence and existing project policy, including last-success time and thresholds. Historical replay/captured responses must stay labeled historical. Last-good values may remain visible with their original clocks and an explicit stale/disconnected state; recovery must only mark fresh after a genuinely newer accepted observation.
+- Consume GRID's runtime output using `gex-granular-v1`, or document a tested explicit mapping to that agreed contract. Keep OI gross, assumed-inventory gross and signed exposure distinct, with the agreed USD-per-1%-underlying-move units and independent numerical/coverage/inventory/source-authentication axes. Synthetic inventory assumptions must remain labeled assumptions even when quotes are real.
+- **If the runtime GRID adapter or producer is missing, report it as an exact integration prerequisite.** Do not copy GRID mathematics into the frontend, fabricate live granular output, or present known unresolved numerical/admission behavior as validated live calculation. No new backend research hillclimb is assigned.
+- Reuse only existing authorized read paths and captured data. Do not add provider polling, change collection cadence, create/manage credentials, buy provider access, fake a connected feed or publish secrets. If runtime access is missing, return the exact prerequisite and keep dependent live verification blocked honestly.
+
+#### Stage 3 — prove code readiness and prepare the correct release candidate
+
+Return source-pinned code, a reproducible build/export and meaningful tests, with sanitized captured responses whose actual origins and capture/source times are recorded. Test the adapter with realistic response shapes from the existing producer; distinguish authentic captures from fabricated test vectors. Do not describe synthetic tests as proof of a connected feed.
+
+Required acceptance checks:
+
+| Case | Required behavior |
+|---|---|
+| Valid existing backend response | Correct field/contract identity, units, data values, per-field clocks, OI vintage and coverage reach the UI |
+| Delayed/stale cached response | Original observation age and source clocks retained; delayed/stale state visible |
+| Disconnected producer or request failure | Honest unavailable/last-good-stale state; no fixture fallback, invented value or false live badge |
+| Recovery | New accepted observation replaces stale data; clocks advance from the producer, not a page-load timer |
+| Missing/unknown OI, Greeks or clocks | Null/unknown quality retained; no automatic zero, fresh claim or synthetic Greek substitution |
+| Partial chain/coverage or incompatible schema/units | Explicit incomplete/unavailable state; no misleading full-market aggregate |
+| Fixture/demo route | Clearly synthetic, separate from the primary route; fixture values cannot enter the real-data path |
+| Desktop and 390px mobile | Useful readable dashboard, contained table scrolling, keyboard controls and truthful data-quality display |
+| Route continuity | Original primary-route views/history preserved or verified restoration demonstrated |
+| Artifact identity | Exact implementation commit, content pin/build digest, schema/adapter version and data endpoint mapping reproducible |
+
+Keep all applicable accepted UI behaviors and backend replay controls. Test changed integration boundaries and these realistic scenarios; do not launch another unrelated numerical/backend challenge cycle.
+
+#### Stage 4 — distinguish code-ready, deployment-ready and actually deployed
+
+Report these states separately:
+
+- **Code-ready:** implementation and captured-response tests pass against an exact commit; local build works. This does not claim a connected runtime or hosted release.
+- **Deployment-ready:** the exact existing route/project is mapped to the release artifact and approved data endpoint; environment/access prerequisites, continuity/rollback plan and release verification procedure are concrete. List any blocker precisely.
+- **Deployed:** only claim this with an actual authorized release and verification at the exact hosted URL. Provide deployed build/source/content identity, adapter/schema version, observed source/authentication status, per-field freshness/age and endpoint evidence; verify primary-route continuity and separate demo routing. A screenshot, static “live” label or local test does not establish deployment or freshness.
+
+This prompt does **not** grant blanket production authorization, a new credential, provider purchase, provider polling or trading authority. Prepare the reviewable implementation/release candidate first. Any release requires the relevant existing explicit deployment permission; where it is absent or uncertain, return the exact prerequisite and the current readiness state. Do not replace or mutate the production route just to complete a checkbox.
+
+### Return and stopping criteria
+
+Return one immutable implementation branch/revision in this PR with:
+1. The hosted mapping/replacement investigation and before/after evidence, explicitly separating verified facts from the user's report.
+2. Adapter contract/version, source-linked implementation and captured-response/browser test receipts with commands and pass/fail counts.
+3. Exact source/build/data endpoint/schema/freshness mapping, separate demo route and continuity/rollback plan.
+4. Reproducible release artifact/export and a concrete code-ready/deployment-ready/deployed status table.
+5. Every remaining access/deployment/runtime-adapter prerequisite, named precisely with its affected acceptance gate.
+
+Stop for independent review after this bounded integration return. If blocked, complete independent code/test work and report the precise blocker; do not fake delivery or repeat the offline demo as the finished hosted build. The target is continuity plus a usable genuine-data dashboard. No profitable-alpha or unvalidated trading recommendation claim is permitted.
+
+**Coordinator actions for this request:** documentation/comment publication and remote readback only. No live-site inspection, application edit, merge, deployment, provider polling or credential change was performed. Watch a substantive Muse LIVE-G1 source-pinned response; own docs/comment events are not implementation work.
 
 
 ## 2026-10-05 23:20 UTC — finite offline delivery accepted; review/fix exchange complete
