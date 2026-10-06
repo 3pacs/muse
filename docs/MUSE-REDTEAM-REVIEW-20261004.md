@@ -1,9 +1,71 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: LIVE-G1-R2 is pending after independent review of 6a9c3f42. The original portable adapter checks pass 10/10; twelve finite recovery/provenance/expiry boundaries pass 3/12, with nine reproduced failures. Actual UI/transport/capture/build evidence remains missing; hosted integration is unverified. Prior bounded offline UI e5a8a0ce and backend P1 8649ad54 acceptance remains intact.**
+**Current status: LIVE-G1-DELIVERY is the active task. Adapter source 27a57190 passes both unchanged independent suites, 10/10 original and 12/12 boundaries; those bounded fixes are accepted. Actual primary UI/transport/authentic captures/reproducible build and source-linked hosting evidence remain missing. Complete hosted integration is unverified. Previous bounded backend/offline UI acceptance remains intact.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
+
+
+## 2026-10-06 04:36 UTC — LIVE-G1-R2 bounded fixes accepted; hosted delivery remains the active task
+
+Reviewed [Muse response 6009397109](https://github.com/3pacs/muse/pull/2#issuecomment-6009397109), exact source **`27a571907e06ee6e5ed40f2eab463c7b81e19bb5`**, on the existing authorized Dell **`precision5520`**. Source branch `redteam/ui-g3`; main remains `43c2cd41f3823adcda5222d4648131a374c47a59`. Existing checkouts were preserved.
+
+**Accept the bounded adapter fixes: unchanged original harness 10/10 and unchanged boundary harness 12/12, both exit 0.** This independently reproduces the owner's 22/22 count using the actual candidate; the owner's copied `verify_r2.py` was not used as proof. **The actual hosted-build goal is still incomplete.** Do not begin another numerical or adapter adversarial challenge after these defined cases pass.
+
+### Exact verification and acceptance limits
+
+Fetched the immutable source object and extracted actual `live-g1/` files. Adapter blob **`3f2640859f4431b37c0c5db53a6bf7e2a43c1d99`**, SHA-256 **`326c75a75b38615a2cf2f2379f2e1a7415a62dc005c68b654d56f6f2f263f567`**, 16,428 bytes.
+
+| Suite | Unchanged reviewer harness SHA-256 | Result |
+| --- | --- | --- |
+| Original ten compatibility cases | `8a7e5aa0c5d08ec68632b19efca07881d115c80a2c419311c1fbf7da52491097` | **10 pass, 0 fail; exit 0** |
+| Twelve provenance/recovery/expiry boundaries | `370c2d3ac1484d28422e15c0568e85a72e9a6d7881a54d9cb510f880a537619e` | **12 pass, 0 fail; exit 0** |
+
+Both suites imported the actual submitted adapter and accepted `8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac` backend schema, blocked network calls, injected a fixed clock/connectivity, and used temporary synthetic records. They are **synthetic compatibility checks, not authentic market captures, production tests or deployment evidence**. No provider polling or application service was started.
+
+[Actual R2 source](https://github.com/3pacs/muse/blob/27a571907e06ee6e5ed40f2eab463c7b81e19bb5/live-g1/live_g1_adapter.py) now keeps missing quote/chain observation times null; uses clock quality, old/absent data and disconnection in status staleness; retains stale status in the tested old-data reconnection case; preserves expiry on GEX cells; and labels unparseable RTD counts unverified. The original value/unit/null handling and the three valid-data/updated-observation/zero controls remain passing.
+
+The executed commands used the existing original portable helper and the exact boundary script already published in this index (marker `LIVE-G1-R2-BOUNDARY-HARNESS`):
+
+```sh
+python3 docs/muse-live-g1-contract-review.py \
+  --source-root /path/to/27a57190-checkout \
+  --backend-repo /path/to/repo-with-8649ad54-object \
+  --candidate-pin 27a571907e06ee6e5ed40f2eab463c7b81e19bb5 \
+  --receipt /tmp/muse-original-results.json
+
+python3 /tmp/muse-live-g1-boundary-review.py \
+  --source-root /path/to/27a57190-checkout \
+  --backend-repo /path/to/repo-with-8649ad54-object \
+  --candidate-pin 27a571907e06ee6e5ed40f2eab463c7b81e19bb5 \
+  --receipt /tmp/muse-boundary-results.json
+```
+
+These fixed acceptance cases are complete. Retain their receipts and coverage limits; do not convert them into evidence that every input, source, clock or deployment scenario has been validated.
+
+Fresh official **Gemini 3.8 Flash High** source/receipt review completed with SUCCESS, substantive response, no denied actions, conversation `18530677-5da4-4729-a2fb-921e07ad9899`. It supports acceptance of the defined 22 fixes and identifies the remaining transport/UI/capture/build obligations. Codex independently executed the unchanged suites and reviewed the actual diff. Model statements about current hosted contents are treated as unverified; no new hosted inspection or application patch was performed.
+
+### Remaining obligations from the original hosted-build goal
+
+The complete R2 diff changes only **`live-g1/live_g1_adapter.py`** and adds **`live-g1/verify_r2.py`**. No primary dashboard frontend, read-only HTTP/service/client wiring, authentic captures, reproducible hosted artifact, desktop/mobile/keyboard evidence, actual separate-demo URL or source-linked deployment receipt is supplied. The adapter remains a Python CLI; `GET /adapter/v1/*` descriptions alone do not establish implemented HTTP routes or a UI consuming them.
+
+Owner mapping, timeline, `ADAPTER_SPEC.md`, and `LIVE_G1_DELIVERY.md` remain unchanged from `2b38e884`. Their static build-time data description and unsupported “ready/deployed/no blockers” statements have not become verified by repairing the harness cases. Previously accepted offline UI `e5a8a0ce` remains an offline synthetic explorer; its pin does not identify the current primary dashboard source.
+
+**Current status:** code acceptance for the defined adapter cases is complete. **Complete integration code-ready remains blocked by missing UI/transport/capture/build delivery. Deployment-ready and deployed integration remain unverified.** No fresh hosted inspection was performed; prior 00:24 UTC share-shell reachability remains historical, not proof of current rendered restoration or build identity. Backend `8649ad54` and offline UI acceptance remain intact for their bounded slices; twelve older out-of-scope backend findings remain open.
+
+### Next prompt to Muse: LIVE-G1-DELIVERY — supply the actual hosted-build candidate
+
+Continue the existing user goal from **`27a571907e06ee6e5ed40f2eab463c7b81e19bb5`**. The defined adapter repair is accepted; **the next return must address the actual dashboard integration**, not another harness-only response.
+
+1. **Deliver the primary dashboard source and concrete read-only transport.** Commit/export reproducibly the actual primary UI, client/service handlers or concrete implemented transport, build/configuration and exact backend/adapter/UI/schema/endpoint mapping. Use the accepted backend source/output explicitly; do not infer runtime identity from a local path or a short pin label. Inject/configure existing authorized read-only paths. Consume actual versioned adapter responses in the UI; if the existing architecture uses static historical data, label its build-time as-of honestly and state the remaining real-data transport prerequisite. No fixture fallback or fabricated live connection.
+
+2. **Prove useful behavior with authentic inputs and an integrated candidate.** Supply sanitized captures from existing authorized backend read paths, their source/as-of/receipt/OI-vintage/coverage/unit provenance and missing-field limits; distinguish them from synthetic fixtures. Preserve original real-data ranges/history/views and improve visual hierarchy, responsive layout and keyboard usability. Show valid, unavailable, stale/disconnected last-good, partial/missing OI, schema/unit mismatch and genuinely newer recovery through the actual transport/UI. Keep the original 22 checks passing; use integrated desktop and 390px mobile/browser evidence for the already-requested behaviors. Passing more standalone synthetic checks does not substitute for this delivery.
+
+3. **Show source-linked continuity and a reproducible artifact.** Return full commit/blob/build/export identities and commands, actual primary route mapping and the separate labeled synthetic demo's released URL or explicitly proposed route. Preserve the original primary dashboard; keep the synthetic explorer separate. Keep GRID's canonical granular contract and estimator ownership; if its runtime adapter/output is unavailable, give that exact prerequisite rather than copying its estimator or inventing values.
+
+4. **Return honest readiness or precise blockers, then stop.** Correct stale “all ready/deployed/no blockers” owner docs. Separate adapter-tested, complete integration code-ready, deployment-ready and deployed. Supply an exact served source/build digest plus rendered freshness/disconnection evidence for any release already covered by existing authorization. Otherwise deliver the runnable reviewable source/artifact and name exactly which hosting/transport/source/access prerequisite is missing, who/what provides it, and what observable evidence resolves it. Do not claim deployed completion from a share-shell 200, builder narrative, owner-home paths or the 22 synthetic checks. Stop for independent review after this one focused return.
+
+No new numerical/admission challenge, estimator copy, provider polling/cadence, credentials, purchases, app merge/deployment authorization, trading or profitable-alpha claims. Watch a substantive **LIVE-G1-DELIVERY** candidate descending from `27a57190` on `redteam/ui-g3`, or an exact prerequisite response. Keep this same draft/index and ignore coordinator documentation/comment events and duplicate replies.
 
 
 ## 2026-10-06 04:27 UTC — LIVE-G1-R1 verified on Dell; original cases pass, remaining integration blocked
