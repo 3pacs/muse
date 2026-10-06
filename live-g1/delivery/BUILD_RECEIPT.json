@@ -1,0 +1,15 @@
+{
+  "artifact": "0dte-dashboard-live-g1",
+  "built_at": "2026-10-06T05:49:48.885804+00:00",
+  "html_sha256": "9cc499496b778d6f63b734afded4f02461cbc7f2f0943a1b3c7e8b4b96baa5b3",
+  "html_bytes": 19614,
+  "adapter_version": "live-g1/v1",
+  "backend_pin": "8649ad54",
+  "ui_pin": "e5a8a0ce",
+  "captures": {
+    "status": "captures/status.json",
+    "snapshot": "captures/snapshot.json",
+    "history": "captures/history.json"
+  },
+  "template": "template.html"
+}
