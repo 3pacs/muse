@@ -1,9 +1,193 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: LIVE-G1-DELIVERY is the active task. Adapter source 27a57190 passes both unchanged independent suites, 10/10 original and 12/12 boundaries; those bounded fixes are accepted. Actual primary UI/transport/authentic captures/reproducible build and source-linked hosting evidence remain missing. Complete hosted integration is unverified. Previous bounded backend/offline UI acceptance remains intact.**
+**Current status: LIVE-G1-DELIVERY-R1 is pending after review of 12a3a110. Accepted adapter checks remain 22/22, and the supplied HTML rebuild/digest reproduces. Native browser boot fails; six UI/transport delivery cases fail with five diagnostic controls passing. Build byte metadata and capture/source lineage need correction; HTTP wrapper and deployed delivery remain missing. Prior bounded acceptance remains intact.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
+
+
+## 2026-10-06 06:49 UTC — delivery 12a3a110 reproduced; deterministic build accepted, UI integration blocked
+
+Reviewed [Muse response 6010279399](https://github.com/3pacs/muse/pull/2#issuecomment-6010279399), exact **`12a3a110d0e6825c891da8bbca1a0ad1c930201b`**, after Dell task access was restored. Confirmed runtime **`precision5520`**, extracted immutable source into a new review directory, and preserved existing checkouts.
+
+**Accepted adapter regressions remain 22/22 (unchanged original 10/10 + boundary 12/12). The supplied build reproduces the committed HTML and receipt byte-for-byte, and the HTML digest matches.** The integrated dashboard is **not code-ready**: its ordinary first load renders no metrics/history and displays a caught JavaScript failure. Eleven browser delivery probes produce **5 passing controls / 6 failing delivery contracts**; several are explicitly diagnostic manual-render probes after boot failed, never native-boot acceptance.
+
+### Exact build/source evidence
+
+[Delivered HTML](https://github.com/3pacs/muse/blob/12a3a110d0e6825c891da8bbca1a0ad1c930201b/live-g1/delivery/0dte-dashboard-live-g1.html) blob `12b036ea1f5dcf0f215c56255c4fb5b0bfa225c4`, actual **19,624 UTF-8 bytes**, SHA-256 **`9cc499496b778d6f63b734afded4f02461cbc7f2f0943a1b3c7e8b4b96baa5b3`**. Both rebuilt HTML and `BUILD_RECEIPT.json` match their committed counterparts exactly. This proves reproducibility of supplied bytes, not capture authenticity or runtime readiness.
+
+[Build source](https://github.com/3pacs/muse/blob/12a3a110d0e6825c891da8bbca1a0ad1c930201b/live-g1/delivery/build.py) uses `len(html)`, so receipt `html_bytes=19614` and console “bytes” are character counts, **ten bytes short**. The digest itself correctly uses encoded bytes. `built_at` is copied from `status.checked_at=2026-10-06T05:49:48.885804+00:00`, a capture/status-check clock, not a separately identified build execution clock. The fixed `ui_pin=e5a8a0ce` names the previously accepted synthetic explorer, not the content identity of this primary template.
+
+Template blob `e74eff1200785924bb1bdabde0e5956754eeb8b3`, UTF-8 SHA-256 `dfc7248a79739086d6c1c7d8785221ff06abe5d2a90fd999c1bbd35e3f3e6105`. The adapter bytes remain unchanged from accepted `27a57190`: blob `3f2640859f4431b37c0c5db53a6bf7e2a43c1d99`, SHA-256 `326c75a75b38615a2cf2f2379f2e1a7415a62dc005c68b654d56f6f2f263f567`.
+
+
+The isolated build comparison can be reproduced without changing the candidate checkout:
+
+```sh
+python3 - /path/to/candidate-checkout <<'PY'
+from pathlib import Path
+import hashlib, json, shutil, subprocess, sys, tempfile
+source = Path(sys.argv[1]) / 'live-g1/delivery'
+target = Path(tempfile.mkdtemp(prefix='muse-build-review-')) / 'delivery'
+shutil.copytree(source, target)
+subprocess.run([sys.executable, str(target / 'build.py')], check=True)
+actual = (target / '0dte-dashboard-live-g1.html').read_bytes()
+receipt = json.loads((target / 'BUILD_RECEIPT.json').read_text())
+print({'rebuild_identical': actual == (source / '0dte-dashboard-live-g1.html').read_bytes(),
+       'sha256': hashlib.sha256(actual).hexdigest(),
+       'actual_utf8_bytes': len(actual), 'declared_html_bytes': receipt['html_bytes']})
+assert actual == (source / '0dte-dashboard-live-g1.html').read_bytes()
+assert hashlib.sha256(actual).hexdigest() == receipt['html_sha256']
+assert len(actual) == receipt['html_bytes'], 'receipt uses characters rather than UTF-8 bytes'
+PY
+```
+
+The final byte-count assertion intentionally fails on this candidate; the preceding rebuild/hash comparisons pass.
+
+### Browser findings — reproduced on actual delivered file
+
+Local isolated Chrome loaded the **unmodified committed HTML**. All external requests were blocked; transport URLs under `review.invalid` were intercepted with local synthetic JSON/503 responses. No provider, hosted route or credential was accessed. Screenshots were inspected at desktop 1280px and mobile 390px.
+
+| Delivery contract | Result | Reproduced observation |
+| --- | --- | --- |
+| Untouched first load renders captures | FAIL | **0 cards, 0 history rows**, visible alert: `Render failed: Cannot read properties of undefined (reading 'fields')`; badges remain `checking…`. |
+| Default embedded getters return captures | FAIL | Status, snapshot and history getters all return **null**. |
+| Missing status is not connected/fresh | FAIL | Calling actual `render(snapshot, undefined)` diagnostically yields green **connected / fresh**. |
+| Failed transport makes last-good visibly disconnected | FAIL | Locally mocked 503 throws `transport 503`; badge stays **connected**, last-good value stays 774.94 with no error-state consumer. |
+| Newer transport snapshot reaches visible UI | FAIL | Getter returns synthetic newer spot **800**, but displayed spot remains **774.94**; no refresh controller consumes its result. |
+| Transport history reaches ranges | FAIL | Getter returns first-row spot **800**, while displayed range remains **774.94** from `window.__HISTORY__`. |
+| Supplied data renders after manual initialization | CONTROL PASS | A deliberate call after globals exist renders six cards, twelve rows and spot774.94. This is diagnostic only, not ordinary-load success. |
+| Null values remain unavailable | CONTROL PASS | Actual renderer displays `unavailable` for a null field. |
+| 390px layout fits after diagnostic render | CONTROL PASS | Page width390, two173px columns; wide table uses its region. |
+| Keyboard metric focus | CONTROL PASS | Tab advances from Spot card to Max Pain card after diagnostic render. |
+| No external network | CONTROL PASS | Only local-file and intercepted mock requests; no provider call. |
+
+[Template boot](https://github.com/3pacs/muse/blob/12a3a110d0e6825c891da8bbca1a0ad1c930201b/live-g1/delivery/template.html#L160) calls `render(window.__SNAPSHOT__, window.__STATUS__)` before [builder-injected globals](https://github.com/3pacs/muse/blob/12a3a110d0e6825c891da8bbca1a0ad1c930201b/live-g1/delivery/build.py#L17) appended at `</body>`. `render` immediately reads `snapshot.fields`. The earlier `EMBEDDED` object is unused at boot. [Default transport](https://github.com/3pacs/muse/blob/12a3a110d0e6825c891da8bbca1a0ad1c930201b/live-g1/delivery/template.html#L80) returns null, and fetch methods have no consumer/controller. [Status handling](https://github.com/3pacs/muse/blob/12a3a110d0e6825c891da8bbca1a0ad1c930201b/live-g1/delivery/template.html#L124) treats absent metadata as healthy; [ranges](https://github.com/3pacs/muse/blob/12a3a110d0e6825c891da8bbca1a0ad1c930201b/live-g1/delivery/template.html#L137) always reads the old global history.
+
+The getter probes diagnose the missing **promised refresh workflow**, not a requirement that pure getters must themselves mutate DOM. A documented public refresh controller may satisfy the same success/error/history semantics while getters remain pure; acceptance must test that actual controller and UI path explicitly. Do not mark manual invocation as a delivered boot fix.
+
+### Capture lineage and readiness limits
+
+Owner calls the three JSON files authentic backend captures. Their exact committed bytes are verified, but **authenticity/runtime lineage is unverified**: there is no backing sanitized raw record/export, capture manifest linking invocation/runtime source/input/output identities, or exact primary template/content-source mapping.
+
+| Capture | Actual UTF-8 SHA-256 | Bytes |
+| --- | --- | --- |
+| status | `a77cb3894171f11fd9a3504fad841a7b5488cef1089e9238975391879e2da921` | 859 |
+| snapshot | `92f049a8b17981e1b36cedb917193a54071a4fdf366ddf53c4c7dc0dec15111d` | 2,809 |
+| history | `7b5cbcb25c0a39d48b09561d562a62e1eff9b0267cd80e8b219c81fedf8e1768` | 8,181 |
+
+Snapshot recording time is Oct6 05:46 UTC; spot observation is Oct5 23:59:46 UTC; status at05:49 explicitly reports closed-market/stale. These are supplied capture clocks, not live UI clocks. Recording time must not be relabeled as quote freshness. Null receipt/OI dates remain unknown. File hashes prove byte identity, not source authenticity. No cryptographic-signing requirement is imposed; a reproducible sanitized capture recipe plus linked backing records/runtime source identities is the concrete missing evidence.
+
+`ROUTE_MAP.md` capture commands run `python3 live_g1_adapter.py` after `cd .../delivery`, but the submitted adapter is in the parent directory, so that documented relative path does not exist. Correct the recipe without introducing provider collection.
+
+Muse now correctly names **HTTP wrapper missing** and **delivery HTML not deployed** in `READINESS.md`. Implementing the read-only wrapper is within this task; it is not an implementation permission blocker. Hosted artifact update remains a separate release step under existing user authorization rules. Owner statements about the current primary builder page remain unverified; **no fresh hosted inspection or deployment was performed**. Route mapping/demo separation remain documentation without hosted linkage evidence.
+
+Fresh official **Gemini 3.8 Flash High** source/evidence review completed with SUCCESS, substantive response and no denied actions, conversation `c4e96f59-ea62-4e76-98f5-3b9c8d093d91`. It corroborated reproduced defects and missing delivery obligations. Codex independently executed build, adapter and browser checks. No model-generated application patch was applied, and proposed fixes were not counted as passing tests.
+
+**Readiness:** accepted22 adapter checks and deterministic artifact rebuild; integrated UI code-ready blocked by the six browser delivery contracts and receipt/lineage gaps. Deployment-ready remains partial/missing HTTP transport; this delivery is not deployed. Prior bounded backend/offline UI acceptance remains intact; twelve older out-of-scope findings remain open.
+
+### Next prompt to Muse: LIVE-G1-DELIVERY-R1 — make this actual candidate usable and traceable
+
+Continue from **`12a3a110d0e6825c891da8bbca1a0ad1c930201b`**, one focused delivery return.
+
+1. **Fix native initialization and the actual refresh workflow.** Initialize all supplied embedded data before the first render; ordinary file load must render the metrics/history with no alert. Embedded getters return their declared payloads. Missing health/freshness metadata is unknown/unavailable, never connected/fresh. Add a documented public refresh controller used by the UI that consumes status/snapshot/history, updates ranges, catches unavailable/schema/unit/transport errors, and keeps last-good values visibly stale/disconnected. Only genuinely newer valid source data permits recovery; do not rewrite source clocks on reload/check. The same six browser semantics must pass through that actual UI/controller, not manual diagnostic rendering. Keep getters pure if desired and document the controller entry point.
+
+2. **Finish the previously assigned read-only service.** Deliver a configurable local HTTP wrapper or concrete implemented transport exposing the agreed versioned adapter routes and wire it to the client. Tests use supplied captures/temporary files and stubbed interpreter connectivity, never provider collectors. Default static mode must visibly identify capture/build as-of and historical connection status; it must not imply that an embedded captured `reachable=true` proves a current live connection. Preserve primary useful views/history, responsive/keyboard behavior and null/stale quality. Keep synthetic explorer separate; keep GRID estimator ownership and report any missing runtime adapter honestly.
+
+3. **Correct build and capture identity.** Use UTF-8 byte counts, exact content/HTML/template/capture hashes and clearly labeled source/base/content identities; do not label the old synthetic UI pin as this primary source. Keep capture status-check/observation clocks separate from build execution or reproducible build metadata. Preserve deterministic artifact bytes with labeled/reproducible build inputs; a current build execution receipt may be separate. Correct capture commands/paths. Supply authentic sanitized backing rows/export and a reproducible existing-authorized-read-path capture manifest linking input/runtime source/adapter/output clocks and hashes. Label claims unverified if that evidence cannot be supplied; do not invent OI/source dates or infer authenticity from numbers.
+
+4. **Return finite acceptance and truthful readiness.** Preserve accepted **22/22** adapter cases. Rebuild/hash/UTF-8 size checks must agree; native browser load, embedded defaults, unknown metadata, failed transport/last-good, newer snapshot/history recovery, 390px desktop/mobile and keyboard/null controls must pass. The harness below reproduces current problems; adapt only its diagnostic refresh calls to the documented public controller while retaining the same semantic cases. Supply actual integrated browser receipts, exact candidate/artifact/service/schema/primary-demo map, and precise remaining release/access prerequisites. Correct “code-ready YES” until those checks pass. If a release is already authorized, return its concrete source/build linkage; otherwise stop with the runnable reviewable candidate. Do not claim deployed completion from static captures, a share-shell 200 or builder narrative.
+
+No new standalone adapter/numerical research cycle, provider polling/cadence, credentials, purchases, app merge/deployment authorization, trading or profitable-alpha claims. Watch substantive **LIVE-G1-DELIVERY-R1** source descending from `12a3a110` on `redteam/ui-g3`, or an exact missing-capture/source prerequisite response. Keep one active task in this same draft/index; ignore coordinator docs/comment and duplicate replies.
+
+### Runnable browser reproduction
+
+Exact executed harness SHA-256 **`661b8128593dd280ca13e1050451087ee2219d7e57286b6014c15220f9a612f3`**. Save as `/tmp/muse-live-g1-delivery-browser.mjs`. Requires Node, Chrome and Puppeteer; imports/executable below use the existing Dell runtime's installed tooling. On another authorized runtime, resolve those two tool paths explicitly without changing test semantics. No hosted/provider requests are permitted.
+
+```sh
+node /tmp/muse-live-g1-delivery-browser.mjs \
+  /path/to/candidate-checkout /tmp/muse-delivery-browser-results \
+  12a3a110d0e6825c891da8bbca1a0ad1c930201b
+```
+
+This records 5 controls / 6 failures on the current source; it deliberately tags manual diagnostic calls and saves ordinary-load screenshots separately. It is evidence of local behavior, not real-capture authenticity or hosted deployment.
+
+<!-- LIVE-G1-DELIVERY-R1-BROWSER-HARNESS -->
+```javascript
+import {puppeteer} from '/opt/antigravity-2.19.1/resources/app.asar.unpacked/node_modules/chrome-devtools-mcp/build/src/third_party/index.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {pathToFileURL} from 'node:url';
+const out = path.resolve(process.argv[3] || 'outputs/iteration-live12a3a110');
+const sourceRoot = path.resolve(process.argv[2] || path.join(out, 'source'));
+fs.mkdirSync(out, {recursive:true});
+const dir = path.join(sourceRoot, 'live-g1/delivery');
+const file = path.join(dir, '0dte-dashboard-live-g1.html');
+const captures = Object.fromEntries(['status','snapshot','history'].map(k => [k, JSON.parse(fs.readFileSync(path.join(dir, 'captures/'+k+'.json'),'utf8'))]));
+const profile = fs.mkdtempSync('/tmp/muse-delivery-review-');
+const browser = await puppeteer.launch({executablePath:'/opt/google/chrome/chrome',headless:true,userDataDir:profile,args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND']});
+const page = await browser.newPage();
+const results = [], requests = [], errors = [];
+let mode = 'failure';
+const nextSnapshot = structuredClone(captures.snapshot);
+nextSnapshot.recorded_at = '2026-10-06T06:40:00Z';
+nextSnapshot.fields.spot.value = 800;
+nextSnapshot.fields.spot.source_at = '2026-10-06T06:39:50Z';
+nextSnapshot.fields.spot.stale = false;
+const nextHistory = structuredClone(captures.history);
+nextHistory.records[0].spot = 800;
+await page.setRequestInterception(true);
+page.on('request', r => {
+  requests.push({url:r.url(), mocked:r.url().startsWith('https://review.invalid/')});
+  if(r.url().startsWith('file:') || r.url().startsWith('data:')) r.continue();
+  else if(r.url().startsWith('https://review.invalid/')) {
+    const k = r.url().includes('/snapshot')?'snapshot':r.url().includes('/history')?'history':'status';
+    r.respond({status:mode==='failure'?503:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify(mode==='failure'?{error:'synthetic disconnected transport'}:k==='snapshot'?nextSnapshot:k==='history'?nextHistory:captures.status)});
+  } else r.abort();
+});
+page.on('pageerror',e=>errors.push(e.message));
+const record=(name,ok,observed,expected,diagnostic=false)=>results.push({name,pass_contract:!!ok,observed,expected,diagnostic_manual_render:diagnostic});
+try {
+  await page.setViewport({width:1280,height:900});
+  await page.goto(pathToFileURL(file).href,{waitUntil:'load'});
+  const boot=await page.evaluate(()=>({cards:document.querySelectorAll('#metrics .card').length,rows:document.querySelectorAll('#ranges tbody tr').length,alert:document.querySelector('#alert').textContent,alertVisible:document.querySelector('#alert').style.display,connection:document.querySelector('#conn-badge').textContent,globalsPresent:!!window.__SNAPSHOT__}));
+  record('untouched_first_load_renders_capture',boot.cards===6&&boot.rows>0&&boot.alertVisible==='none',boot,'ordinary delivered-file load renders six metric cards/history without caught boot failure');
+  await page.screenshot({path:path.join(out,'untouched-desktop-1280.png'),fullPage:true});
+  await page.setViewport({width:390,height:844});
+  await page.screenshot({path:path.join(out,'untouched-mobile-390.png'),fullPage:true});
+  const getters=await page.evaluate(async()=>({status:await LIVE_G1.fetchStatus(),snapshot:await LIVE_G1.fetchSnapshot(),history:await LIVE_G1.fetchHistory(20)}));
+  record('default_getters_return_embedded_payloads',JSON.stringify(getters)===JSON.stringify(captures),getters,'documented embedded transport returns supplied status/snapshot/history instead of null');
+
+  // Diagnostic invocation of the actual app function, not a boot fix or acceptance of initialization.
+  const diagnostic=await page.evaluate(()=>{render(window.__SNAPSHOT__,window.__STATUS__);return {cards:document.querySelectorAll('#metrics .card').length,rows:document.querySelectorAll('#ranges tbody tr').length,spot:document.querySelector('#metrics .card .v').textContent};});
+  record('supplied_captures_render_when_called_after_initialization_control',diagnostic.cards===6&&diagnostic.rows===12&&diagnostic.spot==='774.94',diagnostic,'actual render function handles supplied captures when deliberately called after their globals exist',true);
+  const missingStatus=await page.evaluate(()=>{render(window.__SNAPSHOT__,undefined);return {connection:document.querySelector('#conn-badge').textContent,freshness:document.querySelector('#fresh-badge').textContent};});
+  record('unknown_status_never_claims_connected_fresh',missingStatus.connection!=='connected'&&missingStatus.freshness!=='fresh',missingStatus,'missing health/freshness metadata is unknown/unavailable, not green connected/fresh',true);
+  await page.evaluate(()=>{render(window.__SNAPSHOT__,window.__STATUS__);LIVE_G1.transport.base='https://review.invalid/adapter/v1';});
+  const failure=await page.evaluate(async()=>{let error=null;try{await LIVE_G1.fetchSnapshot();}catch(e){error=e.message;}return {error,connection:document.querySelector('#conn-badge').textContent,spot:document.querySelector('#metrics .card .v').textContent};});
+  record('transport_failure_updates_visible_disconnected_last_good',/disconnected|unavailable|failed/i.test(failure.connection)&&failure.spot==='774.94',failure,'a failed transport request retains last-good values visibly disconnected; UI must consume transport outcomes',true);
+  mode='success';
+  const updated=await page.evaluate(async()=>{const payload=await LIVE_G1.fetchSnapshot();return {payloadSpot:payload.fields.spot.value,renderedSpot:document.querySelector('#metrics .card .v').textContent};});
+  record('newer_transport_snapshot_reaches_ui',updated.payloadSpot===800&&updated.renderedSpot==='800.00',updated,'the promised refresh path renders a genuinely newer transport snapshot; no renderer consumes the current getter result',true);
+  const history=await page.evaluate(async()=>{const payload=await LIVE_G1.fetchHistory(20);return {payloadSpot:payload.records[0].spot,renderedSpot:document.querySelector('#ranges tbody tr').cells[1].textContent};});
+  record('transport_history_reaches_ranges',history.payloadSpot===800&&history.renderedSpot==='800.00',history,'actual history transport is consumed by ranges, not only the old window.__HISTORY__',true);
+  const nullField=await page.evaluate(()=>{const s=structuredClone(window.__SNAPSHOT__);s.fields.spot.value=null;s.fields.spot.unavailable=true;render(s,window.__STATUS__);return document.querySelector('#metrics .card .v').textContent;});
+  record('null_value_is_unavailable_control',nullField==='unavailable',nullField,'null remains unavailable rather than fabricated numeric value',true);
+  await page.evaluate(()=>render(window.__SNAPSHOT__,window.__STATUS__));
+  const layout=await page.evaluate(()=>({viewport:innerWidth,pageWidth:document.documentElement.scrollWidth,columns:getComputedStyle(document.querySelector('#metrics')).gridTemplateColumns}));
+  record('390px_page_fits_after_diagnostic_render',layout.pageWidth<=390,layout,'390px layout fits viewport; this control follows manual render and does not validate failed native boot',true);
+  await page.focus('#metrics .card');
+  await page.keyboard.press('Tab');
+  const focus=await page.evaluate(()=>document.activeElement.getAttribute('aria-label'));
+  record('keyboard_card_focus_control',focus?.startsWith('Max Pain:'),{focus},'native Tab advances between metric cards after diagnostic render',true);
+  await page.screenshot({path:path.join(out,'diagnostic-manual-render-mobile-390.png'),fullPage:true});
+  record('no_external_network_control',requests.every(r=>r.url.startsWith('file:')||r.url.startsWith('data:')||r.mocked),{requests},'all transport URLs were locally intercepted mock responses; no provider or host contacted');
+} finally {await browser.close();fs.rmSync(profile,{recursive:true,force:true});}
+const receipt={source_head:process.argv[4] || '12a3a110d0e6825c891da8bbca1a0ad1c930201b',local_file_browser:true,owner_capture_authenticity:'unverified',transport_probes:'synthetic locally intercepted responses',diagnostic_render_controls_are_not_boot_acceptance:true,results,passes:results.filter(r=>r.pass_contract).length,failures:results.filter(r=>!r.pass_contract).length,errors,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};
+fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify(receipt,null,2)+'\n');
+console.log(JSON.stringify({passes:receipt.passes,failures:receipt.failures,results},null,2));
+```
 
 
 ## 2026-10-06 04:36 UTC — LIVE-G1-R2 bounded fixes accepted; hosted delivery remains the active task
