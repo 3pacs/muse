@@ -1,11 +1,94 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: LIVE-G1-DELIVERY-R4 is pending after review of dc9d5b37. All three reproduced R3 defects are fixed: unchanged browser suite is 19/19, adapter 22/22, wrapper 7/7, exact build accepted. Explicit clock-contract extension is 22/23; timezone-less identity still commits and clears failure in UTC and New York. Small readiness/source-label corrections remain. Capture authenticity and hosted source linkage remain unverified; prior bounded acceptance stays intact.**
+**Current status: 6ffff8ab passes unchanged browser 23/23, adapter 22/22, wrapper 7/7 and exact build; prior bounded fixes and corrected source/base/path labels are accepted. The same finite R4 finish remains: new zone guard mistakes a date's -DD suffix for an explicit offset (single diagnostic fails), and READINESS.md still says the wrapper is missing. Capture authenticity and hosted linkage remain separate unverified prerequisites.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
 
 
+
+
+
+## 2026-10-06 — 6ffff8ab passes unchanged R4 suites; one explicit-zone guard correction and readiness text remain
+
+Reviewed [Muse R4 response 6012134683](https://github.com/3pacs/muse/pull/2#issuecomment-6012134683), immutable **`6ffff8ab6af60d90e624e3b1af333f6bbc2ca077`**, against existing `7f22f277cb59c095a1895da3653075f86cdbc9cd` handoff on authorized Dell **`precision5520`**. Same docs-only draft/shared index; source/worktrees preserved. Local synthetic transport only; no provider, backing runtime or hosted service requests.
+
+**Accept the unchanged browser suite at 23/23, adapter at 22/22 and actual stubbed HTTP wrapper at 7/7.** The previously failing timezone-less ISO datetime is now rejected in both UTC and America/New_York without changing accepted data or clearing failure. All prior admission/order/recovery, native boot, getter, queue, keyboard and 390px controls remain passing. Build reproducibility and the footer/receipt/route source-label corrections are accepted.
+
+**The broader already-assigned explicit-zone requirement still has one demonstrated defect in the new guard:** it mistakes a date-only calendar-day suffix for a UTC offset. A single focused public-controller diagnostic reproduces it; this is not a numerical, calendar-validation, future-clock or concurrency research cycle. `READINESS.md` also remains unchanged with its previously identified missing-wrapper assertion. Finish these two small existing requirements; all verified bounded acceptance stays intact.
+
+### Exact accepted identities and labels
+
+Build reproduces committed **23,747 UTF-8 bytes**, SHA-256 **`17e62caf939d79c1aa7aba243400b94922ad59e0a0df0843eb5fbd649c175ed6`**, HTML blob `ee51cfe0c50822ec96b959d6b46730a4e3cb9058`. Template SHA-256 **`587b8717412994da005c9a40208226a1cbf15a32b6063077163bf71d91bbb6a6`**, blob `f108df20eecd5c085b541188706dfb14d766cf92`. Build helper SHA-256 **`62cc82a568388185fb517933f6039f9e65196cb8904696a1a003800bfa2f9355`**, blob `aaf428ea72521d12026682b9c55bf4dba9eac42c`. Committed/rebuilt receipts match except truthful actual build-clock fields. Supplied captures, adapter and wrapper bytes remain unchanged.
+
+Footer now identifies this page as `live-g1/delivery` with `e5a8a0ce` explicitly the base UI-G3 pin. Receipt uses `base_ui_pin` and `delivery`; capture recipe points to `../live_g1_adapter.py` from `delivery/`. `ROUTE_MAP.md` now lists heatmap, fixes the same parent-adapter paths and distinguishes local API from owner-described hosted source. **Accept these requested source/base/path distinctions**, without converting owner-described deployment into independent evidence.
+
+The unchanged reviewer twenty-three-case helper SHA-256 is **`da4968eadc548fe52554d2332bdd76ce79dc32da7d3a7ee0f7dac2628a16ec2b`**; adapter helpers remain `8a7e5aa0c5d08ec68632b19efca07881d115c80a2c419311c1fbf7da52491097` and `370c2d3ac1484d28422e15c0568e85a72e9a6d7881a54d9cb510f880a537619e`; wrapper helper remains `7f01f81d13bcebbdc08039ee9ac55f35f534c5dbb444bebce6d9283ac73b0d38`. These are actual reviewer runs, not owner-script pass claims.
+
+### Single remaining admission defect reproduced through the public controller
+
+[`_hasExplicitZone`](https://github.com/3pacs/muse/blob/6ffff8ab6af60d90e624e3b1af333f6bbc2ca077/live-g1/delivery/template.html#L133) checks only an ending `Z` or signed two/four digits with optional colon. The bare date **`2026-10-07`** ends in `-07`, which matches the signed two-digit alternative despite supplying neither a time component nor a timezone. `_frameTs` returns `1791331200000`; the guard reports true.
+
+Actual public `LIVE_G1.refresh()` diagnostic: accept synthetic spot 800 at `2026-10-06T07:10:00Z`; induce 503 so disconnected/stale and the alert are visible; respond with spot/history 999 at **`recorded_at="2026-10-07"`**. In **both UTC and America/New_York**, the controller commits 999, replaces the aware identity with the date-only text, clears `lastError` and the failure flag, hides the alert and displays connected/fresh.
+
+The fixed diagnostic browser clock is **2026-10-07 07:11:10Z**, after the date-only parsed midnight. **This test does not require future-clock rejection.** Its sole requirement is the existing explicit timezone admission contract: a date's day is not an offset, and parsing it to an implicit midnight does not supply an explicit observation zone. The unchanged twenty-three-case suite still passes; the separate one-case diagnostic has **0 pass / 1 fail**. No enlarged scenario matrix is requested.
+
+### Readiness text still needs its already-requested correction
+
+`READINESS.md` is unchanged, SHA-256 **`448ceab8d74c84c614c90538713af40d2b01fe973902ea7bcc9e6516e783dff1`**, blob `a74b382b4cd8bf8586f87ce87888df8d97e34965`. It still says the adapter has no HTTP server and instructs writing a wrapper even though `serve_adapter.py` exists and its actual handler passes 7/7. It retains stale 19KB artifact size and treats owner-described hosted content as established. Replace the missing-wrapper prerequisite with accurate local wrapper implementation/testing and separate actual serving/hosting prerequisites. Label hosted and capture assertions as owner-reported/unverified where independent backing/runtime/source evidence is absent.
+
+### Continue the same finite task — LIVE-G1-DELIVERY-R4 finish
+
+1. Validate the supported observation **datetime plus explicit timezone** representation, so a calendar-day suffix cannot satisfy the zone guard. Reject `2026-10-07` and the already-tested timezone-less datetime before admission; preserve last-good tuple and failed-data/error state. Keep valid aware clocks and alternate-offset ordering/equality. One small guard correction and regenerated HTML/receipt are sufficient; no calendar/future-clock engine is requested.
+2. Correct the existing `READINESS.md` wrapper/size/evidence wording to match actual source and the accepted route/source/base labels. Do not deploy, start provider capture or seek credentials to satisfy documentation.
+
+**Finite acceptance:** preserve unchanged **23/23** browser, **22/22** adapter, **7/7** stubbed wrapper and byte-identical candidate build with truthful clock-only receipt variation. The single date-only/no-explicit-zone diagnostic must reject the sample and retain failure in UTC and America/New_York. Readiness must accurately state wrapper existence/capabilities and qualify unverified deployment/capture assertions. Once these finite requirements pass, record bounded delivery/controller acceptance. Capture authenticity and hosted source linkage stay separate explicit prerequisites, not a new research gate or implied live-release approval.
+
+Submit one substantive correction/receipts in this existing thread. No parallel handoff or application merge/deployment. Prior bounded backend `8649ad54` and synthetic UI `e5a8a0ce` acceptance remains; twelve earlier out-of-scope numerical/admission/dashboard findings stay open. GRID estimator ownership and no unvalidated trading recommendations remain unchanged.
+
+### Independent criticism and external evidence limits
+
+Fresh official **Gemini 3.8 Flash High** criticism completed successfully in conversation `2bc8b8f6-f9ff-41a0-8aaa-49d4416953f8`, without denied actions. It corroborated the date-day/zone suffix mechanism and stale readiness text while recognizing passing suites. Codex independently reproduced the published mechanism and verified accepted controls. Inaccurate model local line links and unverified hosted/runtime-state assertions are not adopted; immutable source lines and exact reviewer receipts are used. No proposed regex or application patch was applied.
+
+Capture hashes establish the supplied bytes, not actual backing/runtime authenticity. No linked sanitized backing rows/export and recorded capture-run/source identity has been independently verified. The historical public inspection of [the primary share URL](https://muse.ai/s/0dte-dashboard-xlk6gxicxxxtxwxnxp) reached a share shell; this review inspected local candidate HTML. Owner-described hosted content does not establish dashboard/source linkage. No signature, provider operations or deployment requirement is added.
+
+### Exact one-case diagnostic helper
+
+The unchanged twenty-three-case helper remains in the preceding section. The following actual diagnostic helper has SHA-256 **`dc7624071714480f7c9fbf282db8d58c3a9c54bb51c1e0d20eb0d914bad082f8`**. Run `node zone-suffix-diagnostic.mjs SOURCE_ROOT OUTPUT_DIR SOURCE_COMMIT` in the established Chrome/Puppeteer environment. Only local files and intercepted synthetic transport responses are permitted; UTC/New York changes are browser emulation. Its fixed clock is intentionally after the sample date so no future-time policy is involved.
+
+<!-- LIVE-G1-DELIVERY-R4-ZONE-SUFFIX-DIAGNOSTIC -->
+```javascript
+import {puppeteer} from '/opt/antigravity-2.19.1/resources/app.asar.unpacked/node_modules/chrome-devtools-mcp/build/src/third_party/index.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {pathToFileURL} from 'node:url';
+const out=path.resolve(process.argv[3]||'outputs/iteration-livea052e3b7');
+const root=path.resolve(process.argv[2]||path.join(out,'source'));
+fs.mkdirSync(out,{recursive:true});
+const dir=path.join(root,'live-g1/delivery'),file=path.join(dir,'0dte-dashboard-live-g1.html');
+const captured=Object.fromEntries(['status','snapshot','history'].map(k=>[k,JSON.parse(fs.readFileSync(path.join(dir,'captures/'+k+'.json'),'utf8'))]));
+const clone=x=>structuredClone(x),payload=(spot,ts)=>{const snapshot=clone(captured.snapshot),status=clone(captured.status),history=clone(captured.history);snapshot.recorded_at=ts;snapshot.fields.spot.value=spot;snapshot.fields.spot.source_at=ts;snapshot.fields.spot.stale=false;status.backend.interpreter.reachable=true;status.data_vintage.stale=false;status.data_vintage.latest_record_at=ts;history.records[0].spot=spot;history.records[0].recorded_at=ts;return{status,snapshot,history};};
+const t1='2026-10-06T07:10:00Z',t2='2026-10-06T07:11:00Z';
+let plans={},counts={};
+function setPlan(...sets){plans=Object.fromEntries(['status','snapshot','history'].map(k=>[k,sets.map(s=>({body:s.payload?.[k]??null,status:s.status??200,delay:s.delay??0,abort:s.abort??false}))]));counts={status:0,snapshot:0,history:0};}
+const profile=fs.mkdtempSync('/tmp/muse-controller-review-');
+const browser=await puppeteer.launch({executablePath:'/opt/google/chrome/chrome',headless:true,userDataDir:profile,args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND']});
+const page=await browser.newPage(),results=[],requests=[],errors=[];
+await page.evaluateOnNewDocument(() => { const NativeDate = Date; const fixed = NativeDate.parse('2026-10-07T07:11:10Z'); class ReviewDate extends NativeDate { constructor(...args) { super(...(args.length ? args : [fixed])); } static now() { return fixed; } } window.Date = ReviewDate; });
+await page.setRequestInterception(true);
+page.on('request',async r=>{requests.push(r.url());if(r.url().startsWith('file:')||r.url().startsWith('data:'))return r.continue();if(!r.url().startsWith('https://review.invalid/'))return r.abort();const k=r.url().includes('/snapshot')?'snapshot':r.url().includes('/history')?'history':'status';const plan=plans[k]?.[counts[k]++]??{status:503,body:{error:'unplanned local mock'},delay:0};await new Promise(resolve=>setTimeout(resolve,plan.delay));try{if(plan.abort)await r.abort('failed');else await r.respond({status:plan.status,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify(plan.body)});}catch(e){errors.push('mock responder: '+e.message);}});
+page.on('pageerror',e=>errors.push(e.message));
+const record=(name,ok,observed,expected,diagnostic=false)=>results.push({name,pass_contract:!!ok,observed,expected,diagnostic_manual_render:diagnostic});
+const state=()=>page.evaluate(()=>({spot:document.querySelector('#metrics .card .v')?.textContent,firstRange:document.querySelector('#ranges tbody tr')?.cells[1]?.textContent,connection:document.querySelector('#conn-badge').textContent,freshness:document.querySelector('#fresh-badge').textContent,alert:document.querySelector('#alert').textContent,alertVisible:document.querySelector('#alert').style.display,note:document.querySelector('#refresh-note').textContent,error:LIVE_G1.lastError,disabled:document.querySelector('#refresh-btn').disabled,recordedAt:window.__SNAPSHOT__?.recorded_at}));
+const reset=async()=>{await page.reload({waitUntil:'load'});await page.evaluate(()=>{LIVE_G1.transport.base='https://review.invalid/adapter/v1';});};
+try{
+ await page.setViewport({width:1280,height:900});await page.goto(pathToFileURL(file).href,{waitUntil:'load'});
+ const dates=[];for(const zone of ['UTC','America/New_York']){await page.emulateTimezone(zone);await reset();setPlan({payload:payload(800,t1)});await page.evaluate(()=>LIVE_G1.refresh());setPlan({status:503});await page.evaluate(()=>LIVE_G1.refresh());const input=payload(999,'2026-10-07');setPlan({payload:input});await page.evaluate(()=>LIVE_G1.refresh());dates.push({zone,after:await state(),identity:await page.evaluate(()=>({zoneGuard:LIVE_G1._hasExplicitZone('2026-10-07'),parsed:LIVE_G1._frameTs({recorded_at:'2026-10-07'})}))});}record('date_only_does_not_supply_explicit_timezone',dates.every(r=>r.after.spot==='800.00'&&r.after.error&&r.after.alertVisible==='block'),dates,'date-only text has no timezone; a calendar-day suffix must not be mistaken for an offset; admission/failure retention depends only on explicit zone, not future-date policy');
+}finally{await browser.close();fs.rmSync(profile,{recursive:true,force:true});}
+const receipt={source_head:process.argv[4]||'a052e3b7eb137992ac6103fa499f24bb0bc97534',owner_capture_authenticity:'unverified',local_file_browser:true,transport:'locally intercepted synthetic responses',public_overlapping_refresh_tests:true,synthetic_browser_clock:'2026-10-07T07:11:10Z',results,passes:results.filter(r=>r.pass_contract).length,failures:results.filter(r=>!r.pass_contract).length,errors,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};fs.writeFileSync(path.join(out,'zone-suffix-diagnostic.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({passes:receipt.passes,failures:receipt.failures,results},null,2));
+```
+<!-- /LIVE-G1-DELIVERY-R4-ZONE-SUFFIX-DIAGNOSTIC -->
 
 
 ## 2026-10-06 — dc9d5b37 R3 fixes accepted; explicit timezone admission and stale labels remain
