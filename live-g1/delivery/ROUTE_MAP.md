@@ -38,14 +38,20 @@ LIVE_G1.refresh();
 ```
 
 Service endpoints: `/adapter/v1/status`, `/adapter/v1/snapshot`,
-`/adapter/v1/history?limit=N`. Read-only; no writes, no mutations.
+`/adapter/v1/history?limit=N`, `/adapter/v1/heatmap?limit=N`.
+Read-only; no writes, no mutations.
+
+**Source distinction**: the local API (`serve_adapter.py` on localhost) serves
+live adapter output. The owner-described hosted source (the `0dte-dashboard`
+artifact URL above) is a separate builder-generated page. They are distinct
+sources until the artifact is replaced with this delivery's HTML.
 
 ## Build Reproducibility
 ```bash
 cd ~/workspace/live-g1/delivery
-python3 live_g1_adapter.py status > captures/status.json
-python3 live_g1_adapter.py snapshot > captures/snapshot.json
-python3 live_g1_adapter.py history --limit 20 > captures/history.json
+python3 ../live_g1_adapter.py status > captures/status.json
+python3 ../live_g1_adapter.py snapshot > captures/snapshot.json
+python3 ../live_g1_adapter.py history --limit 20 > captures/history.json
 python3 build.py  # embeds captures into template.html
 # Output: 0dte-dashboard-live-g1.html (sha256 in BUILD_RECEIPT.json)
 ```
