@@ -22,11 +22,23 @@
 ## Transport
 The primary dashboard UI exposes `window.LIVE_G1`:
 - `LIVE_G1.transport.base` — set to adapter URL for live refresh (default: null = embedded)
-- `LIVE_G1.fetchStatus()`, `fetchSnapshot()`, `fetchHistory(n)` — async getters
+- `LIVE_G1.refresh()` — async controller: fetches status/snapshot/history,
+  keeps last-good on failure, ignores non-newer snapshots, surfaces errors honestly
+- `LIVE_G1.fetchStatus()`, `fetchSnapshot()`, `fetchHistory(n)` — pure getters
 
 Current deployment uses **embedded build-time data** (static artifact).
-To enable live refresh: run `live_g1_adapter.py` as a service and set
-`LIVE_G1.transport.base = "http://<host>:<port>/adapter/v1"`.
+For live refresh, run the read-only service and set the transport base:
+
+```bash
+cd ~/workspace/live-g1/delivery
+python3 serve_adapter.py --port 8899   # read-only, localhost only
+# in page console:
+LIVE_G1.transport.base = "http://127.0.0.1:8899/adapter/v1";
+LIVE_G1.refresh();
+```
+
+Service endpoints: `/adapter/v1/status`, `/adapter/v1/snapshot`,
+`/adapter/v1/history?limit=N`. Read-only; no writes, no mutations.
 
 ## Build Reproducibility
 ```bash
