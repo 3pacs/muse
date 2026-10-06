@@ -1,0 +1,107 @@
+{
+  "adapter_version": "live-g1/v1",
+  "backend_pin": "8649ad54",
+  "recorded_at": "2026-10-06T05:46:01.101928+00:00",
+  "fields": {
+    "spot": {
+      "value": 774.94,
+      "unit": "USD",
+      "source": "gex.stepdad.finance RTD",
+      "source_at": "2026-10-05T23:59:46+00:00",
+      "received_at": null,
+      "stale": true,
+      "unavailable": false,
+      "oi_vintage": null
+    },
+    "max_pain": {
+      "value": 768.0,
+      "unit": "USD",
+      "source": "computed from OI",
+      "source_at": "2026-10-06T05:46:01.101928+00:00",
+      "received_at": null,
+      "stale": false,
+      "unavailable": false,
+      "oi_vintage": null
+    },
+    "gamma_flip": {
+      "value": 769.59,
+      "unit": "USD",
+      "source": "computed from OI",
+      "source_at": "2026-10-06T05:46:01.101928+00:00",
+      "received_at": null,
+      "stale": false,
+      "unavailable": false,
+      "oi_vintage": null
+    },
+    "call_wall": {
+      "value": 775.0,
+      "unit": "USD",
+      "source": "computed from OI",
+      "source_at": "2026-10-06T05:46:01.101928+00:00",
+      "received_at": null,
+      "stale": false,
+      "unavailable": false,
+      "oi_vintage": null
+    },
+    "put_wall": {
+      "value": 773.0,
+      "unit": "USD",
+      "source": "computed from OI",
+      "source_at": "2026-10-06T05:46:01.101928+00:00",
+      "received_at": null,
+      "stale": false,
+      "unavailable": false,
+      "oi_vintage": null
+    },
+    "pin_score": {
+      "value": 40.0,
+      "unit": "0-100",
+      "source": "computed from OI",
+      "source_at": "2026-10-06T05:46:01.101928+00:00",
+      "received_at": null,
+      "stale": false,
+      "unavailable": false,
+      "oi_vintage": null
+    },
+    "expected_move": {
+      "value": 3.15,
+      "unit": "USD",
+      "source": "ATM straddle",
+      "source_at": "2026-10-06T05:46:01.101928+00:00",
+      "received_at": null,
+      "stale": false,
+      "unavailable": false,
+      "oi_vintage": null
+    },
+    "gamma_regime": {
+      "value": "positive-gamma (pinning)",
+      "unit": "label",
+      "source": "computed from OI",
+      "source_at": "2026-10-06T05:46:01.101928+00:00",
+      "received_at": null,
+      "stale": false,
+      "unavailable": false,
+      "oi_vintage": null
+    },
+    "call_oi": {
+      "value": 155456,
+      "unit": "contracts",
+      "source": "nasdaq wide-chain (delayed)",
+      "source_at": "2026-10-06T05:44:59.101135+00:00",
+      "received_at": null,
+      "stale": false,
+      "unavailable": false,
+      "oi_vintage": null
+    },
+    "put_oi": {
+      "value": 87681,
+      "unit": "contracts",
+      "source": "nasdaq wide-chain (delayed)",
+      "source_at": "2026-10-06T05:44:59.101135+00:00",
+      "received_at": null,
+      "stale": false,
+      "unavailable": false,
+      "oi_vintage": null
+    }
+  }
+}
