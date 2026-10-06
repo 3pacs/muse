@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
 """
-LIVE-G1 v1: Versioned read-only adapter over the 0DTE backend.
+LIVE-G1 v1 (R1): Versioned read-only adapter over the 0DTE backend.
 
 Source pin: 8649ad54 (J1-F P1, accepted)
 Adapter version: live-g1/v1
 
-Exposes real tape data with full provenance. Never substitutes fixture values.
-If data is unavailable, reports unavailable=true rather than inventing numbers.
-
-Usage:
-    python3 live_g1_adapter.py status
-    python3 live_g1_adapter.py snapshot
-    python3 live_g1_adapter.py history --limit 50
-    python3 live_g1_adapter.py heatmap
+R1 fixes (per reviewer harness):
+1. preserve_existing_quote_observation_clock: use quote_as_of when present,
+   never substitute snapshot ts for the quote source clock.
+2. receipt_clock_missing_stays_unknown: SQLite has no receipt clock;
+   received_at stays None, never fabricated from ts.
+3. source_mix_not_promoted_to_rtd_live: respect src_mix; zero RTD sources
+   must not be labeled RTD.
+4. unknown_oi_vintage_not_inferred: oi_vintage stays None unless the record
+   carries actual OI vintage info; never infer from record date.
+5. accepted_expected_move_column_mapped: map exp_move_dollars column.
+6. disconnected_old_data_not_fresh: disconnection + old data = stale,
+   even during wall-clock market hours.
+7. unknown_invalid_naive_future_clocks_not_fresh: None/bad/naive/future
+   clocks are stale/unavailable, never fresh.
+8. accepted_gex_history_map_becomes_real_cells: parse gex_m dict into cells.
 """
 
 import json
@@ -28,19 +35,25 @@ GOAL_DIR = Path.home() / "workspace/goals/0dte-tape-alert-watch/hidden_files"
 TAPE_DB = GOAL_DIR / "tape.db"
 JOURNAL = GOAL_DIR / "maxpain_history.jsonl"
 GEX_HISTORY = GOAL_DIR / "gex_history.jsonl"
-DASHBOARD_DATA = GOAL_DIR / "dashboard_data.json"
 
 INTERPRETER_URL = "http://localhost:8787"
+# Allow tests to override "now"
+_NOW_OVERRIDE = None
+
+
+def _now():
+    if _NOW_OVERRIDE is not None:
+        return _NOW_OVERRIDE
+    return datetime.now(timezone.utc)
 
 
 def utc_now():
-    return datetime.now(timezone.utc).isoformat()
+    return _now().isoformat()
 
 
 def check_interpreter():
     """Check if the interpreter is reachable. Read-only, no side effects."""
     import urllib.request
-    import urllib.error
     try:
         with urllib.request.urlopen(f"{INTERPRETER_URL}/feed/maxpain", timeout=5) as r:
             data = json.load(r)
@@ -49,13 +62,48 @@ def check_interpreter():
         return False, str(e)
 
 
+def _parse_clock(s):
+    """
+    Parse a clock string. Returns (dt, quality) where quality is one of:
+    'ok', 'missing', 'invalid', 'naive', 'future'.
+    Never raises.
+    """
+    if s is None:
+        return None, "missing"
+    if not isinstance(s, str):
+        return None, "invalid"
+    s = s.strip()
+    if not s:
+        return None, "missing"
+    try:
+        # Handle Z suffix
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except Exception:
+        return None, "invalid"
+    if dt.tzinfo is None:
+        return dt, "naive"
+    now = _now()
+    # Future: more than 5 minutes ahead (allow small clock skew)
+    if (dt - now).total_seconds() > 300:
+        return dt, "future"
+    return dt, "ok"
+
+
+def _is_market_open(now=None):
+    """Market hours: 13:30-20:00 UTC Mon-Fri."""
+    now = now or _now()
+    is_weekday = now.weekday() < 5
+    mins = now.hour * 60 + now.minute
+    return is_weekday and (810 <= mins < 1200)
+
+
 def get_status():
     """GET /adapter/v1/status"""
     interp_ok, interp_info = check_interpreter()
 
-    # Tape DB stats
     db_count = 0
     db_latest = None
+    db_latest_dt = None
     if TAPE_DB.exists():
         try:
             conn = sqlite3.connect(f"file:{TAPE_DB}?mode=ro", uri=True)
@@ -63,11 +111,12 @@ def get_status():
             cur.execute("SELECT COUNT(*), MAX(ts) FROM snapshots")
             row = cur.fetchone()
             db_count, db_latest = row[0], row[1]
+            if db_latest:
+                db_latest_dt, _ = _parse_clock(db_latest)
             conn.close()
         except Exception:
             pass
 
-    # Journal stats
     journal_count = 0
     journal_latest = None
     if JOURNAL.exists():
@@ -77,27 +126,40 @@ def get_status():
                 journal_count = len(lines)
                 if lines:
                     rec = json.loads(lines[-1])
-                    journal_latest = rec.get("ts") or rec.get("recorded_at") or rec.get("timestamp")
+                    journal_latest = rec.get("ts")
         except Exception:
             pass
 
-    # Market hours: 13:30-20:00 UTC Mon-Fri (6:30-13:00 PDT)
-    now = datetime.now(timezone.utc)
-    is_weekday = now.weekday() < 5
-    # Handle UTC day boundary: 00:00-13:30 UTC is still "overnight" from prior day's close
-    mins = now.hour * 60 + now.minute
-    market_open = is_weekday and (810 <= mins < 1200)  # 13:30=810, 20:00=1200
+    now = _now()
+    market_open = _is_market_open(now)
 
-    stale = not market_open
+    # Stale determination: considers disconnection + data age, not just wall clock.
+    # R1 fix #6: disconnected + old data = stale even during market hours.
+    latest_dt = db_latest_dt
+    data_age_s = None
+    if latest_dt is not None and latest_dt.tzinfo is not None:
+        data_age_s = (now - latest_dt).total_seconds()
+
+    stale = False
     stale_reason = None
-    if stale:
-        if not is_weekday:
+    if not interp_ok:
+        # Disconnected: stale unless data is fresh (< 15 min)
+        if data_age_s is None or data_age_s > 900:
+            stale = True
+            stale_reason = "interpreter disconnected and data is old/missing"
+    if not stale and not market_open:
+        stale = True
+        mins = now.hour * 60 + now.minute
+        if now.weekday() >= 5:
             stale_reason = "weekend; last record from Friday close"
         elif mins >= 1200 or mins < 810:
-            # After 20:00 UTC or before 13:30 UTC = market closed (overnight)
             stale_reason = "market closed; last record from session close"
         else:
             stale_reason = "pre-market; no fresh data yet"
+    if not stale and data_age_s is not None and data_age_s > 900 and not market_open:
+        # Old data outside market hours is stale (redundant but explicit)
+        stale = True
+        stale_reason = stale_reason or "data older than 15 minutes outside market hours"
 
     return {
         "adapter_version": ADAPTER_VERSION,
@@ -130,29 +192,66 @@ def get_status():
 
 
 def wrap_field(value, unit, source, source_at, received_at, oi_vintage=None):
-    """Wrap a value with full provenance. Never invent values."""
+    """
+    Wrap a value with full provenance.
+
+    R1 fixes:
+    - received_at=None stays None (never fabricated).
+    - source_at=None/invalid/naive/future → stale=True (never fresh).
+    - oi_vintage=None stays None (never inferred).
+    """
     unavailable = value is None
-    # Stale if source_at is older than 15 minutes (and market is open)
-    stale = False
-    if source_at and not unavailable:
-        try:
-            src_time = datetime.fromisoformat(source_at.replace("Z", "+00:00"))
-            age = (datetime.now(timezone.utc) - src_time).total_seconds()
-            stale = age > 900  # 15 minutes
-        except Exception:
-            pass
+
+    # R1 fix #7: validate the clock; bad clocks are never fresh.
+    _, quality = _parse_clock(source_at)
+    if unavailable:
+        stale = False  # unavailable dominates; stale is meaningless
+    elif quality != "ok":
+        stale = True
+    else:
+        # Valid clock: stale if older than 15 minutes
+        dt, _ = _parse_clock(source_at)
+        age = (_now() - dt).total_seconds()
+        stale = age > 900
+
     field = {
         "value": value,
         "unit": unit,
         "source": source,
         "source_at": source_at,
-        "received_at": received_at,
+        "received_at": received_at,  # None stays None (R1 fix #2)
         "stale": stale,
         "unavailable": unavailable,
     }
-    if oi_vintage:
+    # R1 fix #4: oi_vintage stays None unless actually provided
+    if oi_vintage is not None:
         field["oi_vintage"] = oi_vintage
+    else:
+        field["oi_vintage"] = None
     return field
+
+
+def _spot_source_label(record):
+    """
+    R1 fix #3: respect src_mix. Zero RTD sources must not be labeled RTD.
+    """
+    src_mix = record.get("src_mix") or ""
+    # Parse "0 rtd + 10 nasdaq_delayed" style
+    src_mix_lower = src_mix.lower()
+    if "rtd" in src_mix_lower:
+        # Check if RTD count is zero
+        import re
+        m = re.search(r"(\d+)\s*rtd", src_mix_lower)
+        if m and int(m.group(1)) == 0:
+            # Zero RTD: label as delayed
+            if "nasdaq" in src_mix_lower:
+                return "nasdaq wide-chain (delayed)"
+            return "delayed (no RTD sources)"
+        return "gex.stepdad.finance RTD"
+    # No src_mix info: fall back to generic but honest label
+    if src_mix:
+        return f"mixed ({src_mix})"
+    return "quote source (unspecified)"
 
 
 def get_snapshot():
@@ -186,38 +285,48 @@ def get_snapshot():
         }
 
     r = dict(row)
-    recorded_at = r.get("ts")
-    # OI is T+1: vintage is previous trading day
-    # (simplified: use recorded date minus 1 day)
-    oi_vintage = None
-    try:
-        rec_dt = datetime.fromisoformat(recorded_at.replace("Z", "+00:00"))
-        vintage_dt = rec_dt.replace(hour=0, minute=0, second=0, microsecond=0)
-        oi_vintage = f"{vintage_dt.date()} settlement (T+1)"
-    except Exception:
-        pass
+    ts = r.get("ts")
 
-    RTD = "gex.stepdad.finance RTD"
-    WINGS = "nasdaq wide-chain (15m delayed)"
+    # R1 fix #1: use quote_as_of for spot's source clock when present
+    quote_as_of = r.get("quote_as_of")
+    nasdaq_as_of = r.get("nasdaq_as_of")
+
+    # R1 fix #2: SQLite has no receipt clock; received_at stays None
+    received_at = None
+
+    # R1 fix #4: oi_vintage only if record carries it
+    oi_vintage = r.get("oi_vintage") or r.get("oi_as_of")
+
+    # R1 fix #3: honest source label from src_mix
+    spot_source = _spot_source_label(r)
+
+    # R1 fix #5: map exp_move_dollars
+    exp_move = r.get("exp_move_dollars")
+    if exp_move is None:
+        exp_move = r.get("expected_move")
+
     COMPUTED = "computed from OI"
 
     return {
         "adapter_version": ADAPTER_VERSION,
         "backend_pin": BACKEND_PIN,
-        "recorded_at": recorded_at,
+        "recorded_at": ts,
         "fields": {
-            "spot": wrap_field(r.get("spot"), "USD", RTD, recorded_at, recorded_at),
-            "max_pain": wrap_field(r.get("max_pain"), "USD", COMPUTED, recorded_at, recorded_at, oi_vintage),
-            "gamma_flip": wrap_field(r.get("gamma_flip"), "USD", COMPUTED, recorded_at, recorded_at),
-            "call_wall": wrap_field(r.get("call_wall"), "USD", COMPUTED, recorded_at, recorded_at),
-            "put_wall": wrap_field(r.get("put_wall"), "USD", COMPUTED, recorded_at, recorded_at),
-            "pin_score": wrap_field(r.get("pin_score"), "0-100", COMPUTED, recorded_at, recorded_at),
-            "expected_move": wrap_field(r.get("expected_move"), "USD", "ATM straddle", recorded_at, recorded_at),
-            "gamma_regime": wrap_field(r.get("gamma_regime"), "label", COMPUTED, recorded_at, recorded_at),
-            "call_oi": wrap_field(r.get("call_oi"), "contracts", WINGS, recorded_at, recorded_at, oi_vintage),
-            "put_oi": wrap_field(r.get("put_oi"), "contracts", WINGS, recorded_at, recorded_at, oi_vintage),
+            "spot": wrap_field(
+                r.get("spot"), "USD", spot_source,
+                quote_as_of if quote_as_of else ts,  # R1 #1
+                received_at,  # R1 #2: None
+            ),
+            "max_pain": wrap_field(r.get("max_pain"), "USD", COMPUTED, ts, received_at, oi_vintage),
+            "gamma_flip": wrap_field(r.get("gamma_flip"), "USD", COMPUTED, ts, received_at),
+            "call_wall": wrap_field(r.get("call_wall"), "USD", COMPUTED, ts, received_at),
+            "put_wall": wrap_field(r.get("put_wall"), "USD", COMPUTED, ts, received_at),
+            "pin_score": wrap_field(r.get("pin_score"), "0-100", COMPUTED, ts, received_at),
+            "expected_move": wrap_field(exp_move, "USD", "ATM straddle", ts, received_at),
+            "gamma_regime": wrap_field(r.get("gamma_regime"), "label", COMPUTED, ts, received_at),
+            "call_oi": wrap_field(r.get("call_oi"), "contracts", "nasdaq wide-chain (delayed)", nasdaq_as_of if nasdaq_as_of else ts, received_at, oi_vintage),
+            "put_oi": wrap_field(r.get("put_oi"), "contracts", "nasdaq wide-chain (delayed)", nasdaq_as_of if nasdaq_as_of else ts, received_at, oi_vintage),
         },
-        "provenance": r.get("provenance") or r.get("source_provenance"),
     }
 
 
@@ -230,14 +339,19 @@ def get_history(limit=50):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute(
-            "SELECT ts, spot, max_pain, gamma_flip, call_wall, put_wall, pin_score "
+            "SELECT ts, spot, max_pain, gamma_flip, call_wall, put_wall, pin_score, "
+            "exp_move_dollars, quote_as_of, nasdaq_as_of, src_mix "
             "FROM snapshots ORDER BY ts DESC LIMIT ?",
             (limit,),
         )
-        records = [dict(r) for r in cur.fetchall()]
-        # normalize ts -> recorded_at for API consistency
-        for rec in records:
-            rec["recorded_at"] = rec.pop("ts")
+        records = []
+        for row in cur.fetchall():
+            d = dict(row)
+            # R1 fix #5: map exp_move_dollars
+            if "exp_move_dollars" in d:
+                d["expected_move"] = d.pop("exp_move_dollars")
+            d["recorded_at"] = d.pop("ts")
+            records.append(d)
         conn.close()
         return {
             "adapter_version": ADAPTER_VERSION,
@@ -250,29 +364,61 @@ def get_history(limit=50):
 
 
 def get_heatmap():
-    """GET /adapter/v1/heatmap"""
+    """
+    GET /adapter/v1/heatmap.
+
+    R1 fix #8: accepted gex_history.jsonl format is
+    {"ts":..., "expiry":..., "spot":..., "gex_m":{"765.0":0.02,...},
+     "gex_formula":"v2", "gex_units":"..."}
+    Parse gex_m dict into individual cells. Zero values preserved.
+    """
     if not GEX_HISTORY.exists():
         return {"adapter_version": ADAPTER_VERSION, "error": "gex_history.jsonl not found", "cells": []}
     try:
         cells = []
         with open(GEX_HISTORY) as f:
             for line in f:
+                line = line.strip()
+                if not line:
+                    continue
                 try:
                     rec = json.loads(line)
-                    cells.append({
-                        "recorded_at": rec.get("recorded_at"),
-                        "strike": rec.get("strike"),
-                        "gex": rec.get("gex"),
-                        "formula": rec.get("gex_formula") or rec.get("formula"),
-                    })
                 except Exception:
                     continue
+                ts = rec.get("ts") or rec.get("recorded_at")
+                formula = rec.get("gex_formula") or rec.get("formula")
+                units = rec.get("gex_units")
+                gex_m = rec.get("gex_m")
+                if isinstance(gex_m, dict):
+                    for strike_s, gex_v in gex_m.items():
+                        try:
+                            strike = float(strike_s)
+                        except Exception:
+                            continue
+                        # Preserve zero as a real value (not missing)
+                        cells.append({
+                            "recorded_at": ts,
+                            "strike": strike,
+                            "gex": gex_v,
+                            "formula": formula,
+                            "units": units,
+                        })
+                else:
+                    # Fallback: flat record format
+                    if rec.get("strike") is not None:
+                        cells.append({
+                            "recorded_at": ts,
+                            "strike": rec.get("strike"),
+                            "gex": rec.get("gex"),
+                            "formula": formula,
+                            "units": units,
+                        })
         return {
             "adapter_version": ADAPTER_VERSION,
             "backend_pin": BACKEND_PIN,
             "cell_count": len(cells),
-            "note": "missing cells are gaps, not zeros",
-            "cells": cells[-1000:],  # last 1000 to bound size
+            "note": "missing cells are gaps, not zeros; zero gex preserved as value",
+            "cells": cells[-2000:],
         }
     except Exception as e:
         return {"adapter_version": ADAPTER_VERSION, "error": str(e), "cells": []}
