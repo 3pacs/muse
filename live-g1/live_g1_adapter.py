@@ -133,21 +133,42 @@ def get_status():
     now = _now()
     market_open = _is_market_open(now)
 
-    # Stale determination: considers disconnection + data age, not just wall clock.
-    # R1 fix #6: disconnected + old data = stale even during market hours.
+    # R2 stale determination: data age and clock quality dominate.
+    # - No data → stale (never fresh)
+    # - Future/invalid clock → stale (never fresh)
+    # - Old data (>15min) → stale, even when interpreter reachable
+    # - Disconnected → stale, even with recent data (last-good visibly stale)
+    # - Reconnect without newer data → still stale (age-based, not connectivity)
     latest_dt = db_latest_dt
+    _, clock_quality = _parse_clock(db_latest)
     data_age_s = None
     if latest_dt is not None and latest_dt.tzinfo is not None:
         data_age_s = (now - latest_dt).total_seconds()
 
     stale = False
     stale_reason = None
-    if not interp_ok:
-        # Disconnected: stale unless data is fresh (< 15 min)
-        if data_age_s is None or data_age_s > 900:
-            stale = True
-            stale_reason = "interpreter disconnected and data is old/missing"
-    if not stale and not market_open:
+
+    # R2: no data is never fresh
+    if db_latest is None:
+        stale = True
+        stale_reason = "no snapshot data available"
+    # R2: future/invalid clock is never fresh
+    elif clock_quality in ("future", "invalid", "naive"):
+        stale = True
+        stale_reason = f"latest data clock is {clock_quality}; cannot establish freshness"
+    # R2: old data is stale regardless of connectivity
+    elif data_age_s is not None and data_age_s > 900:
+        stale = True
+        if not interp_ok:
+            stale_reason = "interpreter disconnected and data is old"
+        else:
+            stale_reason = "data older than 15 minutes"
+    # R2: disconnected → last-good shown as stale, even if recent
+    elif not interp_ok:
+        stale = True
+        stale_reason = "interpreter disconnected; showing last-good data as stale"
+    # Outside market hours → stale
+    elif not market_open:
         stale = True
         mins = now.hour * 60 + now.minute
         if now.weekday() >= 5:
@@ -156,10 +177,6 @@ def get_status():
             stale_reason = "market closed; last record from session close"
         else:
             stale_reason = "pre-market; no fresh data yet"
-    if not stale and data_age_s is not None and data_age_s > 900 and not market_open:
-        # Old data outside market hours is stale (redundant but explicit)
-        stale = True
-        stale_reason = stale_reason or "data older than 15 minutes outside market hours"
 
     return {
         "adapter_version": ADAPTER_VERSION,
@@ -233,22 +250,25 @@ def wrap_field(value, unit, source, source_at, received_at, oi_vintage=None):
 
 def _spot_source_label(record):
     """
-    R1 fix #3: respect src_mix. Zero RTD sources must not be labeled RTD.
+    R1 fix #3, R2 fix: respect src_mix. Zero RTD sources must not be labeled RTD.
+    Unknown/unparseable counts ("None rtd") must not claim RTD provenance.
     """
     src_mix = record.get("src_mix") or ""
-    # Parse "0 rtd + 10 nasdaq_delayed" style
     src_mix_lower = src_mix.lower()
     if "rtd" in src_mix_lower:
-        # Check if RTD count is zero
         import re
         m = re.search(r"(\d+)\s*rtd", src_mix_lower)
-        if m and int(m.group(1)) == 0:
-            # Zero RTD: label as delayed
-            if "nasdaq" in src_mix_lower:
-                return "nasdaq wide-chain (delayed)"
-            return "delayed (no RTD sources)"
-        return "gex.stepdad.finance RTD"
-    # No src_mix info: fall back to generic but honest label
+        if m:
+            count = int(m.group(1))
+            if count == 0:
+                if "nasdaq" in src_mix_lower:
+                    return "nasdaq wide-chain (delayed)"
+                return "delayed (no RTD sources)"
+            # Positive count: RTD is plausible
+            return "gex.stepdad.finance RTD"
+        # "rtd" mentioned but count unparseable (e.g., "None rtd"):
+        # cannot authenticate RTD provenance
+        return f"unverified source mix ({src_mix})"
     if src_mix:
         return f"mixed ({src_mix})"
     return "quote source (unspecified)"
@@ -287,7 +307,8 @@ def get_snapshot():
     r = dict(row)
     ts = r.get("ts")
 
-    # R1 fix #1: use quote_as_of for spot's source clock when present
+    # R1 fix #1, R2: use quote_as_of for spot's source clock when present.
+    # R2: missing quote_as_of stays None/unknown, NEVER fallback to ts.
     quote_as_of = r.get("quote_as_of")
     nasdaq_as_of = r.get("nasdaq_as_of")
 
@@ -314,7 +335,7 @@ def get_snapshot():
         "fields": {
             "spot": wrap_field(
                 r.get("spot"), "USD", spot_source,
-                quote_as_of if quote_as_of else ts,  # R1 #1
+                quote_as_of,  # R2: None stays None, never ts fallback
                 received_at,  # R1 #2: None
             ),
             "max_pain": wrap_field(r.get("max_pain"), "USD", COMPUTED, ts, received_at, oi_vintage),
@@ -324,8 +345,8 @@ def get_snapshot():
             "pin_score": wrap_field(r.get("pin_score"), "0-100", COMPUTED, ts, received_at),
             "expected_move": wrap_field(exp_move, "USD", "ATM straddle", ts, received_at),
             "gamma_regime": wrap_field(r.get("gamma_regime"), "label", COMPUTED, ts, received_at),
-            "call_oi": wrap_field(r.get("call_oi"), "contracts", "nasdaq wide-chain (delayed)", nasdaq_as_of if nasdaq_as_of else ts, received_at, oi_vintage),
-            "put_oi": wrap_field(r.get("put_oi"), "contracts", "nasdaq wide-chain (delayed)", nasdaq_as_of if nasdaq_as_of else ts, received_at, oi_vintage),
+            "call_oi": wrap_field(r.get("call_oi"), "contracts", "nasdaq wide-chain (delayed)", nasdaq_as_of, received_at, oi_vintage),
+            "put_oi": wrap_field(r.get("put_oi"), "contracts", "nasdaq wide-chain (delayed)", nasdaq_as_of, received_at, oi_vintage),
         },
     }
 
@@ -386,6 +407,7 @@ def get_heatmap():
                 except Exception:
                     continue
                 ts = rec.get("ts") or rec.get("recorded_at")
+                expiry = rec.get("expiry")
                 formula = rec.get("gex_formula") or rec.get("formula")
                 units = rec.get("gex_units")
                 gex_m = rec.get("gex_m")
@@ -396,8 +418,10 @@ def get_heatmap():
                         except Exception:
                             continue
                         # Preserve zero as a real value (not missing)
+                        # R2: preserve expiry identity per cell
                         cells.append({
                             "recorded_at": ts,
+                            "expiry": expiry,
                             "strike": strike,
                             "gex": gex_v,
                             "formula": formula,
@@ -408,6 +432,7 @@ def get_heatmap():
                     if rec.get("strike") is not None:
                         cells.append({
                             "recorded_at": ts,
+                            "expiry": expiry,
                             "strike": rec.get("strike"),
                             "gex": rec.get("gex"),
                             "formula": formula,
