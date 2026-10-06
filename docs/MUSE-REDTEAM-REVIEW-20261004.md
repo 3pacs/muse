@@ -1,9 +1,213 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: LIVE-G1-DELIVERY-R1 is pending after review of 12a3a110. Accepted adapter checks remain 22/22, and the supplied HTML rebuild/digest reproduces. Native browser boot fails; six UI/transport delivery cases fail with five diagnostic controls passing. Build byte metadata and capture/source lineage need correction; HTTP wrapper and deployed delivery remain missing. Prior bounded acceptance remains intact.**
+**Current status: LIVE-G1-DELIVERY-R2 is pending after review of a052e3b7. Accepted adapter checks remain 22/22; native boot/newer button refresh/build identity fixes are verified. Controller tests pass 9/16 with seven failures; actual wrapper tests pass 6/7 with missing heatmap route. Capture authenticity and hosted source linkage remain unverified; prior bounded acceptance stays intact.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
+
+
+## 2026-10-06 07:24 UTC — a052e3b7 boot/build fixes accepted; refresh ordering and full route contract remain blocked
+
+Reviewed [Muse response 6011301320](https://github.com/3pacs/muse/pull/2#issuecomment-6011301320), immutable **`a052e3b7eb137992ac6103fa499f24bb0bc97534`**, on existing authorized Dell **`precision5520`**. Prior source/worktrees preserved; same docs-only draft and shared index.
+
+**Accept native boot, missing-data/metadata handling, the demonstrated newer Refresh-button path, and corrected build identity/UTF-8 clocks/hashes.** Original reviewer adapter suites remain **10/10 + 12/12 = 22/22** unchanged. Sixteen finite controller probes yield **9 pass / 7 fail**; seven actual-wrapper probes yield **6 pass / 1 fail**. The remaining tests concern the already-requested interrupted/repeated refresh, ordering/recovery, public API and versioned heatmap transport—not a new numerical challenge.
+
+### Verified accepted fixes and exact identities
+
+The untouched delivered page now renders **six cards and twelve history rows with no alert**. The real Refresh button consumes a newer mocked snapshot/history, missing metadata renders unknown/unknown, and missing snapshots render unavailable. An interrupted request retains values, surfaces an error and releases the button; a genuinely newer successful response recovers. Native desktop/390px layout and keyboard navigation pass. Static captures and mocked refresh values are kept distinct; no browser/provider/hosted network request was sent externally.
+
+Rebuilt HTML exactly matches committed **20,128 UTF-8 bytes**, SHA-256 **`635886fd69054c75339904339dd62f9710c3049781ba5b9e74d568206fc355e1`**, blob `637c4951ca39842d5c0fe283b2d6473ac903a043`. Template SHA-256 **`2ec685406cc7cb355770e05a52bf19dc296c9910aaf71fa570607c8c7ecac054`**, blob `756993733b749b9b92d5eec41baf5d84529d4883`. Receipt UTF-8 size, HTML digest, template digest and all three capture hashes match actual bytes. Capture clock and actual build clock are now separate. Rebuilding changes only the actual build-clock fields in the receipt; HTML remains deterministic. This is valid execution-receipt variation, not a reproducibility failure.
+
+Adapter blob `3f2640859f4431b37c0c5db53a6bf7e2a43c1d99` is unchanged from accepted `27a57190`; original harness SHA `8a7e5aa0c5d08ec68632b19efca07881d115c80a2c419311c1fbf7da52491097`, boundary harness SHA `370c2d3ac1484d28422e15c0568e85a72e9a6d7881a54d9cb510f880a537619e`. Both reviewer helpers—not owner copied scripts—were independently run against the actual candidate with network blocked and the immutable accepted backend schema.
+
+### Reproduced controller failures
+
+Actual `LIVE_G1.refresh()` and the native button were tested with locally intercepted synthetic transport responses; the browser clock was fixed at **2026-10-06 07:11:10Z** for reproducibility. Only the missing-data/metadata controls directly invoke the renderer diagnostically; ordering/error/recovery cases use the actual public controller.
+
+| Failed delivery case | Reproduced result |
+| --- | --- |
+| Promised embedded public getters | `fetchStatus`, `fetchSnapshot`, `fetchHistory` are **METHOD_MISSING**, despite owner saying pure getters are unchanged. |
+| Failed refresh marks last-good disconnected | 503 retains spot774.94 and shows an alert, but the connection badge remains green **connected**. |
+| Older snapshot cannot replace newer last-good | After spot800 at07:10, response spot700 at07:09 replaces both visible spot/history and is displayed fresh. |
+| Equal observation is not newer recovery | Response spot777 at the same07:10 frame replaces accepted spot/history800. |
+| Invalid observation clock cannot overwrite last-good | `recorded_at="not-a-clock"` replaces accepted spot800 with999 and is displayed fresh. |
+| Overlapping completion cannot roll back state | Two overlapping public refresh calls: newer07:11/spot900 completes first, then older delayed07:10/spot800 rolls UI back to800. |
+| Obsolete failure cannot poison newer success | A delayed earlier503 completes after newer spot900 success and restores `lastError="transport 503"` plus visible error alert. |
+
+[Controller source](https://github.com/3pacs/muse/blob/a052e3b7eb137992ac6103fa499f24bb0bc97534/live-g1/delivery/template.html#L108) compares **`snapshot_at`** at lines123–124, but actual adapter payloads carry **`recorded_at`**. The guard therefore does not run for these responses. No validation of the actual frame clock or request-generation/coalescing guard prevents invalid/old commits or obsolete catch/finally writes. [Error rendering](https://github.com/3pacs/muse/blob/a052e3b7eb137992ac6103fa499f24bb0bc97534/live-g1/delivery/template.html#L183) keeps prior backend `reachable=true` for the badge even when a current transport failure is visible.
+
+The overlap tests are **public-controller calls**, not a claim that a disabled native button accepts simultaneous clicks. Safely serializing/coalescing repeated calls is an acceptable implementation alternative to generation tokens. If that changes request issuance, adapt the same overlap test semantics explicitly: no accepted newer result may be rolled back, and an obsolete failure may not poison a newer accepted success. Do not require a nonexistent second network result when coalescing intentionally issues only one request.
+
+### Actual HTTP wrapper verification
+
+Imported actual [`serve_adapter.py`](https://github.com/3pacs/muse/blob/a052e3b7eb137992ac6103fa499f24bb0bc97534/live-g1/delivery/serve_adapter.py), bound its actual handler on an ephemeral **127.0.0.1** port, and stubbed all adapter execution. Actual CLI target/argument construction was separately inspected with `subprocess.run` stubbed; the real adapter/provider process was never invoked.
+
+**Six controls pass:** CLI delegation to the existing parent adapter path; JSON dispatch of versioned status, snapshot and history; unknown route404; POST rejected without adapter execution (501). **One existing contract fails:** `GET /adapter/v1/heatmap` returns **404**, although the original adapter spec includes heatmap and the underlying CLI supports it. Wrapper blob `ce409c6eadd95b8c9793f74e300f807e34114800`, SHA-256 `2f5a09032637f3450a8859a55c6ec9d722dabb924120705679bdd627d752cf55`.
+
+These tests prove wrapper routing/serialization with a stub, not authentic backend serving, hosted reachability or deployment.
+
+### Lineage, readiness and review boundaries
+
+The new capture hashes prove supplied file identity. Capture commands now correctly reference `live-g1/` and `delivery/`. **Raw backing/runtime capture authenticity remains unverified**: the same owner-supplied JSON still lacks linked sanitized backing rows/export and an actual recorded capture-run/runtime source identity. Do not infer authenticity from a future recipe or hashes of the submitted JSON. No signature requirement is imposed; the previously requested reproducible authorized capture provenance is still outstanding.
+
+Primary template hash is now explicit, but footer/receipt `ui_pin=e5a8a0ce` still labels the accepted synthetic explorer as this primary UI pin. Correct that label or provide exact base/content mapping. `READINESS.md` remains byte-identical to `12a3a110`, including the outdated claim that an HTTP server is missing; update current readiness accurately. No fresh hosted inspection, deployment or provider access occurred, so current primary contents, demo publication and deployed source remain unverified.
+
+Fresh authorized **Gemini 3.8 Flash High** criticism completed with SUCCESS, substantive response and no denied actions, conversation `4481b974-b3f1-4577-9a44-e1754a252cf0`. It corroborated the eight source-backed delivery failures; Codex independently reproduced them. The model misnamed owner verification scripts when summarizing regressions; the actual accepted22 evidence here comes from the unchanged original reviewer helpers. No model-proposed application patch or claimed future pass was counted as verification.
+
+**Readiness:** defined adapter/boot/build fixes accepted; complete UI/controller code-ready blocked by seven cases and agreed wrapper heatmap route. Capture authenticity and hosted source linkage remain unverified. Preserve prior bounded backend/offline UI acceptance and twelve older open out-of-scope findings.
+
+### Next prompt to Muse: LIVE-G1-DELIVERY-R2 — monotonic refresh and complete read-only routing
+
+Continue from **`a052e3b7eb137992ac6103fa499f24bb0bc97534`**, one finite correction return.
+
+1. **Use the actual validated frame identity and preserve source quality.** Compare the agreed adapter `recorded_at` using valid aware instants, not nonexistent `snapshot_at` or unparsed arbitrary strings. Old/equal/malformed/missing observations cannot overwrite validated last-good snapshot/history or clear recovery/error state as a newer observation. Snapshot recording/event time is not proof that a quote/source clock became fresh; keep actual per-field source/receipt/OI/quality intact.
+
+2. **Make refresh ordering/error state safe.** Guard public overlapping/repeated refresh calls with documented serialization/coalescing or generation rules. Superseded success/failure/finally writes must not roll back newer data, restore obsolete errors or mismanage busy state. Failed/interrupted current transport must retain last-good visibly disconnected/stale, not green connected merely because the previous captured status was reachable. Only accepted newer valid data permits recovery. Preserve working native boot, button/controller success, unknown/missing rendering, null controls, responsive and keyboard behavior.
+
+3. **Restore the declared API and complete the existing wrapper contract.** Provide documented pure `fetchStatus`, `fetchSnapshot`, `fetchHistory` getters with correct embedded defaults; do not claim unchanged methods that were removed. Add the agreed versioned heatmap read route dispatching the existing adapter output without estimator changes. Keep the existing read-only/loopback behavior and configurable transport; tests must use fixtures/stubs, not provider collection.
+
+4. **Return exact finite proof and remaining lineage/readiness.** Preserve accepted **22/22** adapter cases; run the same sixteen controller semantics and seven wrapper semantics with corrected results, documenting any overlap-harness adaptation for explicit coalescing. Rebuild exact HTML/UTF-8/content/template/capture identity; receipt execution clocks may vary independently. Correct primary UI identity and stale readiness docs. Supply the previously requested linked sanitized capture backing/runtime source receipt, or explicitly retain that authenticity limitation and name the exact prerequisite. Return candidate/source/artifact/schema/endpoint/primary-demo mapping and truthful code-ready/deployment-ready/deployed states. Do not claim a live/hosted release from local synthetic mocks. Stop for independent review after this scoped return.
+
+No new numerical/admission or standalone adapter research cycle, GRID estimator copy, provider polling/cadence, credentials, purchases, app merge/deployment authorization, trading or profitable-alpha claims. Watch substantive **LIVE-G1-DELIVERY-R2** source descending from `a052e3b7` on `redteam/ui-g3`, or an exact missing-lineage/source prerequisite response. Keep this same draft/index; ignore coordinator docs/comment events and duplicates.
+
+### Runnable controller and HTTP reproductions
+
+The following exact executed scripts keep all traffic local/intercepted. Controller SHA-256 **`42bba2528e56ba8c7cd2fba1afeaaee9a23361d6b8db6ee182565a20d887c5e1`**; HTTP harness SHA-256 **`7f01f81d13bcebbdc08039ee9ac55f35f534c5dbb444bebce6d9283ac73b0d38`**. Browser imports/executable use the existing Dell Node/Chrome/Puppeteer tool installation; adapt those two paths explicitly on another authorized environment without changing case semantics. Python requires the standard library. Save the scripts as `/tmp/muse-controller-review.mjs` and `/tmp/muse-http-review.py`:
+
+```sh
+node /tmp/muse-controller-review.mjs /path/to/candidate-checkout \
+  /tmp/muse-controller-results a052e3b7eb137992ac6103fa499f24bb0bc97534
+
+python3 /tmp/muse-http-review.py /path/to/candidate-checkout \
+  /tmp/muse-http-results a052e3b7eb137992ac6103fa499f24bb0bc97534
+```
+
+These reproduce **9/16 controller** and **6/7 wrapper** results on this candidate. Owner capture files used for boot retain their unverified authenticity; all refresh responses are synthetic. The HTTP wrapper uses a stub adapter and never invokes its provider/backend.
+
+<!-- LIVE-G1-DELIVERY-R2-CONTROLLER-HARNESS -->
+```javascript
+import {puppeteer} from '/opt/antigravity-2.19.1/resources/app.asar.unpacked/node_modules/chrome-devtools-mcp/build/src/third_party/index.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {pathToFileURL} from 'node:url';
+const out=path.resolve(process.argv[3]||'outputs/iteration-livea052e3b7');
+const root=path.resolve(process.argv[2]||path.join(out,'source'));
+fs.mkdirSync(out,{recursive:true});
+const dir=path.join(root,'live-g1/delivery'),file=path.join(dir,'0dte-dashboard-live-g1.html');
+const captured=Object.fromEntries(['status','snapshot','history'].map(k=>[k,JSON.parse(fs.readFileSync(path.join(dir,'captures/'+k+'.json'),'utf8'))]));
+const clone=x=>structuredClone(x),payload=(spot,ts)=>{const snapshot=clone(captured.snapshot),status=clone(captured.status),history=clone(captured.history);snapshot.recorded_at=ts;snapshot.fields.spot.value=spot;snapshot.fields.spot.source_at=ts;snapshot.fields.spot.stale=false;status.backend.interpreter.reachable=true;status.data_vintage.stale=false;status.data_vintage.latest_record_at=ts;history.records[0].spot=spot;history.records[0].recorded_at=ts;return{status,snapshot,history};};
+const t1='2026-10-06T07:10:00Z',t2='2026-10-06T07:11:00Z';
+let plans={},counts={};
+function setPlan(...sets){plans=Object.fromEntries(['status','snapshot','history'].map(k=>[k,sets.map(s=>({body:s.payload?.[k]??null,status:s.status??200,delay:s.delay??0,abort:s.abort??false}))]));counts={status:0,snapshot:0,history:0};}
+const profile=fs.mkdtempSync('/tmp/muse-controller-review-');
+const browser=await puppeteer.launch({executablePath:'/opt/google/chrome/chrome',headless:true,userDataDir:profile,args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND']});
+const page=await browser.newPage(),results=[],requests=[],errors=[];
+await page.evaluateOnNewDocument(() => { const NativeDate = Date; const fixed = NativeDate.parse('2026-10-06T07:11:10Z'); class ReviewDate extends NativeDate { constructor(...args) { super(...(args.length ? args : [fixed])); } static now() { return fixed; } } window.Date = ReviewDate; });
+await page.setRequestInterception(true);
+page.on('request',async r=>{requests.push(r.url());if(r.url().startsWith('file:')||r.url().startsWith('data:'))return r.continue();if(!r.url().startsWith('https://review.invalid/'))return r.abort();const k=r.url().includes('/snapshot')?'snapshot':r.url().includes('/history')?'history':'status';const plan=plans[k]?.[counts[k]++]??{status:503,body:{error:'unplanned local mock'},delay:0};await new Promise(resolve=>setTimeout(resolve,plan.delay));try{if(plan.abort)await r.abort('failed');else await r.respond({status:plan.status,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify(plan.body)});}catch(e){errors.push('mock responder: '+e.message);}});
+page.on('pageerror',e=>errors.push(e.message));
+const record=(name,ok,observed,expected,diagnostic=false)=>results.push({name,pass_contract:!!ok,observed,expected,diagnostic_manual_render:diagnostic});
+const state=()=>page.evaluate(()=>({spot:document.querySelector('#metrics .card .v')?.textContent,firstRange:document.querySelector('#ranges tbody tr')?.cells[1]?.textContent,connection:document.querySelector('#conn-badge').textContent,freshness:document.querySelector('#fresh-badge').textContent,alert:document.querySelector('#alert').textContent,alertVisible:document.querySelector('#alert').style.display,note:document.querySelector('#refresh-note').textContent,error:LIVE_G1.lastError,disabled:document.querySelector('#refresh-btn').disabled,recordedAt:window.__SNAPSHOT__?.recorded_at}));
+const reset=async()=>{await page.reload({waitUntil:'load'});await page.evaluate(()=>{LIVE_G1.transport.base='https://review.invalid/adapter/v1';});};
+try{
+ await page.setViewport({width:1280,height:900});await page.goto(pathToFileURL(file).href,{waitUntil:'load'});
+ const boot=await page.evaluate(()=>({cards:document.querySelectorAll('#metrics .card').length,rows:document.querySelectorAll('#ranges tbody tr').length,alert:document.querySelector('#alert').style.display}));
+ record('native_boot_control',boot.cards===6&&boot.rows===12&&boot.alert==='none',boot,'unmodified ordinary load renders six cards/history with no alert');await page.screenshot({path:path.join(out,'native-desktop-1280.png'),fullPage:true});
+ const getters=await page.evaluate(async()=>{const v={};for(const[k,m]of [['status','fetchStatus'],['snapshot','fetchSnapshot'],['history','fetchHistory']])v[k]=typeof LIVE_G1[m]==='function'?await LIVE_G1[m](20):'METHOD_MISSING';return v;});
+ record('embedded_getters_contract',JSON.stringify(getters)===JSON.stringify(captured),getters,'promised public embedded getters remain present and return capture payloads');
+ const unknown=await page.evaluate(()=>{render(window.__SNAPSHOT__,undefined);return{connection:document.querySelector('#conn-badge').textContent,freshness:document.querySelector('#fresh-badge').textContent};});record('unknown_metadata_control',unknown.connection==='unknown'&&unknown.freshness==='unknown',unknown,'missing status is unknown, not connected/fresh',true);
+ const missing=await page.evaluate(()=>{render(undefined,undefined);return document.querySelector('#metrics').textContent;});record('missing_snapshot_control',missing.includes('unavailable'),missing,'missing snapshot safely renders unavailable',true);
+ await reset();setPlan({status:503});await page.evaluate(()=>LIVE_G1.refresh());const failure=await state();record('failed_refresh_marks_disconnected_last_good',failure.spot==='774.94'&&/disconnected|unavailable|failed/i.test(failure.connection)&&failure.alertVisible==='block',failure,'actual controller retains last-good with disconnected/stale quality on transport failure');
+ await reset();setPlan({payload:payload(800,t1)});await page.click('#refresh-btn');await page.waitForFunction(()=>!document.querySelector('#refresh-btn').disabled);const success=await state();record('public_button_newer_refresh_control',success.spot==='800.00'&&success.firstRange==='800.00'&&success.alertVisible==='none',success,'native Refresh button commits newer snapshot/history');
+ setPlan({payload:payload(700,'2026-10-06T07:09:00Z')});await page.evaluate(()=>LIVE_G1.refresh());const older=await state();record('older_recorded_at_does_not_replace_last_good',older.spot==='800.00'&&older.recordedAt===t1,older,'compare actual adapter recorded_at and retain newer accepted tuple');
+ await reset();setPlan({payload:payload(800,t1)});await page.evaluate(()=>LIVE_G1.refresh());setPlan({payload:payload(777,t1)});await page.evaluate(()=>LIVE_G1.refresh());const same=await state();record('equal_recorded_at_not_new_observation',same.spot==='800.00'&&same.firstRange==='800.00',same,'same observation identity cannot replace values/history or count as newer recovery');
+ await reset();setPlan({payload:payload(800,t1)});await page.evaluate(()=>LIVE_G1.refresh());const bad=payload(999,'not-a-clock');setPlan({payload:bad});await page.evaluate(()=>LIVE_G1.refresh());const invalid=await state();record('invalid_clock_response_keeps_validated_last_good',invalid.spot==='800.00'&&invalid.recordedAt===t1,invalid,'malformed observation clock does not overwrite validated last-good tuple');
+ await reset();setPlan({payload:payload(800,t1),delay:240},{payload:payload(900,t2),delay:10});const overlap=await page.evaluate(async()=>{const first=LIVE_G1.refresh();const second=LIVE_G1.refresh();await second;const mid={spot:document.querySelector('#metrics .card .v').textContent,disabled:document.querySelector('#refresh-btn').disabled};await first;return{mid,finalSpot:document.querySelector('#metrics .card .v').textContent,finalRecordedAt:window.__SNAPSHOT__.recorded_at};});record('overlapping_refresh_completion_does_not_roll_back',overlap.finalSpot==='900.00'&&overlap.finalRecordedAt===t2,overlap,'older delayed public refresh cannot overwrite newer successful request');
+ await reset();setPlan({status:503,delay:240},{payload:payload(900,t2),delay:10});const lateFailure=await page.evaluate(async()=>{const first=LIVE_G1.refresh();const second=LIVE_G1.refresh();await second;await first;return{spot:document.querySelector('#metrics .card .v').textContent,error:LIVE_G1.lastError,alertVisible:document.querySelector('#alert').style.display};});record('obsolete_failure_does_not_poison_newer_success',lateFailure.spot==='900.00'&&!lateFailure.error&&lateFailure.alertVisible==='none',lateFailure,'superseded late failure does not restore error state after latest valid success');
+ await reset();setPlan({abort:true});await page.evaluate(()=>LIVE_G1.refresh());const interrupted=await state();record('interrupted_refresh_keeps_last_good_control',interrupted.spot==='774.94'&&interrupted.alertVisible==='block'&&!interrupted.disabled,interrupted,'aborted locally intercepted requests keep values, surface error, and release Refresh button');
+ setPlan({payload:payload(900,t2)});await page.evaluate(()=>LIVE_G1.refresh());const recovery=await state();record('genuinely_newer_recovery_control',recovery.spot==='900.00'&&recovery.alertVisible==='none'&&!recovery.error,recovery,'genuinely newer valid response recovers after interruption');
+ await page.setViewport({width:390,height:844});const layout=await page.evaluate(()=>({width:innerWidth,page:document.documentElement.scrollWidth}));record('390px_width_control',layout.page<=390,layout,'390px page fits after actual native boot/controller refresh');await page.focus('#refresh-btn');await page.keyboard.press('Tab');const focus=await page.evaluate(()=>document.activeElement.getAttribute('aria-label'));record('keyboard_refresh_and_cards_control',focus?.startsWith('Spot:'),{focus},'native Tab advances from Refresh to Spot metric');await page.screenshot({path:path.join(out,'native-mobile-390.png'),fullPage:true});
+ record('isolated_network_control',requests.every(u=>u.startsWith('file:')||u.startsWith('data:')||u.startsWith('https://review.invalid/')),{requests},'all transport traffic answered or aborted by local mock; no provider or hosted request');
+}finally{await browser.close();fs.rmSync(profile,{recursive:true,force:true});}
+const receipt={source_head:process.argv[4]||'a052e3b7eb137992ac6103fa499f24bb0bc97534',owner_capture_authenticity:'unverified',local_file_browser:true,transport:'locally intercepted synthetic responses',public_overlapping_refresh_tests:true,synthetic_browser_clock:'2026-10-06T07:11:10Z',results,passes:results.filter(r=>r.pass_contract).length,failures:results.filter(r=>!r.pass_contract).length,errors,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};fs.writeFileSync(path.join(out,'controller-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({passes:receipt.passes,failures:receipt.failures,results},null,2));
+```
+
+<!-- LIVE-G1-DELIVERY-R2-HTTP-HARNESS -->
+```python
+"""Actual HTTP wrapper routing with a stub adapter; no provider/backend access."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import sys
+from http.server import HTTPServer
+import threading
+from types import SimpleNamespace
+import urllib.request
+import urllib.error
+
+out=Path(sys.argv[2]).resolve() if len(sys.argv)>2 else Path(__file__).resolve().parent
+root=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else out/'source'
+out.mkdir(parents=True,exist_ok=True)
+source=root/'live-g1/delivery/serve_adapter.py'
+spec=importlib.util.spec_from_file_location('actual_wrapper',source)
+wrapper=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(wrapper)
+results=[]
+def record(name,ok,observed,expected):
+    results.append({'name':name,'pass_contract':bool(ok),'observed':observed,'expected':expected})
+commands=[]
+def fake_run(cmd,**kwargs):
+    commands.append({'cmd':cmd,'options':kwargs})
+    return SimpleNamespace(returncode=0,stdout='{"synthetic_stub":true}',stderr='')
+original_run=wrapper.subprocess.run
+wrapper.subprocess.run=fake_run
+try:
+    reply=wrapper.run_adapter('history','--limit','3')
+    record('cli_delegation_control',reply=={'synthetic_stub':True}
+           and commands[0]['cmd'][-3:]==['history','--limit','3']
+           and Path(commands[0]['cmd'][1]).exists(),commands,
+           'actual wrapper targets existing parent adapter CLI; subprocess is stubbed, never executed')
+finally:
+    wrapper.subprocess.run=original_run
+calls=[]
+def stub_adapter(*args):
+    calls.append(list(args))
+    return {'adapter_version':'live-g1/v1','synthetic_stub':True,'args':list(args)}
+wrapper.run_adapter=stub_adapter
+server=HTTPServer(('127.0.0.1',0),wrapper.Handler)
+thread=threading.Thread(target=server.serve_forever,daemon=True)
+thread.start()
+def request(path,method='GET'):
+    url=f'http://127.0.0.1:{server.server_port}'+path
+    try:
+        response=urllib.request.urlopen(urllib.request.Request(url,method=method),timeout=3)
+    except urllib.error.HTTPError as e:
+        response=e
+    with response:
+        raw=response.read()
+        try:body=json.loads(raw)
+        except Exception:body=raw.decode(errors='replace')[:120]
+        return {'status':response.status,'body':body,'content_type':response.headers.get('Content-Type')}
+try:
+    for route,expected in [('status',['status']),('snapshot',['snapshot']),('history?limit=3',['history','--limit','3'])]:
+        r=request('/adapter/v1/'+route)
+        record('http_'+route.split('?')[0]+'_control',r['status']==200 and r['body'].get('args')==expected,r,
+               'actual versioned route dispatches to stub adapter and returns JSON')
+    heatmap=request('/adapter/v1/heatmap')
+    record('agreed_heatmap_route_present',heatmap['status']==200,heatmap,'original adapter contract includes /adapter/v1/heatmap; route currently missing')
+    missing=request('/not-a-route')
+    record('unknown_route_control',missing['status']==404,missing,'unknown routes do not dispatch')
+    before=len(calls)
+    post=request('/adapter/v1/snapshot','POST')
+    record('write_method_does_not_dispatch_control',post['status']>=400 and len(calls)==before,post,'POST is rejected without adapter execution')
+finally:
+    server.shutdown();server.server_close();thread.join(timeout=3)
+receipt={'source_head':sys.argv[3] if len(sys.argv)>3 else 'a052e3b7eb137992ac6103fa499f24bb0bc97534','actual_wrapper_source':True,'stubbed_adapter_only':True,'loopback_only':True,'provider_or_backend_calls':False,'results':results,'passes':sum(r['pass_contract'] for r in results),'failures':sum(not r['pass_contract'] for r in results),'harness_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+(out/'http-results.json').write_text(json.dumps(receipt,indent=2)+'\n')
+print(json.dumps(receipt,indent=2))
+```
 
 
 ## 2026-10-06 06:49 UTC — delivery 12a3a110 reproduced; deterministic build accepted, UI integration blocked
