@@ -18,6 +18,7 @@ h1 { font-size: 1.4rem; margin: 0; }
 .badge.live { border-color: var(--ok); color: var(--ok); }
 .badge.stale { border-color: var(--warn); color: var(--warn); }
 .badge.down { border-color: var(--bad); color: var(--bad); }
+.badge.unknown { border-color: var(--muted); color: var(--muted); }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
         gap: 12px; margin-bottom: 16px; }
 .card { background: var(--card); border-radius: 8px; padding: 12px; }
@@ -33,6 +34,12 @@ th:first-child, td:first-child { text-align: left; }
 .provenance details { margin: 4px 0; }
 .provenance summary { cursor: pointer; }
 .unavailable { color: var(--bad); }
+#refresh-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px;
+               font-size: 0.8rem; }
+#refresh-bar button { background: var(--card); color: var(--fg);
+                      border: 1px solid var(--muted); border-radius: 6px;
+                      padding: 4px 12px; cursor: pointer; }
+#refresh-bar button:disabled { opacity: 0.5; cursor: default; }
 a { color: var(--accent); }
 :focus { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (max-width: 600px) { .grid { grid-template-columns: 1fr 1fr; } }
@@ -42,12 +49,17 @@ a { color: var(--accent); }
 <header>
   <h1>0DTE Tape Dashboard</h1>
   <div>
-    <span class="badge" id="conn-badge">checking…</span>
-    <span class="badge" id="fresh-badge">checking…</span>
+    <span class="badge unknown" id="conn-badge">unknown</span>
+    <span class="badge unknown" id="fresh-badge">unknown</span>
   </div>
 </header>
 
 <div id="alert" role="alert" style="display:none"></div>
+
+<div id="refresh-bar" aria-label="Data refresh">
+  <button id="refresh-btn" type="button">Refresh</button>
+  <span id="refresh-note">Embedded snapshot. Set transport for live refresh.</span>
+</div>
 
 <section aria-label="Key metrics">
 <div class="grid" id="metrics"></div>
@@ -67,17 +79,17 @@ a { color: var(--accent); }
 <h2>Provenance</h2>
 <div id="prov"></div>
 <p>Adapter: <code>live-g1/v1</code> · Backend pin: <code>8649ad54</code> ·
-UI pin: <code>e5a8a0ce</code> · <a href="#transport">Transport docs</a></p>
+UI pin: <code>e5a8a0ce</code></p>
 </section>
+
+<!-- EMBEDDED DATA: injected by build.py BEFORE the app script runs -->
+__DATA_INJECT__
 
 <script>
 "use strict";
-/* LIVE-G1-DELIVERY: primary dashboard with adapter transport.
-   Data embedded at build from authentic adapter captures.
-   Transport: window.LIVE_G1.fetchSnapshot() etc. can be pointed at
-   a live adapter endpoint for refresh; defaults to embedded. */
-
-const EMBEDDED = __EMBEDDED_JSON__;
+/* LIVE-G1-DELIVERY-R1: primary dashboard with adapter transport.
+   Boot order: data inject (above) runs before this script.
+   If data is missing, UI shows honest unknown/unavailable states. */
 
 const TRANSPORT = {
   base: null, // set to e.g. "http://localhost:8787/adapter/v1" for live
@@ -88,82 +100,153 @@ const TRANSPORT = {
     return r.json();
   }
 };
-window.LIVE_G1 = {
+
+const LIVE_G1 = {
   version: "live-g1/v1",
   transport: TRANSPORT,
-  fetchStatus: () => TRANSPORT.get("/status"),
-  fetchSnapshot: () => TRANSPORT.get("/snapshot"),
-  fetchHistory: (n) => TRANSPORT.get("/history?limit=" + (n || 50)),
+  lastError: null,
+  async refresh() {
+    const btn = document.getElementById('refresh-btn');
+    const note = document.getElementById('refresh-note');
+    if (!TRANSPORT.base) {
+      note.textContent = 'No transport configured — showing embedded snapshot.';
+      return;
+    }
+    btn.disabled = true;
+    note.textContent = 'Refreshing…';
+    try {
+      const [status, snapshot, history] = await Promise.all([
+        TRANSPORT.get('/status'), TRANSPORT.get('/snapshot'),
+        TRANSPORT.get('/history?limit=20'),
+      ]);
+      // Compare snapshot identity: only replace if newer or different
+      const oldTs = (window.__SNAPSHOT__ || {}).snapshot_at;
+      const newTs = (snapshot || {}).snapshot_at;
+      if (newTs && oldTs && newTs <= oldTs) {
+        note.textContent = 'No newer data — kept last good snapshot.';
+      } else {
+        window.__STATUS__ = status; window.__SNAPSHOT__ = snapshot;
+        window.__HISTORY__ = history;
+        note.textContent = 'Refreshed from transport at ' + new Date().toISOString().slice(11,19) + 'Z.';
+      }
+      LIVE_G1.lastError = null;
+      render(window.__SNAPSHOT__, window.__STATUS__);
+    } catch (e) {
+      LIVE_G1.lastError = String(e && e.message || e);
+      note.textContent = 'Refresh failed: ' + LIVE_G1.lastError + ' — kept last good data.';
+      // Re-render to show honest error/stale state
+      render(window.__SNAPSHOT__, window.__STATUS__);
+    } finally {
+      btn.disabled = false;
+    }
+  }
 };
+window.LIVE_G1 = LIVE_G1;
+document.getElementById('refresh-btn').addEventListener('click', () => LIVE_G1.refresh());
 
 function fmt(v, d=2) {
   if (v == null) return '<span class="unavailable">unavailable</span>';
-  return Number(v).toFixed(d);
+  const n = Number(v);
+  if (!isFinite(n)) return '<span class="unavailable">unavailable</span>';
+  return n.toFixed(d);
 }
 function fieldRow(label, f) {
+  f = f || {};
   const stale = f.stale ? ' <span class="badge stale">stale</span>' : '';
   const unav = f.unavailable ? ' <span class="badge down">unavailable</span>' : '';
   return `<div class="card" tabindex="0" aria-label="${label}: ${f.value ?? 'unavailable'}">
     <div class="k">${label}${stale}${unav}</div>
     <div class="v">${fmt(f.value)}</div>
-    <div class="s">${f.source || ''} · ${f.source_at ? 'as of ' + f.source_at.slice(11,16) + 'Z' : 'clock unknown'}</div>
+    <div class="s">${f.source || 'source unknown'} · ${f.source_at ? 'as of ' + String(f.source_at).slice(11,16) + 'Z' : 'clock unknown'}</div>
   </div>`;
 }
 function render(snapshot, status) {
-  const f = snapshot.fields || {};
+  // Honest missing-data path: never throw, never invent.
+  const hasData = snapshot && typeof snapshot === 'object' && snapshot.fields;
+  const f = hasData ? snapshot.fields : {};
   const m = document.getElementById('metrics');
-  m.innerHTML = [
-    fieldRow('Spot', f.spot || {}),
-    fieldRow('Max Pain', f.max_pain || {}),
-    fieldRow('Gamma Flip', f.gamma_flip || {}),
-    fieldRow('Pin Score', {...(f.pin_score||{}), value: f.pin_score?.value}),
-    fieldRow('Call Wall', f.call_wall || {}),
-    fieldRow('Put Wall', f.put_wall || {}),
-  ].join('');
+  if (!hasData) {
+    m.innerHTML = '<div class="card"><div class="k">No snapshot data</div>' +
+      '<div class="v"><span class="unavailable">unavailable</span></div>' +
+      '<div class="s">Embedded snapshot missing or corrupt.</div></div>';
+  } else {
+    m.innerHTML = [
+      fieldRow('Spot', f.spot),
+      fieldRow('Max Pain', f.max_pain),
+      fieldRow('Gamma Flip', f.gamma_flip),
+      fieldRow('Pin Score', f.pin_score),
+      fieldRow('Call Wall', f.call_wall),
+      fieldRow('Put Wall', f.put_wall),
+    ].join('');
+  }
 
-  // Connection + freshness badges
+  // Connection + freshness: unknown when status missing, never false-fresh.
   const cb = document.getElementById('conn-badge');
   const fb = document.getElementById('fresh-badge');
-  const interp = status?.backend?.interpreter;
-  if (interp && !interp.reachable) {
-    cb.textContent = 'disconnected'; cb.className = 'badge down';
-  } else { cb.textContent = 'connected'; cb.className = 'badge live'; }
-  const v = status?.data_vintage;
-  if (v?.stale) {
-    fb.textContent = 'stale: ' + (v.stale_reason || 'unknown');
-    fb.className = 'badge stale';
-  } else { fb.textContent = 'fresh'; fb.className = 'badge live'; }
+  if (!status || typeof status !== 'object') {
+    cb.textContent = 'unknown'; cb.className = 'badge unknown';
+    fb.textContent = 'unknown'; fb.className = 'badge unknown';
+  } else {
+    const interp = status.backend && status.backend.interpreter;
+    if (interp && interp.reachable === false) {
+      cb.textContent = 'disconnected'; cb.className = 'badge down';
+    } else if (interp && interp.reachable === true) {
+      cb.textContent = 'connected'; cb.className = 'badge live';
+    } else {
+      cb.textContent = 'unknown'; cb.className = 'badge unknown';
+    }
+    const v = status.data_vintage;
+    if (v && v.stale) {
+      fb.textContent = 'stale: ' + (v.stale_reason || 'unknown');
+      fb.className = 'badge stale';
+    } else if (v && v.stale === false) {
+      fb.textContent = 'fresh'; fb.className = 'badge live';
+    } else {
+      fb.textContent = 'unknown'; fb.className = 'badge unknown';
+    }
+  }
+
+  // Transport error surfaced honestly
+  if (LIVE_G1.lastError) {
+    const a = document.getElementById('alert');
+    a.style.display = 'block';
+    a.innerHTML = 'Transport error: <code>' + LIVE_G1.lastError.replace(/</g,'&lt;') +
+      '</code> — showing last good data.';
+  } else {
+    document.getElementById('alert').style.display = 'none';
+  }
 
   // Ranges
   const tb = document.querySelector('#ranges tbody');
-  const recs = (window.__HISTORY__ || {}).records || [];
+  const recs = (window.__HISTORY__ && window.__HISTORY__.records) || [];
   tb.innerHTML = recs.slice(0, 12).map(r =>
-    `<tr><td>${(r.recorded_at||'').slice(11,16)}</td><td>${fmt(r.spot)}</td>` +
+    `<tr><td>${String(r.recorded_at||'').slice(11,16)}</td><td>${fmt(r.spot)}</td>` +
     `<td>${fmt(r.max_pain)}</td><td>${fmt(r.gamma_flip)}</td><td>${fmt(r.pin_score,0)}</td></tr>`
   ).join('') || '<tr><td colspan="5">no history available</td></tr>';
 
   // Provenance
-  document.getElementById('prov').innerHTML =
-    `<details><summary>Field sources</summary><dl>` +
-    Object.entries(f).map(([k, fv]) =>
-      `<dt><code>${k}</code></dt><dd>source: ${fv.source||'unknown'}; ` +
-      `clock: ${fv.source_at||'unknown'}; received: ${fv.received_at||'unknown'}; ` +
-      (fv.oi_vintage ? `OI vintage: ${fv.oi_vintage}; ` : '') +
-      `stale: ${fv.stale}; unavailable: ${fv.unavailable}</dd>`
-    ).join('') + `</dl></details>` +
-    `<details><summary>Transport</summary><p id="transport">Read-only adapter ` +
-    `<code>live-g1/v1</code>. UI fetches via <code>window.LIVE_G1</code>; ` +
-    `set <code>LIVE_G1.transport.base</code> to a live adapter URL to refresh. ` +
-    `Embedded data is a build-time snapshot; the page never invents values.</p></details>`;
+  const prov = document.getElementById('prov');
+  if (hasData) {
+    prov.innerHTML =
+      `<details><summary>Field sources</summary><dl>` +
+      Object.entries(f).map(([k, fv]) => {
+        fv = fv || {};
+        return `<dt><code>${k}</code></dt><dd>source: ${fv.source||'unknown'}; ` +
+        `clock: ${fv.source_at||'unknown'}; received: ${fv.received_at||'unknown'}; ` +
+        (fv.oi_vintage ? `OI vintage: ${fv.oi_vintage}; ` : '') +
+        `stale: ${fv.stale===true}; unavailable: ${fv.unavailable===true}</dd>`;
+      }).join('') + `</dl></details>` +
+      `<details><summary>Transport</summary><p>Read-only adapter <code>live-g1/v1</code>. ` +
+      `UI fetches via <code>window.LIVE_G1.refresh()</code>; set ` +
+      `<code>LIVE_G1.transport.base</code> to a live adapter URL to refresh. ` +
+      `Embedded data is a build-time snapshot; the page never invents values.</p></details>`;
+  } else {
+    prov.innerHTML = '<p>No provenance: snapshot missing.</p>';
+  }
 }
 
-// Boot from embedded captures
-try {
-  render(window.__SNAPSHOT__, window.__STATUS__);
-} catch (e) {
-  document.getElementById('alert').style.display = 'block';
-  document.getElementById('alert').textContent = 'Render failed: ' + e.message;
-}
+// Boot: data inject runs first; render whatever we have, honestly.
+render(window.__SNAPSHOT__, window.__STATUS__);
 </script>
 </body>
 </html>
