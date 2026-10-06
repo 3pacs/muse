@@ -1,0 +1,28 @@
+{
+  "adapter_version": "live-g1/v1",
+  "backend_pin": "8649ad54",
+  "checked_at": "2026-10-06T05:49:48.885804+00:00",
+  "backend": {
+    "interpreter": {
+      "reachable": true,
+      "url": "http://localhost:8787",
+      "last_poll_info": null
+    },
+    "tape_db": {
+      "path": "/home/hatch/workspace/goals/0dte-tape-alert-watch/hidden_files/tape.db",
+      "snapshot_count": 679,
+      "latest_at": "2026-10-06T05:46:01.101928+00:00"
+    },
+    "journal": {
+      "path": "/home/hatch/workspace/goals/0dte-tape-alert-watch/hidden_files/maxpain_history.jsonl",
+      "record_count": 679,
+      "latest_at": "2026-10-06T05:46:01.101928+00:00"
+    }
+  },
+  "data_vintage": {
+    "latest_record_at": "2026-10-06T05:46:01.101928+00:00",
+    "market_hours": false,
+    "stale": true,
+    "stale_reason": "market closed; last record from session close"
+  }
+}
