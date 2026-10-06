@@ -79,7 +79,7 @@ a { color: var(--accent); }
 <h2>Provenance</h2>
 <div id="prov"></div>
 <p>Adapter: <code>live-g1/v1</code> · Backend pin: <code>8649ad54</code> ·
-UI pin: <code>e5a8a0ce</code></p>
+Delivery: <code>live-g1/delivery</code> (this page; base UI-G3 pin <code>e5a8a0ce</code>)</p>
 </section>
 
 <!-- EMBEDDED DATA: injected by build.py BEFORE the app script runs -->
@@ -126,12 +126,21 @@ const LIVE_G1 = {
   },
   // Frame identity: adapter payloads use `recorded_at`, not `snapshot_at`.
   // R3: parse to a UTC instant (timezone-aware); reject unparseable clocks.
+  // R4: require an EXPLICIT timezone designator. A clock like
+  // "2026-10-06T07:11:00" (no zone) is ambiguous — Date.parse treats it as
+  // local time, so the same payload means different instants in UTC vs
+  // America/New_York. Reject it without touching last-good/failure.
+  _hasExplicitZone(raw) {
+    // Z, or ±HH:MM / ±HHMM / ±HH at the end
+    return /(Z|[+-]\d{2}:?\d{2}|[+-]\d{2})$/.test(raw.trim());
+  },
   _frameTs(frame) {
     if (!frame || typeof frame !== 'object') return null;
     const raw = frame.recorded_at || frame.snapshot_at || null;
     if (typeof raw !== 'string' || !raw) return null;
+    if (!LIVE_G1._hasExplicitZone(raw)) return null;  // ambiguous: reject
     const ms = Date.parse(raw);
-    return isFinite(ms) ? ms : null;  // null = invalid clock, never accepted
+    return isFinite(ms) ? ms : null;
   },
   async refresh() {
     // Coalesce overlapping refreshes: if one is in flight, queue one more.
