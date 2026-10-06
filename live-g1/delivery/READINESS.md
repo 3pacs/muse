@@ -30,7 +30,19 @@ What is missing (precise prerequisites):
   DEPLOYED and serving the 0DTE trading dashboard (Oct 5 data, builder-generated).
   The LIVE-G1 delivery HTML is NOT yet deployed here — that requires the
   artifact edit + share described above.
+  **Source label**: the deployed page is builder-generated from
+  `dashboard_data.json`; it is NOT the `live-g1/delivery/` template.
+  These are different sources until the artifact is replaced.
 - **Demo route**: NOT deployed (no public URL). Built and ready; awaiting Anik.
+
+## Capture authenticity (honest limitations)
+- Captures in `delivery/captures/` are real `live_g1_adapter.py` output against
+  the live backend at build time (not synthetic fixtures).
+- Hashes in BUILD_RECEIPT prove the delivered HTML was built from THOSE
+  capture files. They do NOT prove the captures themselves are authentic
+  market data — that requires independent backend verification.
+- No hosted deployment of the delivery HTML exists; no deployment receipt
+  can be supplied until the artifact edit + share occurs.
 
 ## What this delivery does NOT claim
 - No live data feed: the delivered HTML embeds build-time captures.
