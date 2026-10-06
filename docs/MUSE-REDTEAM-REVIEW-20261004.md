@@ -23,11 +23,11 @@ The known date-only timezone guard failure and stale `READINESS.md` remain expli
 Seed **`0x4d555345` / `1297437509`**; browser fixtures/delays use the documented LCG in the helper, wrapper fixture data uses Python `random.Random` with the same seed. Inputs and nominal delays are reproducible; measured scheduler/network/render timings are observations, not bit-identical expected outputs.
 
 - At most **100 public refresh calls per burst**, including the owning call; at most **20,000 history records and 20,000 heatmap cells** per large fixture. Each mock JSON response is below **16 MiB**.
-- Isolated Chrome profile; external DNS disabled; every transport request locally intercepted. Browser runner has a **90-second watchdog**, Node old-space ceiling **512 MiB**, two-second page-control waits, and a **2,000 ms hang observation window** followed by explicit reviewer abort cleanup. This is not a universal two-second product timeout or a whole-Chrome RSS cap.
-- Actual wrapper `Handler` and `run_adapter` use an ephemeral **127.0.0.1** `HTTPServer`; a subclass changes request-error logging only. **All subprocess execution is stubbed**. At most **6 client threads / 12 requests per wrapper burst**, two-second client request timeouts, a 60-second suite bound, response read cap below 16 MiB. No production listener or real adapter process was started.
-- Final controller run: **5,512.34 ms**, **181 intercepted transport requests**, **5,742,664 response bytes**; largest response **3,160,570 bytes**. Wrapper run: **1,145.75 ms**, **28 stub calls**. Separate minimal public-controller verification: **905.41 ms**, reproducing the failures and a valid same-frame retry after malformed history.
+- Isolated Chrome profile; external DNS disabled; every transport request locally intercepted. Browser runner has a **90-second hard watchdog with one-second forced cleanup grace**, Node old-space ceiling **512 MiB**, two-second page-control waits, and a **2,000 ms hang observation window** followed by explicit reviewer abort cleanup. This is not a universal two-second product timeout or a whole-Chrome RSS cap.
+- Actual wrapper `Handler` and `run_adapter` use an ephemeral **127.0.0.1** `HTTPServer`; a subclass changes request-error logging only. **All subprocess execution is stubbed**. At most **6 client threads / 12 requests per wrapper burst**, two-second client request timeouts, a 60-second hard process watchdog, response read cap below 16 MiB. No production listener or real adapter process was started.
+- Final controller run: **5,666.07 ms**, **181 intercepted transport requests**, **5,742,664 response bytes**; largest response **3,160,570 bytes**. Wrapper run: **698.74 ms**, **28 stub calls**. Separate minimal public-controller verification: **1,251.21 ms**, reproducing the failures and a valid same-frame retry after malformed history.
 
-A first reviewer run accidentally used one owning plus 100 queued calls (101 total) for the hang case. The reviewer fixture was corrected to **one plus 99**, and the complete controller suite repeated; findings were unchanged. Initial receipt/source helper are preserved locally; final published helper and receipt below use the stated 100-call ceiling. No application code changed.
+A first reviewer run accidentally used one owning plus 100 queued calls (101 total) for the hang case. The reviewer fixture was corrected to **one plus 99**, and the complete controller suite repeated; findings were unchanged. Initial receipt/source helper are preserved locally; final published helper and receipt below use the stated 100-call ceiling. The runnable helpers then gained hard process watchdogs and a bounded wait for queued-drain issuance; all suites were rerun with the same outcomes. The separate verifier has a 15-second watchdog plus one-second cleanup grace. No application code changed.
 
 ### Actual controller workloads
 
@@ -46,7 +46,7 @@ A first reviewer run accidentally used one owning plus 100 queued calls (101 tot
 | C11 | Twelve clock refreshes across UTC, New York and Kolkata: equal offsets, missing zone, corrupt zone text | Pass: equal instants and invalid clocks retain accepted 800. Known date-only case is excluded here and stays separately tracked. |
 | C12 | 20,000 history rows plus actual `fetchHeatmap(20000)` with 20,000 cells | Pass: all rows retained in data, 12 visible table rows, pure getter, 1,178 explicit synthetic zero cells preserved. |
 
-Large browser history is **2,085,071 bytes**, heatmap **3,160,570 bytes**. C12 total workload took **619.67 ms**, including fixture generation/getter checks; the refresh portion was **166.73 ms**. The last Chrome metric snapshot reported **18,012,864 JS heap bytes** and `Nodes=24148`; this is not total/peak browser RSS or a leak proof, and retained DOM objects must not be confused with the **12 visible history rows**. No heatmap visualization/GPU performance was tested.
+Large browser history is **2,085,071 bytes**, heatmap **3,160,570 bytes**. C12 total workload took **534.90 ms**, including fixture generation/getter checks; the refresh portion was **148.44 ms**. The last Chrome metric snapshot reported **18,020,832 JS heap bytes** and `Nodes=24144`; this is not total/peak browser RSS or a leak proof, and retained DOM objects must not be confused with the **12 visible history rows**. No heatmap visualization/GPU performance was tested.
 
 ### Independently verified source failures
 
@@ -70,8 +70,8 @@ All **six workloads pass**, with real handler/CLI argument construction and fake
 
 | ID | Actual stimulus | Verified result / limit |
 | --- | --- | --- |
-| W01 | 12 requests, six client threads, one history stub delayed 180 ms plus seeded 0–10 ms jitter | All HTTP 200; stub concurrency one. Observed request latencies 15.86–234.55 ms and serial queueing; no live throughput/SLO claim. |
-| W02 | 20,000-row history and 20,000-cell heatmap stdout stubs | HTTP 200, exact Content-Length; **1,482,489** / **3,400,952 bytes**, **86.17** / **152.09 ms**. |
+| W01 | 12 requests, six client threads, one history stub delayed 180 ms plus seeded 0–10 ms jitter | All HTTP 200; stub concurrency one. Observed request latencies 10.72–231.82 ms and serial queueing; no live throughput/SLO claim. |
+| W02 | 20,000-row history and 20,000-cell heatmap stdout stubs | HTTP 200, exact Content-Length; **1,482,489** / **3,400,952 bytes**, **90.97** / **203.39 ms**. |
 | W03 | Nonzero exit with long stderr, injected `TimeoutExpired`, malformed stdout JSON | Bounded error HTTP 500; next request 200. Actual timeout argument is 30 seconds, but duration of a real stalled process was not measured. |
 | W04 | Six query inputs: negative, zero, nonnumeric, semicolon, NUL, huge integer | Separate argv/no shell verified. Negative/huge values are forwarded; no real large allocation or safe upper limit/pagination is proved. |
 | W05 | One failed route, next valid route, POST, unknown path | 500 then 200; POST 501 and unknown 404 without stub calls. |
@@ -110,7 +110,7 @@ node --max-old-space-size=512 verify-findings.mjs SOURCE_ROOT OUTPUT_DIR SOURCE_
 
 Source pin for these results is **`6ffff8ab6af60d90e624e3b1af333f6bbc2ca077`**. Helpers take source/output/commit positionally. They import/serve only isolated local candidate files, intercept browser requests and stub all wrapper subprocesses. Do not run the real provider/adapter collector or production server to reproduce them.
 
-Exact helper SHA-256 values: controller **`dc5ea521d0f501bbf34d00bbf596f0e3f7f3db48f7909e52a284521caf71cef2`**; wrapper **`965b876eb176001666fbedc5ee23382ded5006559f6cc32199bd5002f8175426`**; final independent reproduction **`6f5424cdf7b59956948c93140c53b893de7dcc16074d7345af85b076b68ef023`**.
+Exact helper SHA-256 values: controller **`4a8f3fdffe34c0b5607d002c1ef6fa2e96688557718fc7c1d5dc4605071d67ff`**; wrapper **`9f6017b7e017a0c1b704085d1f038d97eca99f35b4029a8d7c566fbfc72af610`**; final independent reproduction **`1f51a72bce386a2bd022c4237ddbf2dcd60d5232778fa0bc33e34d993cb7fb8e`**.
 
 
 #### controller-stress.mjs
@@ -137,7 +137,7 @@ function setPlan(...sets){plans=Object.fromEntries(['status','snapshot','history
 const profile=fs.mkdtempSync('/tmp/muse-offline-stress-');
 const browser=await puppeteer.launch({executablePath:'/opt/google/chrome/chrome',headless:true,userDataDir:profile,args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND']});
 const page=await browser.newPage();page.setDefaultTimeout(2000);
-const deadline=setTimeout(()=>{browser.close().catch(()=>{});},90000);
+const deadline=setTimeout(()=>{setTimeout(()=>{try{browser.process().kill('SIGKILL');}catch{}process.exit(124);},1000);browser.close().then(()=>process.exit(124),()=>process.exit(124));},90000);
 await page.evaluateOnNewDocument(()=>{const NativeDate=Date,fixed=NativeDate.parse('2026-10-07T07:11:10Z');class ReviewDate extends NativeDate{constructor(...args){super(...(args.length?args:[fixed]));}static now(){return fixed;}}window.Date=ReviewDate;window.__REVIEW_REJECTIONS__=[];window.addEventListener('unhandledrejection',e=>window.__REVIEW_REJECTIONS__.push(String(e.reason)));});
 await page.setRequestInterception(true);
 page.on('pageerror',e=>pageErrors.push(e.message));
@@ -150,7 +150,7 @@ async function run(id,category,fn){const start=performance.now();try{const r=awa
 try{
  await page.setViewport({width:1280,height:900});await page.goto(pathToFileURL(file).href,{waitUntil:'load'});
  await run('C01','burst_control',async()=>{await reset();setPlan({payload:payload(800,t0),delay:60},{payload:payload(900,t1),delay:40});await page.evaluate(async()=>{const owning=LIVE_G1.refresh();await Promise.all(Array.from({length:99},()=>LIVE_G1.refresh()));await owning;});const s=await state();return{pass:s.spot==='900.00'&&!s.refreshing&&!s.disabled&&['status','snapshot','history'].every(k=>counts[k]===2),workload:{calls:100,delays_ms:[60,40]},observed:{state:s,requestsPerRoute:{...counts},peakPerRoute:{...peak}}};});
- await run('C02','drain_policy_observation',async()=>{await reset();setPlan({payload:payload(800,t0),delay:50},{payload:payload(900,t1),delay:150});await page.evaluate(()=>{window.__stressOwner=LIVE_G1.refresh();for(let i=0;i<10;i++)LIVE_G1.refresh();});while(counts.snapshot<2)await new Promise(r=>setTimeout(r,5));await page.evaluate(async()=>{await Promise.all(Array.from({length:20},()=>LIVE_G1.refresh()));await window.__stressOwner;});const s=await state();return{pass:s.spot==='900.00'&&!s.refreshing&&counts.snapshot===2,workload:{initial_plus_queue_calls:11,calls_during_drain:20},observed:{state:s,requestsPerRoute:{...counts}},limitation:'Calls during the second drain acknowledge and do not create a third run; accepted existing policy, not counted as a failure.'};});
+ await run('C02','drain_policy_observation',async()=>{await reset();setPlan({payload:payload(800,t0),delay:50},{payload:payload(900,t1),delay:150});await page.evaluate(()=>{window.__stressOwner=LIVE_G1.refresh();for(let i=0;i<10;i++)LIVE_G1.refresh();});const drainWait=performance.now();while(counts.snapshot<2){if(performance.now()-drainWait>2000)throw new Error('queued drain not issued within reviewer observation bound');await new Promise(r=>setTimeout(r,5));}await page.evaluate(async()=>{await Promise.all(Array.from({length:20},()=>LIVE_G1.refresh()));await window.__stressOwner;});const s=await state();return{pass:s.spot==='900.00'&&!s.refreshing&&counts.snapshot===2,workload:{initial_plus_queue_calls:11,calls_during_drain:20},observed:{state:s,requestsPerRoute:{...counts}},limitation:'Calls during the second drain acknowledge and do not create a third run; accepted existing policy, not counted as a failure.'};});
  await run('C03','seeded_delayed_order_control',async()=>{await baseline();const trace=[];for(let i=0;i<8;i++){const a={payload:payload(810+i*2,new Date(Date.parse(t0)+(i*2+1)*1000).toISOString()),routes:{}},b={payload:payload(811+i*2,new Date(Date.parse(t0)+(i*2+2)*1000).toISOString()),routes:{}};for(const k of ['status','snapshot','history']){a.routes[k]={delay:5+rnd()%31};b.routes[k]={delay:5+rnd()%31};}setPlan(a,b);await page.evaluate(async()=>{const first=LIVE_G1.refresh();await LIVE_G1.refresh();await first;});trace.push({spot:(await state()).spot,counts:{...counts},delays:[a.routes,b.routes]});}return{pass:trace.every((r,i)=>r.spot===(811+i*2).toFixed(2)&&r.counts.snapshot===2),workload:{cycles:8,public_calls:16,seed},observed:{trace}};});
  await run('C04','early_partial_failure_control',async()=>{await baseline();setPlan({payload:payload(850,t1),routes:{status:{status:503,delay:1},snapshot:{delay:300},history:{delay:300}}},{payload:payload(900,t1),delay:20});await page.evaluate(async()=>{const first=LIVE_G1.refresh();await LIVE_G1.refresh();await first;});const settled=await state();await new Promise(r=>setTimeout(r,350));const late=await state();return{pass:late.spot==='900.00'&&!late.error&&!late.rejections.length,workload:{first_route_failure:503,residual_delay_ms:300,queued_success_delay_ms:20},observed:{settled,late,peakPerRoute:{...peak}},limitation:'Early Promise.all rejection leaves sibling requests in flight; peak per-route concurrency measured, late bodies must not mutate accepted state.'};});
  await run('C05','stalled_transport_availability',async()=>{await baseline();setPlan({payload:payload(850,t1),routes:{snapshot:{hang:true}}},{payload:payload(900,t1),delay:10});await page.evaluate(async()=>{window.__stressOwnerDone=false;window.__stressOwner=LIVE_G1.refresh().then(()=>window.__stressOwnerDone=true);await Promise.all(Array.from({length:99},()=>LIVE_G1.refresh()));});await new Promise(r=>setTimeout(r,2000));const blocked=await state();const completed=await page.evaluate(()=>window.__stressOwnerDone);const heldCount=held.length;for(const h of held.splice(0)){await h.r.abort('failed');active[h.k]--;}await page.evaluate(()=>window.__stressOwner);const afterCleanup=await state();return{pass:completed||!blocked.refreshing,workload:{hung_routes:1,queued_calls:99,observation_window_ms:2000,reviewer_abort_cleanup:true},observed:{blocked,owningCompleted:completed,held_requests:heldCount,afterCleanup},limitation:'Two seconds is the reviewer observation bound, not a production SLO. Source has no application deadline/AbortSignal; only reviewer abort demonstrated recovery.'};});
@@ -177,6 +177,7 @@ import concurrent.futures
 import hashlib
 import importlib.util
 import json
+import os
 import random
 import resource
 import socket
@@ -195,6 +196,7 @@ root=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else out/'source'
 pin=sys.argv[3] if len(sys.argv)>3 else '6ffff8ab6af60d90e624e3b1af333f6bbc2ca077'
 out.mkdir(parents=True,exist_ok=True)
 seed=0x4d555345; started=time.monotonic(); rng=random.Random(seed)
+watchdog=threading.Timer(60,lambda:os._exit(124));watchdog.daemon=True;watchdog.start()
 source=root/'live-g1/delivery/serve_adapter.py'
 spec=importlib.util.spec_from_file_location('muse_actual_stress_wrapper',source)
 wrapper=importlib.util.module_from_spec(spec);spec.loader.exec_module(wrapper)
@@ -296,7 +298,7 @@ try:
         return {'pass':r['status']==200,'workload':{'client_tcp_reset':1},'observed':{'next_status':r['status'],'server_errors':list(server_errors)},'limitation':'Client reset may log a request-handler exception; the isolated service must survive.'}
     run('W06',reset_and_alive)
 finally:
-    server.shutdown();server.server_close();thread.join(timeout=2);wrapper.subprocess.run=original
+    server.shutdown();server.server_close();thread.join(timeout=2);wrapper.subprocess.run=original;watchdog.cancel()
 
 receipt={'source_head':pin,'seed_hex':'0x4d555345','seed_decimal':seed,'actual_handler_and_run_adapter':True,'server_class':'HTTPServer (subclass captures request errors only)','ephemeral_loopback_only':True,'subprocess_stubbed':True,'provider_or_backend_calls':False,'limits':{'max_concurrent_clients':6,'max_requests_in_burst':12,'max_records_or_cells':20000,'payload_ceiling_bytes':16*1024*1024,'request_timeout_seconds':2,'global_wrapper_deadline_seconds':60},'elapsed_ms':round((time.monotonic()-started)*1000,2),'stub_calls':len(calls),'peak_stub_concurrency':peak,'python_max_rss_kib':resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,'results':results,'passes':sum(r['pass'] for r in results),'failures':sum(not r['pass'] for r in results),'harness_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
 (out/'wrapper-stress-results.json').write_text(json.dumps(receipt,indent=2)+'\n')
@@ -317,6 +319,7 @@ const captures=Object.fromEntries(['status','snapshot','history'].map(k=>[k,JSON
 const make=(value,ts)=>{const p=structuredClone(captures);p.snapshot.recorded_at=ts;p.snapshot.fields.spot.value=value;p.status.backend.interpreter.reachable=true;p.status.data_vintage.stale=false;p.status.data_vintage.latest_record_at=ts;p.history.records[0].spot=value;p.history.records[0].recorded_at=ts;return p;};
 let response=make(800,'2026-10-06T07:10:00Z'),hang=false,held=[];
 const profile=fs.mkdtempSync('/tmp/muse-findings-verification-'),browser=await puppeteer.launch({executablePath:'/opt/google/chrome/chrome',headless:true,userDataDir:profile,args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-sync','--host-resolver-rules=MAP * ~NOTFOUND']});
+const watchdog=setTimeout(()=>{setTimeout(()=>{try{browser.process().kill('SIGKILL');}catch{}process.exit(124);},1000);browser.close().then(()=>process.exit(124),()=>process.exit(124));},15000);
 const page=await browser.newPage(),trace=[],errors=[];await page.setRequestInterception(true);
 page.on('request',async r=>{if(r.url().startsWith('file:'))return r.continue();if(!r.url().startsWith('https://verification.invalid/'))return r.abort();const k=r.url().includes('snapshot')?'snapshot':r.url().includes('history')?'history':'status';if(hang&&k==='snapshot'){held.push(r);return;}try{await r.respond({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify(response[k])});}catch(e){errors.push(String(e));}});
 async function refresh(){return page.evaluate(async()=>{try{await window.LIVE_G1.refresh();return{rejected:false};}catch(e){return{rejected:true,message:e.message};}});}
@@ -326,7 +329,7 @@ const started=performance.now();
 try{
  for(const kind of ['history_object','fields_string','unsupported_envelope','disconnected_fresh']){await reset();response=make(900,'2026-10-06T07:11:00Z');if(kind==='history_object')response.history.records={broken:true};if(kind==='fields_string')response.snapshot.fields='broken';if(kind==='unsupported_envelope'){response.snapshot.adapter_version='unsupported/v99';response.snapshot.backend_pin='foreign-backend';response.history.adapter_version='unsupported/v99';}if(kind==='disconnected_fresh'){response.status.backend.interpreter.reachable=false;response.status.data_vintage.stale=false;}const outcome=await refresh();const observed=await state();let validSameFrameRetry=null;if(kind==='history_object'){response=make(900,'2026-10-06T07:11:00Z');validSameFrameRetry={outcome:await refresh(),observed:await state()};}trace.push({kind,outcome,observed,validSameFrameRetry});}
  await reset();hang=true;await page.evaluate(()=>{window.__verifyDone=false;window.__verifyOwner=LIVE_G1.refresh().then(()=>window.__verifyDone=true);});await new Promise(r=>setTimeout(r,500));trace.push({kind:'stalled_no_deadline',observation_ms:500,owningCompleted:await page.evaluate(()=>window.__verifyDone),observed:await state()});hang=false;for(const r of held.splice(0))await r.abort('failed');await page.evaluate(()=>window.__verifyOwner);
-}finally{for(const r of held.splice(0)){try{await r.abort('failed');}catch{}}await browser.close();fs.rmSync(profile,{recursive:true,force:true});}
+}finally{clearTimeout(watchdog);for(const r of held.splice(0)){try{await r.abort('failed');}catch{}}await browser.close();fs.rmSync(profile,{recursive:true,force:true});}
 const receipt={source_head:pin,actual_public_controller:true,local_synthetic_requests:true,provider_or_hosted_calls:false,elapsed_ms:Math.round((performance.now()-started)*100)/100,trace,errors,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};fs.writeFileSync(path.join(out,'findings-verification.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt,null,2));
 ```
 <!-- /MUSE-STRESS-VERIFY-FINDINGS-MJS -->
@@ -351,7 +354,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     "hang_observation_ms": 2000,
     "global_browser_deadline_ms": 90000
   },
-  "elapsed_ms": 5512.34,
+  "elapsed_ms": 5666.07,
   "request_count": 181,
   "response_bytes": 5742664,
   "max_payload_bytes_observed": 3160570,
@@ -359,7 +362,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C01",
       "category": "burst_control",
-      "elapsed_ms": 187.73,
+      "elapsed_ms": 217,
       "pass": true,
       "workload": {
         "calls": 100,
@@ -402,7 +405,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C02",
       "category": "drain_policy_observation",
-      "elapsed_ms": 261.82,
+      "elapsed_ms": 287.94,
       "pass": true,
       "workload": {
         "initial_plus_queue_calls": 11,
@@ -437,7 +440,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C03",
       "category": "seeded_delayed_order_control",
-      "elapsed_ms": 641.15,
+      "elapsed_ms": 647.71,
       "pass": true,
       "workload": {
         "cycles": 8,
@@ -716,7 +719,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C04",
       "category": "early_partial_failure_control",
-      "elapsed_ms": 420.14,
+      "elapsed_ms": 435.24,
       "pass": true,
       "workload": {
         "first_route_failure": 503,
@@ -768,7 +771,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C05",
       "category": "stalled_transport_availability",
-      "elapsed_ms": 2066.26,
+      "elapsed_ms": 2121.47,
       "pass": false,
       "workload": {
         "hung_routes": 1,
@@ -817,7 +820,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C06",
       "category": "disconnect_recovery_control",
-      "elapsed_ms": 61.47,
+      "elapsed_ms": 66.62,
       "pass": true,
       "workload": {
         "steps": [
@@ -880,7 +883,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C07",
       "category": "malformed_history_atomicity",
-      "elapsed_ms": 41.44,
+      "elapsed_ms": 51.77,
       "pass": false,
       "workload": {
         "history_records_type": "object",
@@ -913,7 +916,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C08",
       "category": "malformed_shape_and_json",
-      "elapsed_ms": 158.91,
+      "elapsed_ms": 136,
       "pass": false,
       "workload": {
         "invalid_fields": [
@@ -996,7 +999,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C09",
       "category": "inconsistent_envelope_versions",
-      "elapsed_ms": 51.07,
+      "elapsed_ms": 47.02,
       "pass": false,
       "workload": {
         "snapshot_and_history_version": "unsupported/v99",
@@ -1026,7 +1029,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C10",
       "category": "contradictory_status_quality",
-      "elapsed_ms": 56.02,
+      "elapsed_ms": 39.42,
       "pass": false,
       "workload": {
         "reachable": false,
@@ -1055,7 +1058,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C11",
       "category": "timezone_and_clock_control",
-      "elapsed_ms": 281.7,
+      "elapsed_ms": 272.19,
       "pass": true,
       "workload": {
         "browser_timezones": 3,
@@ -1310,7 +1313,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     {
       "id": "C12",
       "category": "large_history_and_heatmap_control",
-      "elapsed_ms": 619.67,
+      "elapsed_ms": 534.9,
       "pass": true,
       "workload": {
         "history_records": 20000,
@@ -1341,9 +1344,9 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
           "zeroCells": 1178,
           "pure": true
         },
-        "refresh_elapsed_ms": 166.73,
-        "JSHeapUsedSize": 18012864,
-        "DOMNodes": 24148
+        "refresh_elapsed_ms": 148.44,
+        "JSHeapUsedSize": 18020832,
+        "DOMNodes": 24144
       },
       "limitation": "Local parsing/rendering and getter only; no heatmap visualization or live performance/authenticity claim."
     }
@@ -1352,7 +1355,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
   "failures": 5,
   "page_errors": [],
   "mock_errors": [],
-  "harness_sha256": "dc5ea521d0f501bbf34d00bbf596f0e3f7f3db48f7909e52a284521caf71cef2"
+  "harness_sha256": "4a8f3fdffe34c0b5607d002c1ef6fa2e96688557718fc7c1d5dc4605071d67ff"
 }
 ```
 <!-- /MUSE-STRESS-CONTROLLER-STRESS-RESULTS-JSON -->
@@ -1378,14 +1381,14 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     "request_timeout_seconds": 2,
     "global_wrapper_deadline_seconds": 60
   },
-  "elapsed_ms": 1145.75,
+  "elapsed_ms": 698.74,
   "stub_calls": 28,
   "peak_stub_concurrency": 1,
   "python_max_rss_kib": 312908,
   "results": [
     {
       "id": "W01",
-      "elapsed_ms": 272.12,
+      "elapsed_ms": 264.96,
       "pass": true,
       "workload": {
         "requests": 12,
@@ -1409,18 +1412,18 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
           200
         ],
         "elapsed_ms": [
-          218.87,
-          223.05,
-          30.67,
-          15.86,
-          229.67,
-          234.55,
-          204.75,
-          212.49,
-          28.0,
-          34.03,
-          40.94,
-          37.6
+          217.81,
+          219.67,
+          228.82,
+          16.56,
+          218.3,
+          231.82,
+          10.72,
+          204.64,
+          23.61,
+          28.26,
+          34.19,
+          32.21
         ],
         "peak_stub_concurrency": 1,
         "subprocess_timeout_arguments": [
@@ -1431,7 +1434,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     },
     {
       "id": "W02",
-      "elapsed_ms": 309.77,
+      "elapsed_ms": 359.66,
       "pass": true,
       "workload": {
         "history_records": 20000,
@@ -1442,13 +1445,13 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
         "history": {
           "status": 200,
           "bytes": 1482489,
-          "elapsed_ms": 86.17,
+          "elapsed_ms": 90.97,
           "content_length": "1482489"
         },
         "heatmap": {
           "status": 200,
           "bytes": 3400952,
-          "elapsed_ms": 152.09,
+          "elapsed_ms": 203.39,
           "content_length": "3400952"
         }
       },
@@ -1456,7 +1459,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     },
     {
       "id": "W03",
-      "elapsed_ms": 3.08,
+      "elapsed_ms": 3.05,
       "pass": true,
       "workload": {
         "stub_failures": [
@@ -1473,21 +1476,21 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
             "status": 500,
             "error_length": 200,
             "error": "adapter failed: synthetic failure synthetic failure synthetic failure synthetic failure synthetic failure synthetic failure synthetic failure synthetic failure synthetic failure synthetic failure synt",
-            "elapsed_ms": 0.98
+            "elapsed_ms": 0.9
           },
           {
             "mode": "timeout",
             "status": 500,
             "error_length": 179,
             "error": "Command '['/usr/bin/python3', '/home/anik/Documents/Codex/2026-10-05/task-5/outputs/stress-live6ffff8ab/source/live-g1/live_g1_adapter.py', 'snapshot']' timed out after 30 seconds",
-            "elapsed_ms": 0.85
+            "elapsed_ms": 0.7
           },
           {
             "mode": "invalid_json",
             "status": 500,
             "error_length": 75,
             "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
-            "elapsed_ms": 0.6
+            "elapsed_ms": 0.64
           }
         ],
         "next_request_status": 200
@@ -1496,7 +1499,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     },
     {
       "id": "W04",
-      "elapsed_ms": 3.44,
+      "elapsed_ms": 9.23,
       "pass": true,
       "workload": {
         "query_values": 6
@@ -1586,7 +1589,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     },
     {
       "id": "W05",
-      "elapsed_ms": 2.1,
+      "elapsed_ms": 2.7,
       "pass": true,
       "workload": {
         "one_failed_route": true,
@@ -1604,7 +1607,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     },
     {
       "id": "W06",
-      "elapsed_ms": 51.23,
+      "elapsed_ms": 52.62,
       "pass": true,
       "workload": {
         "client_tcp_reset": 1
@@ -1620,7 +1623,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
   ],
   "passes": 6,
   "failures": 0,
-  "harness_sha256": "965b876eb176001666fbedc5ee23382ded5006559f6cc32199bd5002f8175426"
+  "harness_sha256": "9f6017b7e017a0c1b704085d1f038d97eca99f35b4029a8d7c566fbfc72af610"
 }
 ```
 <!-- /MUSE-STRESS-WRAPPER-STRESS-RESULTS-JSON -->
@@ -1634,7 +1637,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
   "actual_public_controller": true,
   "local_synthetic_requests": true,
   "provider_or_hosted_calls": false,
-  "elapsed_ms": 905.41,
+  "elapsed_ms": 1251.21,
   "trace": [
     {
       "kind": "history_object",
@@ -1743,7 +1746,7 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     }
   ],
   "errors": [],
-  "harness_sha256": "6f5424cdf7b59956948c93140c53b893de7dcc16074d7345af85b076b68ef023"
+  "harness_sha256": "1f51a72bce386a2bd022c4237ddbf2dcd60d5232778fa0bc33e34d993cb7fb8e"
 }
 ```
 <!-- /MUSE-STRESS-FINDINGS-VERIFICATION-JSON -->
@@ -1765,24 +1768,25 @@ const receipt={source_head:pin,actual_public_controller:true,local_synthetic_req
     "C10"
   ],
   "availability_observation": "C05: no application deadline, blocked at 2 seconds; not a production SLO",
-  "controller_elapsed_ms": 5512.34,
+  "controller_elapsed_ms": 5666.07,
   "intercepted_requests": 181,
   "response_bytes": 5742664,
   "wrapper_workloads": 6,
   "wrapper_passes": 6,
-  "wrapper_elapsed_ms": 1145.75,
+  "wrapper_elapsed_ms": 698.74,
   "wrapper_stub_calls": 28,
-  "independent_verification_ms": 905.41,
+  "independent_verification_ms": 1251.21,
   "seed_hex": "0x4d555345",
   "seed_decimal": 1297437509,
   "known_date_only_failure": "previous receipt preserved; excluded from new stress counts",
   "prior_acceptance": "23 browser, 22 adapter, 7 wrapper, deterministic 23,747-byte build preserved from unchanged immutable source",
   "test_hashes": {
-    "controller": "dc5ea521d0f501bbf34d00bbf596f0e3f7f3db48f7909e52a284521caf71cef2",
-    "wrapper": "965b876eb176001666fbedc5ee23382ded5006559f6cc32199bd5002f8175426",
-    "independent_repros": "6f5424cdf7b59956948c93140c53b893de7dcc16074d7345af85b076b68ef023"
+    "controller": "4a8f3fdffe34c0b5607d002c1ef6fa2e96688557718fc7c1d5dc4605071d67ff",
+    "wrapper": "9f6017b7e017a0c1b704085d1f038d97eca99f35b4029a8d7c566fbfc72af610",
+    "independent_repros": "1f51a72bce386a2bd022c4237ddbf2dcd60d5232778fa0bc33e34d993cb7fb8e"
   },
-  "malformed_history_valid_same_frame_retry": "independently reproduced: still throws and retains corrupt committed history"
+  "malformed_history_valid_same_frame_retry": "independently reproduced: still throws and retains corrupt committed history",
+  "hard_watchdogs": "browser 90 seconds plus one-second forced cleanup, wrapper 60 seconds, verifier 15 seconds plus one-second cleanup"
 }
 ```
 <!-- /MUSE-STRESS-STRESS-SUMMARY-JSON -->
