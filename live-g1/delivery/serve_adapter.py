@@ -55,6 +55,10 @@ class Handler(BaseHTTPRequestHandler):
                 q = parse_qs(u.query)
                 limit = q.get("limit", ["50"])[0]
                 self._json(run_adapter("history", "--limit", str(limit)))
+            elif u.path == "/adapter/v1/heatmap":
+                q = parse_qs(u.query)
+                limit = q.get("limit", ["50"])[0]
+                self._json(run_adapter("heatmap", "--limit", str(limit)))
             else:
                 self._json({"error": "not found"}, 404)
         except Exception as e:
