@@ -50,7 +50,8 @@ def main():
         "html_bytes_utf8": len(raw),
         "adapter_version": "live-g1/v1",
         "backend_pin": "8649ad54",
-        "ui_pin": "e5a8a0ce",
+        "base_ui_pin": "e5a8a0ce",  # UI-G3 base; this delivery extends it
+        "delivery": "live-g1/delivery",
         "lineage": {
             "template": "template.html",
             "template_sha256": sha256_file(template_path),
@@ -60,10 +61,11 @@ def main():
                 "history.json": sha256_file(history_p),
             },
             "capture_recipe": [
-                "python3 live_g1_adapter.py status > delivery/captures/status.json",
-                "python3 live_g1_adapter.py snapshot > delivery/captures/snapshot.json",
-                "python3 live_g1_adapter.py history --limit 20 > delivery/captures/history.json",
-                "python3 delivery/build.py",
+                "cd ~/workspace/live-g1/delivery",
+                "python3 ../live_g1_adapter.py status > captures/status.json",
+                "python3 ../live_g1_adapter.py snapshot > captures/snapshot.json",
+                "python3 ../live_g1_adapter.py history --limit 20 > captures/history.json",
+                "python3 build.py",
             ],
             "capture_clock": status.get("checked_at"),
             "build_clock": build_at,
