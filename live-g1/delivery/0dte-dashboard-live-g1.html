@@ -129,9 +129,13 @@ const LIVE_G1 = {
     return r !== null ? r : null; // no embedded heatmap; null when offline
   },
   // Frame identity: adapter payloads use `recorded_at`, not `snapshot_at`.
+  // R3: parse to a UTC instant (timezone-aware); reject unparseable clocks.
   _frameTs(frame) {
     if (!frame || typeof frame !== 'object') return null;
-    return frame.recorded_at || frame.snapshot_at || null;
+    const raw = frame.recorded_at || frame.snapshot_at || null;
+    if (typeof raw !== 'string' || !raw) return null;
+    const ms = Date.parse(raw);
+    return isFinite(ms) ? ms : null;  // null = invalid clock, never accepted
   },
   async refresh() {
     // Coalesce overlapping refreshes: if one is in flight, queue one more.
@@ -169,21 +173,28 @@ const LIVE_G1 = {
       ]);
       // Drop obsolete completions: a newer generation already finished.
       if (gen !== LIVE_G1._refreshGen) return;
-      // Frame identity on recorded_at: never let old/equal/invalid overwrite.
+      // R3: frame identity on parsed UTC instant; invalid clocks rejected.
+      // Failure state is retained until a GENUINELY NEWER VALIDATED frame lands.
       const oldTs = LIVE_G1._frameTs(window.__SNAPSHOT__);
       const newTs = LIVE_G1._frameTs(snapshot);
       const valid = snapshot && typeof snapshot === 'object' && snapshot.fields;
-      if (!valid) {
-        note.textContent = 'Invalid frame received — kept last good snapshot.';
-      } else if (newTs && oldTs && newTs <= oldTs) {
+      const clockOk = newTs !== null;
+      const isNewer = clockOk && (!oldTs || newTs > oldTs);
+      if (!valid || !clockOk) {
+        // Malformed frame or unparseable clock: preserve last-good tuple,
+        // retain existing failure/error state.
+        note.textContent = 'Invalid frame or clock — kept last good snapshot.';
+      } else if (!isNewer) {
+        // Old or equal: preserve last-good tuple, retain failure/error state.
         note.textContent = 'No newer data — kept last good snapshot.';
       } else {
+        // Genuinely newer validated tuple: accept and clear failure state.
         window.__STATUS__ = status; window.__SNAPSHOT__ = snapshot;
         window.__HISTORY__ = history;
         note.textContent = 'Refreshed from transport at ' + new Date().toISOString().slice(11,19) + 'Z.';
+        LIVE_G1.lastError = null;
+        LIVE_G1._transportFailed = false;
       }
-      LIVE_G1.lastError = null;
-      LIVE_G1._transportFailed = false;
       render(window.__SNAPSHOT__, window.__STATUS__);
     } catch (e) {
       // Drop obsolete errors too: a newer success already landed.
