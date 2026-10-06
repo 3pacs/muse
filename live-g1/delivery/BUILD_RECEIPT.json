@@ -1,26 +1,28 @@
 {
   "artifact": "0dte-dashboard-live-g1",
-  "built_at": "2026-10-06T07:52:36.308062+00:00",
-  "html_sha256": "c321726ababe93231e00c4640978599d7f71bf66d97d80a3048bcb4695917513",
-  "html_bytes_utf8": 23229,
+  "built_at": "2026-10-06T08:08:44.439036+00:00",
+  "html_sha256": "17e62caf939d79c1aa7aba243400b94922ad59e0a0df0843eb5fbd649c175ed6",
+  "html_bytes_utf8": 23747,
   "adapter_version": "live-g1/v1",
   "backend_pin": "8649ad54",
-  "ui_pin": "e5a8a0ce",
+  "base_ui_pin": "e5a8a0ce",
+  "delivery": "live-g1/delivery",
   "lineage": {
     "template": "template.html",
-    "template_sha256": "1d49e79da18c7719c6232ff9195c7ae56446bb71f2739c052ca991bb5363799b",
+    "template_sha256": "587b8717412994da005c9a40208226a1cbf15a32b6063077163bf71d91bbb6a6",
     "captures": {
       "status.json": "a77cb3894171f11fd9a3504fad841a7b5488cef1089e9238975391879e2da921",
       "snapshot.json": "92f049a8b17981e1b36cedb917193a54071a4fdf366ddf53c4c7dc0dec15111d",
       "history.json": "7b5cbcb25c0a39d48b09561d562a62e1eff9b0267cd80e8b219c81fedf8e1768"
     },
     "capture_recipe": [
-      "python3 live_g1_adapter.py status > delivery/captures/status.json",
-      "python3 live_g1_adapter.py snapshot > delivery/captures/snapshot.json",
-      "python3 live_g1_adapter.py history --limit 20 > delivery/captures/history.json",
-      "python3 delivery/build.py"
+      "cd ~/workspace/live-g1/delivery",
+      "python3 ../live_g1_adapter.py status > captures/status.json",
+      "python3 ../live_g1_adapter.py snapshot > captures/snapshot.json",
+      "python3 ../live_g1_adapter.py history --limit 20 > captures/history.json",
+      "python3 build.py"
     ],
     "capture_clock": "2026-10-06T05:49:48.885804+00:00",
-    "build_clock": "2026-10-06T07:52:36.308062+00:00"
+    "build_clock": "2026-10-06T08:08:44.439036+00:00"
   }
 }
