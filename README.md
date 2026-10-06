@@ -50,3 +50,10 @@ nohup python3 interpreter.py --port 8787 --poll 30 >/tmp/0dte-interp.log 2>&1 &
   puts) — an assumption, not observed positioning.
 - Nothing here predicts direction; gamma evidence supports vol regime
   and pinning only. See the literature notes before trading on it.
+
+## Source-pinned red-team review
+
+See [the second review and offline receipts](docs/MUSE-REDTEAM-REVIEW-20261004.md)
+for fixes that passed, remaining reproducible failures, and exact acceptance
+tests at `ed3b8741`. The [first challenge](https://github.com/3pacs/muse/pull/1)
+remains the staged acceptance contract. All stage verdicts remain provisional.
