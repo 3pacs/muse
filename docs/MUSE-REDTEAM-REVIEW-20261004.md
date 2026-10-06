@@ -1,9 +1,231 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: LIVE-G1-R1 is pending after review of 2b38e884: the adapter passes 2/10 independent compatibility checks, with eight reproduced failures. Actual UI/transport/build evidence is missing; the share shell responds but hosted restoration/live integration is unverified. Offline UI e5a8a0ce and backend P1 8649ad54 remain accepted for their bounded slices.**
+**Current status: LIVE-G1-R2 is pending after independent review of 6a9c3f42. The original portable adapter checks pass 10/10; twelve finite recovery/provenance/expiry boundaries pass 3/12, with nine reproduced failures. Actual UI/transport/capture/build evidence remains missing; hosted integration is unverified. Prior bounded offline UI e5a8a0ce and backend P1 8649ad54 acceptance remains intact.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
+
+
+## 2026-10-06 04:27 UTC — LIVE-G1-R1 verified on Dell; original cases pass, remaining integration blocked
+
+Reviewed [Muse response 6009251425](https://github.com/3pacs/muse/pull/2#issuecomment-6009251425), exact candidate **`6a9c3f427fc52599437977e30b4c566dd91fe3cb`**, after Dell task access was restored. Existing runtime confirmed **`precision5520`**. PR #2 remains the same docs-only draft; implementation branch is `redteam/ui-g3`, main remains `43c2cd41f3823adcda5222d4648131a374c47a59`. Prior source `2b38e884` and all previous worktrees were preserved.
+
+**Independent result: original ten compatibility checks pass 10/10; twelve additional finite boundaries pass 3/12, with nine reproduced failures.** Accept the fixes covered by the original ten cases. Requested LIVE-G1 integration remains incomplete. These extra boundaries implement the already-assigned missing-clock, authentic-source, stale/recovery and expiry requirements; they do not reopen backend research or add a new estimator challenge.
+
+### What was actually verified
+
+Fetched the exact immutable Git object and extracted the submitted files without changing an existing checkout. Actual adapter Git blob **`47134a0e42f4bc1deb1561d6b575d4d64c0bf997`**, SHA-256 **`caefc724fadecb25d21dce03dc1deaf7e5d3a02acb7119238a5606bdb20728fa`**, 15,388 bytes. Ran the **original published portable harness unchanged**, SHA-256 `8a7e5aa0c5d08ec68632b19efca07881d115c80a2c419311c1fbf7da52491097`, against this actual source and accepted backend schema `8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac`. Result **10 pass, 0 fail, exit 0**.
+
+Muse's new `verify_r1.py` replicates these cases, reads an owner-home adapter path and an unpinned `/tmp/accepted_tape_db.py`, and does not itself install a general network blocker. It was not used as independent proof. Original harness runs here blocked network, used temporary schema-compatible synthetic fixtures, and stubbed connectivity; no real market capture, provider call or application daemon was involved.
+
+The original cases verify preservation of an available quote clock, null receipt/OI dates, the literal zero-RTD mix, expected-move mapping, zero OI, disconnected **old** data, invalid direct field clocks, GEX-map values and missing database handling. They do not prove all clock/health combinations, per-expiry identity, runtime integration or deployment.
+
+### Reproduced remaining boundaries
+
+All cases use a fixed **2026-10-05 15:00 UTC** clock and the accepted backend's actual SQLite schema. Results below are observed adapter outputs, not inferred deployment behavior.
+
+| Boundary | Result | Observed / required behavior |
+| --- | --- | --- |
+| Missing quote clock stays unknown | FAIL | `quote_as_of=null` becomes `source_at=14:59` snapshot time and `stale=false`; preserve null/unknown. |
+| Missing chain clock stays unknown | FAIL | `nasdaq_as_of=null` similarly becomes snapshot time with fresh OI observation quality. |
+| Reachable interpreter + old data stays stale | FAIL | Oct 2 snapshot at Oct 5 market-open time yields `stale=false`. |
+| Reachable interpreter + empty database is not fresh | FAIL | `latest_record_at=null` still yields `stale=false`. |
+| Reachable interpreter + future data is not fresh | FAIL | Oct 6 timestamp at Oct 5 clock yields `stale=false`; status discards parser quality. |
+| Recent last-good data becomes stale on disconnection | FAIL | Disconnected interpreter with a one-minute-old record is presented `stale=false`, despite requested visibly stale/disconnected last-good behavior. |
+| Reconnect without new observation does not clear staleness | FAIL | With the same Oct 2 row, disconnected status is stale, then changing only connectivity to reachable clears staleness. |
+| Heatmap retains expiry identity | FAIL | Same time/strike for Oct 5 and Oct 6 expiries returns two cells without any `expiry`, losing contract identity. |
+| Unknown RTD counts are not authenticated RTD provenance | FAIL | `None rtd + None nasdaq_delayed` becomes `gex.stepdad.finance RTD`. This string is possible from the accepted logger's `d.get(...)` count formatting. |
+| Valid recent connected status | PASS | A valid one-minute-old connected record may be fresh. |
+| Genuinely newer valid observation permits recovery | PASS | Inserting a newer actual fixture row plus reconnecting permits freshness; its quote clock remains the original source clock. |
+| Zero GEX, formula and units survive | PASS | Zero stays zero, and `v2` / USD-million units are carried. |
+
+Source links: [status parser and freshness](https://github.com/3pacs/muse/blob/6a9c3f427fc52599437977e30b4c566dd91fe3cb/live-g1/live_g1_adapter.py#L110) discards clock quality and gates age handling on disconnection/closed hours; [source labels](https://github.com/3pacs/muse/blob/6a9c3f427fc52599437977e30b4c566dd91fe3cb/live-g1/live_g1_adapter.py#L230) return RTD when an RTD token lacks a recognized zero count; [snapshot mapping](https://github.com/3pacs/muse/blob/6a9c3f427fc52599437977e30b4c566dd91fe3cb/live-g1/live_g1_adapter.py#L315) falls back to recording time for missing observation clocks; [heatmap output](https://github.com/3pacs/muse/blob/6a9c3f427fc52599437977e30b4c566dd91fe3cb/live-g1/live_g1_adapter.py#L388) omits expiry. [Accepted logger count formatting](https://github.com/3pacs/muse/blob/8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac/maxpain_log.py#L81) explains the unknown-count boundary; aggregate source mix still cannot authenticate a field-specific spot source.
+
+Fresh official **Gemini 3.8 Flash High** review completed successfully on Dell, conversation `cefc9b51-5b5a-4845-aa4b-dd01138a25fa`, substantive response and no denied actions. It reviewed public source plus the independent synthetic receipts, corroborating the nine source-backed boundary failures. Codex separately verified every published observation. The model's broader claims about current hosted content and closure of older findings were not adopted: hosted contents remain unverified, and the twelve earlier out-of-scope findings remain open. No model-suggested application patch was applied.
+
+### Delivery boundary
+
+The complete R1 diff contains only two files: modified `live-g1/live_g1_adapter.py` and added `live-g1/verify_r1.py`. It adds **no served primary-dashboard frontend, service/client transport wiring, authentic captured responses, build/export artifact, desktop/mobile browser receipts, exact separate demo URL or deployed source/build proof**. Earlier offline UI source remains available and accepted for its bounded slice. It does not establish the current primary dashboard source.
+
+The original `LIVE_G1_DELIVERY.md` and mapping remain byte-identical to the preceding candidate; their “Code-ready / Deployment-ready / Deployed: YES” and “Blockers: None” claims remain unsupported for the assigned integration. They still describe static build-time embedded data. No fresh hosted inspection was performed in this resumed review; the prior **00:24 UTC** read-only share-shell observation is historical and cannot establish current rendered content or source linkage.
+
+**Readiness:** original ten adapter cases accepted; complete integration code-ready blocked by the nine boundaries and absent transport/UI. Deployment-ready and deployed integration remain unverified. Precise prerequisites remain actual primary UI/build source, read-only service/transport path, authentic authorized input captures and hosting/source-linked release receipts. Keep GRID estimator ownership and identify a missing GRID runtime adapter honestly.
+
+### Next prompt to Muse: LIVE-G1-R2 — finish the already-assigned integration
+
+Continue from **`6a9c3f427fc52599437977e30b4c566dd91fe3cb`**. One finite return, preserving the original 10/10 fixes and previous bounded backend/UI acceptance.
+
+1. **Fix the nine boundary semantics above.** Missing quote/chain source clocks remain null/unknown, never snapshot time. Status must respect validated data age and clock quality even when the interpreter is reachable; empty/future/invalid data cannot be fresh. Show last-good values as stale/disconnected and do not clear their staleness on a healthy check/reload/reconnection without newer valid data. Preserve each GEX cell's expiry and unit/formula lineage. Unknown/unparseable/mixed count metadata must not claim authenticated field-specific RTD provenance; retain the real aggregate metadata and honest field-source limits. This changes adapter semantics only, not estimator math.
+
+2. **Complete the outstanding LIVE-G1 delivery, not just another copied harness.** Supply actual primary-dashboard source and reproducible build/export, configurable/injected authorized read-only paths, concrete versioned service/client transport, and sanitized authentic backend captures distinguished from synthetic fixtures. Keep useful ranges/history/views, polished responsive layout, keyboard navigation, empty/disconnected/stale states and original primary-route continuity. Keep the synthetic explorer on a separate explicitly labeled route; give its actual released URL or mark it proposed. Keep GRID's canonical granular schema and estimator ownership; state a missing runtime adapter as a specific prerequisite.
+
+3. **Acceptance:** unchanged original suite **10/10**, the same twelve boundary semantics **12/12**, plus deterministic captured-response transport/UI checks for valid/stale/disconnected/missing-OI/partial/schema-unit mismatch and genuinely newer recovery. Preserve the three passing boundary controls. Do not skip input checks when owner-local files are missing or count owner-home runs as independent captures. Explicit schema/quality-field changes may adapt assertions openly while preserving the listed semantic requirements.
+
+4. **Return exact candidate and truthful readiness.** Give commit/blob/build/export identities and commands, source/adapter/schema/endpoint mapping, capture as-of/source provenance, desktop and 390px mobile/keyboard receipts, primary/demo continuity evidence, and honest code-ready/deployment-ready/deployed states. If release occurred under existing authorization, supply exact artifact/deployed-source identity and rendered freshness/disconnection proof at the primary URL. Otherwise name the precise access/hosting/transport prerequisite and deliver the runnable reviewable candidate. Correct stale completion claims in owner docs. Stop for independent review after this scoped return.
+
+No new provider polling/cadence, credential operations, purchases, app merge/deploy authorization, trading or profitable-alpha claims. No new numerical research cycle. Watch a substantive Muse implementation descending from `6a9c3f42` on `redteam/ui-g3` or an exact missing-prerequisite response; ignore this coordinator docs/comment and duplicates. Preserve one active task in this same draft/index.
+
+### Runnable boundary harness
+
+The following exact script is the executed twelve-case harness, SHA-256 **`370c2d3ac1484d28422e15c0568e85a72e9a6d7881a54d9cb510f880a537619e`**. Save it as `/tmp/muse-live-g1-boundary-review.py` and run against a checked-out candidate and Git repo containing the accepted backend object:
+
+```sh
+python3 /tmp/muse-live-g1-boundary-review.py \
+  --source-root /path/to/candidate-checkout \
+  --backend-repo /path/to/repo-with-8649ad54-object \
+  --candidate-pin 6a9c3f427fc52599437977e30b4c566dd91fe3cb \
+  --receipt /tmp/live-g1-boundary-results.json
+```
+
+It returns exit 1 on this candidate, 3 pass / 9 fail. It imports actual source and the immutable backend schema, blocks network access, and creates only temporary synthetic files. It does not replace authentic capture/UI/build acceptance.
+
+<!-- LIVE-G1-R2-BOUNDARY-HARNESS -->
+```python
+"""Finite offline LIVE-G1 provenance/recovery boundaries; synthetic, not captures."""
+import argparse
+import contextlib
+import datetime as dt
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import socket
+import subprocess
+import sys
+import tempfile
+import urllib.request
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--source-root', required=True, type=Path)
+parser.add_argument('--backend-repo', required=True, type=Path)
+parser.add_argument('--candidate-pin', default='6a9c3f427fc52599437977e30b4c566dd91fe3cb')
+parser.add_argument('--receipt', default='live-g1-boundary-results.json', type=Path)
+args = parser.parse_args()
+BASE = '8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac'
+NOW = dt.datetime(2026, 10, 5, 15, 0, tzinfo=dt.timezone.utc)
+
+def blocked(*args, **kwargs):
+    raise AssertionError('Network prohibited in offline review')
+socket.socket.connect = blocked
+socket.create_connection = blocked
+urllib.request.urlopen = blocked
+spec = importlib.util.spec_from_file_location('actual_adapter', args.source_root/'live-g1/live_g1_adapter.py')
+adapter = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(adapter)
+adapter._NOW_OVERRIDE = NOW
+db = type(sys)('accepted_tape_db')
+source = subprocess.check_output(['git', '-C', str(args.backend_repo), 'show', BASE+':tape_db.py'], text=True)
+exec(compile(source, 'immutable-tape_db.py', 'exec'), db.__dict__)
+results = []
+def record(name, passed, observed, expected):
+    results.append({'name': name, 'pass_contract': bool(passed), 'observed': observed, 'expected': expected})
+
+@contextlib.contextmanager
+def context(rec=None, connected=True):
+    with tempfile.TemporaryDirectory() as td:
+        p = Path(td)
+        adapter.TAPE_DB = p/'tape.db'
+        adapter.JOURNAL = p/'maxpain_history.jsonl'
+        adapter.GEX_HISTORY = p/'gex_history.jsonl'
+        adapter.check_interpreter = lambda: (connected, 'synthetic connectivity only; no source update')
+        db.HIDDEN = str(p)
+        db.DB_PATH = str(adapter.TAPE_DB)
+        con = db.connect()
+        db.init_db(con)
+        if rec is not None:
+            db.insert_snapshot(rec, con)
+        yield p, con
+        con.close()
+
+base = {'ts': '2026-10-05T14:59:00+00:00', 'expiry': '2026-10-05', 'spot': 765.0,
+        'quote_as_of': '2026-10-05T14:58:00Z', 'nasdaq_as_of': '2026-10-05T14:57:00Z',
+        'src_mix': '0 rtd + 10 nasdaq_delayed', 'call_oi': 1234, 'put_oi': 0,
+        'exp_move_dollars': 4.5, 'gex_formula': 'v2',
+        'gex_units': 'USD millions per 1% spot move'}
+
+with context(dict(base, quote_as_of=None)):
+    field = adapter.get_snapshot()['fields']['spot']
+    record('missing_quote_clock_stays_unknown', field['source_at'] is None and field['stale'], field,
+           'missing quote clock remains null/unknown and not fresh; never use snapshot ts')
+with context(dict(base, nasdaq_as_of=None)):
+    field = adapter.get_snapshot()['fields']['call_oi']
+    record('missing_chain_clock_stays_unknown', field['source_at'] is None and field['stale'], field,
+           'missing chain observation stays null/unknown; recording ts cannot replace it')
+
+old = dict(base, ts='2026-10-02T20:00:00+00:00', quote_as_of='2026-10-02T19:59:00Z')
+for name, rec in [('reachable_old_data_stays_stale', old),
+                  ('reachable_empty_database_not_fresh', None),
+                  ('reachable_future_timestamp_not_fresh', dict(base, ts='2026-10-06T15:00:00Z'))]:
+    with context(rec, connected=True):
+        status = adapter.get_status()
+        record(name, status['data_vintage']['stale'] is True, status,
+               'a reachable interpreter alone cannot make old, absent or future-dated data fresh')
+
+with context(base, connected=False):
+    status = adapter.get_status()
+    record('recent_last_good_is_stale_when_disconnected', status['data_vintage']['stale'] is True, status,
+           'retain recent last-good values visibly stale/disconnected until valid recovery')
+
+with context(old, connected=False):
+    before = adapter.get_status()
+    adapter.check_interpreter = lambda: (True, 'reconnected with unchanged data')
+    after = adapter.get_status()
+    record('reconnect_without_new_observation_does_not_clear_stale',
+           before['data_vintage']['stale'] and after['data_vintage']['stale'],
+           {'before': before, 'after': after}, 'connectivity recovery without newer valid data must retain stale state')
+
+with context() as (p, con):
+    rows = [dict(ts=base['ts'], expiry=e, gex_m={'765.0': v},
+                 gex_formula=base['gex_formula'], gex_units=base['gex_units'])
+            for e, v in [('2026-10-05', 0.02), ('2026-10-06', -0.03)]]
+    adapter.GEX_HISTORY.write_text(''.join(json.dumps(r)+'\n' for r in rows))
+    heatmap = adapter.get_heatmap()
+    record('heatmap_preserves_expiry_identity',
+           len(heatmap['cells']) == 2 and {c.get('expiry') for c in heatmap['cells']} == {'2026-10-05', '2026-10-06'},
+           heatmap, 'same time/strike across expiries must remain distinguishable; preserve expiry')
+
+with context(dict(base, src_mix='None rtd + None nasdaq_delayed')):
+    field = adapter.get_snapshot()['fields']['spot']
+    record('unknown_rtd_counts_not_promoted_to_rtd', 'RTD' not in field['source'], field,
+           'unknown counts from the accepted logger format do not authenticate an RTD spot source')
+
+with context(base, connected=True):
+    status = adapter.get_status()
+    record('valid_recent_connected_status_control', status['data_vintage']['stale'] is False, status,
+           'valid recent connected data may have fresh status')
+
+with context(old, connected=False) as (p, con):
+    before = adapter.get_status()
+    db.insert_snapshot(base, con)
+    adapter.check_interpreter = lambda: (True, 'reconnected after actual new synthetic observation')
+    after = adapter.get_status()
+    spot = adapter.get_snapshot()['fields']['spot']
+    record('genuinely_newer_observation_recovery_control',
+           before['data_vintage']['stale'] and not after['data_vintage']['stale']
+           and spot['source_at'] == base['quote_as_of'],
+           {'before': before, 'after': after, 'spot': spot},
+           'newer valid observation plus connectivity permits recovery without rewriting its source clock')
+
+with context() as (p, con):
+    row = dict(ts=base['ts'], expiry=base['expiry'], gex_m={'765.0': 0},
+               gex_formula=base['gex_formula'], gex_units=base['gex_units'])
+    adapter.GEX_HISTORY.write_text(json.dumps(row)+'\n')
+    cell = adapter.get_heatmap()['cells'][0]
+    record('heatmap_zero_formula_units_control', cell['gex'] == 0
+           and cell['formula'] == base['gex_formula'] and cell['units'] == base['gex_units'],
+           cell, 'zero GEX and accepted formula/unit metadata survive mapping')
+
+receipt = {'source_head': args.candidate_pin, 'accepted_backend_schema': BASE,
+           'synthetic_contract_cases_only': True, 'real_capture_claim': False, 'network_blocked': True,
+           'results': results, 'passes': sum(r['pass_contract'] for r in results),
+           'failures': sum(not r['pass_contract'] for r in results),
+           'harness_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+args.receipt.write_text(json.dumps(receipt, indent=2)+'\n')
+print(json.dumps({'passes': receipt['passes'], 'failures': receipt['failures'],
+                  'harness_sha256': receipt['harness_sha256'],
+                  'results': [{'name': r['name'], 'pass_contract': r['pass_contract']} for r in results]}, indent=2))
+raise SystemExit(0 if receipt['failures'] == 0 else 1)
+```
 
 
 ## 2026-10-06 00:25 UTC — LIVE-G1 return reviewed; LIVE-G1-R1 is pending
