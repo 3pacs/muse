@@ -109,7 +109,51 @@ const LIVE_G1 = {
   version: "live-g1/v1",
   transport: TRANSPORT,
   lastError: null,
+  _refreshGen: 0,      // generation counter: obsolete completions are dropped
+  _refreshing: false,   // serialization: overlapping refreshes coalesce
+  // Declared getters: pure, with embedded defaults when no transport.
+  async fetchStatus() {
+    const r = await TRANSPORT.get('/status');
+    return r !== null ? r : (window.__STATUS__ || null);
+  },
+  async fetchSnapshot() {
+    const r = await TRANSPORT.get('/snapshot');
+    return r !== null ? r : (window.__SNAPSHOT__ || null);
+  },
+  async fetchHistory(n) {
+    const r = await TRANSPORT.get('/history?limit=' + (n || 50));
+    return r !== null ? r : (window.__HISTORY__ || null);
+  },
+  async fetchHeatmap(n) {
+    const r = await TRANSPORT.get('/heatmap?limit=' + (n || 50));
+    return r !== null ? r : null; // no embedded heatmap; null when offline
+  },
+  // Frame identity: adapter payloads use `recorded_at`, not `snapshot_at`.
+  _frameTs(frame) {
+    if (!frame || typeof frame !== 'object') return null;
+    return frame.recorded_at || frame.snapshot_at || null;
+  },
   async refresh() {
+    // Coalesce overlapping refreshes: if one is in flight, queue one more.
+    if (LIVE_G1._refreshing) {
+      LIVE_G1._queued = true;
+      return;
+    }
+    LIVE_G1._refreshing = true;
+    try {
+      await LIVE_G1._doRefresh();
+      // Drain one queued refresh if requested during the run.
+      if (LIVE_G1._queued) {
+        LIVE_G1._queued = false;
+        await LIVE_G1._doRefresh();
+      }
+    } finally {
+      LIVE_G1._refreshing = false;
+      LIVE_G1._queued = false;
+    }
+  },
+  async _doRefresh() {
+    const gen = ++LIVE_G1._refreshGen;  // this run's generation
     const btn = document.getElementById('refresh-btn');
     const note = document.getElementById('refresh-note');
     if (!TRANSPORT.base) {
@@ -123,10 +167,15 @@ const LIVE_G1 = {
         TRANSPORT.get('/status'), TRANSPORT.get('/snapshot'),
         TRANSPORT.get('/history?limit=20'),
       ]);
-      // Compare snapshot identity: only replace if newer or different
-      const oldTs = (window.__SNAPSHOT__ || {}).snapshot_at;
-      const newTs = (snapshot || {}).snapshot_at;
-      if (newTs && oldTs && newTs <= oldTs) {
+      // Drop obsolete completions: a newer generation already finished.
+      if (gen !== LIVE_G1._refreshGen) return;
+      // Frame identity on recorded_at: never let old/equal/invalid overwrite.
+      const oldTs = LIVE_G1._frameTs(window.__SNAPSHOT__);
+      const newTs = LIVE_G1._frameTs(snapshot);
+      const valid = snapshot && typeof snapshot === 'object' && snapshot.fields;
+      if (!valid) {
+        note.textContent = 'Invalid frame received — kept last good snapshot.';
+      } else if (newTs && oldTs && newTs <= oldTs) {
         note.textContent = 'No newer data — kept last good snapshot.';
       } else {
         window.__STATUS__ = status; window.__SNAPSHOT__ = snapshot;
@@ -134,14 +183,17 @@ const LIVE_G1 = {
         note.textContent = 'Refreshed from transport at ' + new Date().toISOString().slice(11,19) + 'Z.';
       }
       LIVE_G1.lastError = null;
+      LIVE_G1._transportFailed = false;
       render(window.__SNAPSHOT__, window.__STATUS__);
     } catch (e) {
+      // Drop obsolete errors too: a newer success already landed.
+      if (gen !== LIVE_G1._refreshGen) return;
       LIVE_G1.lastError = String(e && e.message || e);
+      LIVE_G1._transportFailed = true;  // marks badges disconnected/stale
       note.textContent = 'Refresh failed: ' + LIVE_G1.lastError + ' — kept last good data.';
-      // Re-render to show honest error/stale state
       render(window.__SNAPSHOT__, window.__STATUS__);
     } finally {
-      btn.disabled = false;
+      if (gen === LIVE_G1._refreshGen) btn.disabled = false;
     }
   }
 };
@@ -185,9 +237,13 @@ function render(snapshot, status) {
   }
 
   // Connection + freshness: unknown when status missing, never false-fresh.
+  // After a transport failure, last-good data is marked disconnected/stale.
   const cb = document.getElementById('conn-badge');
   const fb = document.getElementById('fresh-badge');
-  if (!status || typeof status !== 'object') {
+  if (LIVE_G1._transportFailed) {
+    cb.textContent = 'disconnected'; cb.className = 'badge down';
+    fb.textContent = 'stale: transport failed'; fb.className = 'badge stale';
+  } else if (!status || typeof status !== 'object') {
     cb.textContent = 'unknown'; cb.className = 'badge unknown';
     fb.textContent = 'unknown'; fb.className = 'badge unknown';
   } else {
