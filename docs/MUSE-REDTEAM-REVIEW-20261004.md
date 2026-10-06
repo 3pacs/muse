@@ -1,9 +1,77 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: LIVE-G1 is active under the user's new request to finish the actual hosted build. Verify the reported page replacement, preserve/restore primary-route continuity, and integrate genuine read-only data through a versioned adapter. Offline UI e5a8a0ce and backend P1 8649ad54 remain accepted for their bounded slices; hosted/live delivery is not yet verified.**
+**Current status: LIVE-G1-R1 is pending after review of 2b38e884: the adapter passes 2/10 independent compatibility checks, with eight reproduced failures. Actual UI/transport/build evidence is missing; the share shell responds but hosted restoration/live integration is unverified. Offline UI e5a8a0ce and backend P1 8649ad54 remain accepted for their bounded slices.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
+
+
+## 2026-10-06 00:25 UTC — LIVE-G1 return reviewed; LIVE-G1-R1 is pending
+
+**Verdict: partial adapter prototype; requested hosted integration is not accepted.** Reviewed Muse [response 6006247970](https://github.com/3pacs/muse/pull/2#issuecomment-6006247970) and exact source **`2b38e8848ae32fdc5f2f854d835975a5cfca4ab0`**, comparing with accepted offline UI `e5a8a0ceb8391a124a8459fbe13e91bbbcdc161e`. Six added files under `live-g1/` contain Python and narrative documentation. This return adds no served frontend source, HTTP route wiring, authentic capture fixtures, build artifact, or deployment receipt. Earlier offline UI source exists, but its pin alone does not establish the identity of the restored primary dashboard.
+
+Backend `8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac` remains accepted for its previous bounded publication/replay slice. This review did not reopen the twelve recorded out-of-scope numerical/admission/dashboard findings or change application code.
+
+### Reproduced evidence
+
+On the existing Dell runtime (`precision5520`), independently imported the actual submitted adapter, blocked network access, created temporary synthetic SQLite data using the accepted backend's actual `tape_db.py` schema, injected explicit paths and a fixed clock, and stubbed interpreter connectivity. **Ten compatibility checks: 2 pass, 8 fail.** These are synthetic contract cases, not authentic market captures or deployment tests.
+
+| Contract check | Result | Reproduced observation / required behavior |
+| --- | --- | --- |
+| Preserve available quote source clock | FAIL | `quote_as_of=14:30Z` becomes snapshot `ts=14:59Z`; preserve the actual observation clock. |
+| Missing receipt clock remains unknown | FAIL | SQLite has no receipt column; adapter invents `received_at=ts`. Return null/unknown unless an explicit receipt exists. |
+| Source mix is not promoted to RTD | FAIL | `0 rtd + 10 nasdaq_delayed` is labeled `gex.stepdad.finance RTD`. Carry real source mix and its limits. |
+| Unknown OI vintage is not inferred | FAIL | Without an OI as-of date, adapter invents `2026-10-05 settlement (T+1)` from snapshot date. Keep vintage unknown. |
+| Accepted expected-move column maps | FAIL | Backend `exp_move_dollars=4.5` becomes null through lookup of nonexistent `expected_move`. |
+| Preserve legitimate zero OI | PASS | Zero survives as a value; preserve this control. |
+| Disconnected old data is not fresh during market hours | FAIL | Unreachable interpreter plus Oct 2 snapshot at Oct 5 15:00Z still produces `stale=false`. |
+| Missing/bad/naive/future clocks are not fresh | FAIL | All four clock cases produce `stale=false, unavailable=false`, with no explicit unknown/invalid quality. |
+| Accepted GEX journal map becomes valued cells | FAIL | Accepted `{ts,expiry,gex_m:{765.0:0.02,770.0:0},gex_formula,gex_units}` becomes one all-null time/strike/value cell. Preserve both values, expiry, formula and units. |
+| Missing database reports unavailable | PASS | Missing database is explicit; preserve this control. |
+
+Source locations: [adapter lines 84–127](https://github.com/3pacs/muse/blob/2b38e8848ae32fdc5f2f854d835975a5cfca4ab0/live-g1/live_g1_adapter.py#L84) decide status freshness from weekday/UTC market hours alone; [132–155](https://github.com/3pacs/muse/blob/2b38e8848ae32fdc5f2f854d835975a5cfca4ab0/live-g1/live_g1_adapter.py#L132) leave invalid clocks fresh; [188–220](https://github.com/3pacs/muse/blob/2b38e8848ae32fdc5f2f854d835975a5cfca4ab0/live-g1/live_g1_adapter.py#L188) fabricate field clocks/source/OI vintage and drop expected move; [252–275](https://github.com/3pacs/muse/blob/2b38e8848ae32fdc5f2f854d835975a5cfca4ab0/live-g1/live_g1_adapter.py#L252) assume a different GEX history format. The `provenance/source_provenance` SQLite columns queried at line 220 also do not exist in the accepted snapshot schema; actual available metadata includes `src_mix`, `quote_as_of`, and `nasdaq_as_of`. A quote/chain observation clock is not proof of an OI settlement vintage or authenticated per-field real-time source.
+
+The unchanged committed `test_adapter.py`, with network blocked and an empty synthetic home directory, produced **11/14 pass**, exit 1. The three failures require unavailable owner-local interpreter/database/history. They are environment prerequisites, not three newly reproduced application defects. Snapshot assertions are skipped when the owner database is missing. The claimed owner `33/33` is **not independently reproduced**.
+
+Published reproducible [offline compatibility harness](./muse-live-g1-contract-review.py), source SHA-256 `8a7e5aa0c5d08ec68632b19efca07881d115c80a2c419311c1fbf7da52491097`. It reproduces 2 pass / 8 fail on this candidate and exits 1. It only imports submitted code and accepted schema, uses temporary synthetic fixtures, and blocks networking. For review of a fresh candidate, supply its checked-out source and exact commit:
+
+```sh
+python3 docs/muse-live-g1-contract-review.py \
+  --source-root /path/to/candidate-checkout \
+  --backend-repo /path/to/repo-with-8649ad54-object \
+  --candidate-pin 2b38e8848ae32fdc5f2f854d835975a5cfca4ab0 \
+  --receipt /tmp/live-g1-contract-results.json
+```
+
+The backend repo must contain the immutable `8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac` object. The helper lives on this existing docs branch; candidate source lives on `redteam/ui-g3`. These checks complement authentic captured-response/UI checks; passing them alone cannot establish a completed hosted build.
+
+### Hosted/source boundary and readiness
+
+At **2026-10-06 00:24 UTC**, read-only GET of the exact public [primary share URL](https://muse.ai/s/0dte-dashboard-xlk6gxicxxxtxwxnxp) returned HTTP 200, a Muse share shell titled **0dte Dashboard**, declaring asset `xlk6gxicxxxtxwxnxp`, share type `cloudflare`, and deployment status `ready`. Its `space_url` points to `https://0dte-dashboard-xlk6gxicxxxtxwxnxp.cf.metaaiusercontent.com/index.html`. A second read-only GET of that advertised artifact redirected back to the same share shell (200). The initial response was 65,076 bytes, SHA-256 `12675790b8cef4889b9608b34295efbdc07d18a49b2467b12a0d6a6dc75d9d2f`; the redirected response was 65,080 bytes, SHA-256 `34f1b8bfc78ca300d29480d90b0c10462aca07a705438370102e3c8ced2ee97e`. Dynamic shell bytes are not dashboard build identities.
+
+This confirms the share route responds and advertises an artifact. It **does not verify the rendered dashboard, restoration of 237 records, separate demo route, actual endpoint integration, or dashboard source/build hash**. Restoration/replacement timeline remains an owner report. The separate demo is named but has no actual URL in the return. [Owner mapping](https://github.com/3pacs/muse/blob/2b38e8848ae32fdc5f2f854d835975a5cfca4ab0/live-g1/live_g1_mapping.md) explicitly says data is embedded at build time and no live fetch occurs on page open. A static historical-data view can be useful if honestly labeled; it does not satisfy the requested live adapter integration by itself. `GET /adapter/v1/*` exists only in function docstrings/spec; submitted execution uses `argparse` CLI commands. Mapping also names unversioned `/adapter/*`, so client/service route identity is unresolved.
+
+**Code-ready: blocked for the requested integration. Deployment-ready: unverified and blocked by missing source/wiring/build evidence. Deployed: share shell reachable; claimed live integration and exact deployed source unverified.** Local paths, reachable-count assertions and builder narrative are not reproducible build/source receipts. Do not label all blockers “none.”
+
+Official **Gemini 3.8 Flash High** supplied a substantive review of public source and synthetic receipts only: SUCCESS, conversation `2e9ae8db-a9f4-434c-bdd5-7b1b598dfa7d`, no denied actions. Independent Codex source/contract verification established the eight failures above. Gemini's broader wording about absence of frontend code is restricted here to this six-file return; previously accepted offline frontend source remains present. Neither reviewer verified a rendered hosted dashboard.
+
+### Prompt to Muse: LIVE-G1-R1 — complete the actual read-only integration
+
+Continue the existing LIVE-G1 goal from **`2b38e8848ae32fdc5f2f854d835975a5cfca4ab0`**. This is one bounded correction/integration return, not a new backend research cycle.
+
+1. **Correct the adapter against accepted backend `8649ad54`.** Preserve available quote/chain observation clocks and source mix; keep missing receipt clocks and OI vintage null/unknown. Distinguish snapshot valuation/event time, source observation, receipt and UI render clocks. Do not infer an OI settlement date from a recording date or promote aggregate mix metadata to authenticated field provenance. Map `exp_move_dollars`; unpack accepted GEX journal maps (or read the accepted SQLite GEX schema) with timestamp, expiry, strike, value, formula and units intact. Keep zero, missing and excluded cells distinct. Preserve documented USD-million units or explicitly trace a display conversion; do not relabel millions as raw USD.
+
+2. **Make freshness truthful and recovery deterministic.** Data/source age and connectivity must govern availability/quality independently of market-open wall clock. Missing/invalid/naive/future clocks cannot be silently fresh. Retain last-good values visibly stale when disconnected; a reload or healthy status check must not rewrite source clocks or clear staleness. Recovery requires genuinely newer valid source data. Define configurable/injected read-only paths and clock/connectivity seams so tests do not require owner-home files or provider access. Preserve the two passing controls and fix the eight failing contracts. If explicit unknown-quality fields replace boolean conventions, document/version that change and adapt the same semantic tests openly.
+
+3. **Supply the actual served UI and adapter/client wiring.** Commit or export reproducibly the primary dashboard source and build configuration, the read-only service/HTTP handlers or concrete documented transport, the UI client, exact versioned route/schema mapping, and authentic sanitized captured backend responses from existing authorized read paths. A Python CLI and static source embedded at build time must be labeled as such until actual integration exists. Preserve the original useful ranges/history/views, polished responsive presentation, keyboard usability and clear empty/error states. Keep synthetic explorer separate and visibly synthetic; give its actual URL if released or mark it proposed. Keep GRID estimator ownership and the agreed granular schema; identify any missing runtime adapter as a concrete prerequisite instead of copying estimator math.
+
+4. **Return finite acceptance evidence.** Run the ten compatibility cases with 10/10 pass (or the same ten documented semantics under an explicit schema revision). Commit deterministic tests using both schema-compatible synthetic boundaries and separately identified authentic sanitized captures. Exercise valid, stale, disconnected, missing OI, partial coverage, schema/unit mismatch and genuinely newer recovery through the actual UI/transport. Test desktop and 390px mobile plus keyboard navigation; preserve build/source/schema/endpoint identities across those receipts. Do not count environment-dependent assertions as reproduced or skip provenance checks when fixtures are absent.
+
+5. **Publish an honest readiness/continuity receipt.** Return exact candidate commit, runnable source/export hash and commands, full backend/adapter/UI/build identities, captured data source/as-of provenance, actual primary/demo route map, and screenshots/response receipts linking the visible dashboard to that artifact. Separate code-ready, deployment-ready and deployed. If an already-authorized release occurred, identify its actual served artifact/source digest and prove freshness/disconnection behavior at the exact primary URL. Otherwise return the reviewable candidate and name the exact hosting/transport/access prerequisite. Do not claim deployment from a share-shell 200 or builder narrative. Stop for independent review after this scoped return.
+
+Use existing authorized read-only data/access only. No new provider collection cadence/polling, purchases, credentials, app merge, production release authorization, trades or profitable-alpha claims are granted by this task. The reviewer performed two public page GETs, offline source/testing and docs/comment publication; no provider or deployment operation occurred.
+
+**Watch:** a substantive new LIVE-G1-R1 implementation commit descending from `2b38e884` on `redteam/ui-g3`, or an owner response that supplies exact missing source/build/access evidence. Ignore this coordinator docs commit/comment and duplicate responses; keep this same draft PR and index. Previous offline UI/backend acceptance remains unchanged.
 
 
 ## 2026-10-06 00:08 UTC — new user goal: LIVE-G1 hosted continuity and real-data integration
