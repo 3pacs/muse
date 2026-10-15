@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "day": "2026-01-05",
+  "generated_at": "2026-01-05T18:35:10+00:00",
+  "loaded_gun": {
+    "active": true,
+    "since_et": "2026-01-05 09:31",
+    "spot": 497.9,
+    "budget_left": 0.83,
+    "pin": 31.0,
+    "net_gex_m": -981.8,
+    "flip_dist": -1.72
+  },
+  "last_charm_trigger": {
+    "ts_et": "2026-01-05 10:11",
+    "spot": 496.4,
+    "charm_vel30": -12400
+  },
+  "stacks": [
+    {
+      "ts_utc": "2026-01-05T15:45:00+00:00",
+      "ts_et": "2026-01-05 10:45",
+      "symbol": "SPY",
+      "direction": "bear",
+      "spot": 499.36,
+      "detail": {
+        "path": "A",
+        "members": [
+          "lower_high@10:31",
+          "stoch_cross@10:40",
+          "macd_flip@10:45"
+        ]
+      }
+    },
+    {
+      "ts_utc": "2026-01-05T16:35:00+00:00",
+      "ts_et": "2026-01-05 11:35",
+      "symbol": "QQQ",
+      "direction": "bull",
+      "spot": 612.97,
+      "detail": {
+        "path": "B",
+        "members": [
+          "rsi_divergence@11:20",
+          "higher_low@11:35"
+        ]
+      }
+    }
+  ],
+  "extremes": [
+    {
+      "ts_utc": "2026-01-05T15:35:00+00:00",
+      "ts_et": "2026-01-05 10:35",
+      "symbol": "SPY",
+      "type": "vol_ignition",
+      "direction": "bull",
+      "spot": 498.53,
+      "detail": {
+        "vol": 1072955,
+        "mult": 12.2,
+        "mega": true,
+        "cluster": false,
+        "prints_60m": 1,
+        "at_lows": true,
+        "at_highs": false
+      }
+    },
+    {
+      "ts_utc": "2026-01-05T15:05:00+00:00",
+      "ts_et": "2026-01-05 10:05",
+      "symbol": "SPY",
+      "type": "vwap_stretch",
+      "direction": "bear",
+      "spot": 497.26,
+      "detail": {
+        "dev": -3.96,
+        "vwap": 501.22
+      }
+    }
+  ],
+  "_synthetic": true,
+  "_fixture": "feed_signals_success"
+}

@@ -1,0 +1,18 @@
+SYNTHETIC FIXTURE — SSE /stream sample. Values invented; frame format is
+exact: one `data: {json}\n\n` frame per push, every 30 s, no `id:` and no
+`event:` fields. The payload is the full /feed/all snapshot object
+(abridged here to top-level keys for readability).
+
+data: {"status": "ok", "updated_at": "2026-01-05T14:35:05+00:00", "market_open": true, "spot": 500.25, "expiry": "2026-01-05", "gamma": {"max_pain": 500.0, "call_wall": 505.0, "put_wall": 495.0}, "flow": {}, "vanna_charm": {}, "iv": {}, "positioning": {"pin_score": 55.0}}
+
+data: {"status": "ok", "updated_at": "2026-01-05T14:35:35+00:00", "market_open": true, "spot": 500.31, "expiry": "2026-01-05", "gamma": {"max_pain": 500.0, "call_wall": 505.0, "put_wall": 495.0}, "flow": {}, "vanna_charm": {}, "iv": {}, "positioning": {"pin_score": 55.4}}
+
+Reconnect / replay case:
+- The stream carries NO event ids and keeps NO replay buffer. On
+  disconnect (BrokenPipe/ConnectionReset are swallowed server-side), the
+  client reconnects and simply receives the CURRENT snapshot on the next
+  30 s tick. There is nothing to resume and nothing to backfill from the
+  stream itself; gap recovery is the consumer's problem (the 5-minute
+  logger + tape.db are the durable record).
+- A frame with {"status": "error", ...} is possible (e.g. the spot=0
+  pre-open case) and must be rendered as an error state, not stale data.

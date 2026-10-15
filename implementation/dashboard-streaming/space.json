@@ -1,0 +1,8 @@
+{
+  "runtime": "typescript",
+  "platformVersion": 25,
+  "entry": "client/dist/index.html",
+  "name": "0DTE Streaming Dashboard",
+  "slug": "0dte-streaming-dashboard",
+  "managedCronJobs": []
+}

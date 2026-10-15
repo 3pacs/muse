@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "error": "no quote in feed (spot=0)",
+  "updated_at": "2026-01-04T23:05:00+00:00",
+  "market_open": false,
+  "spot": 0,
+  "expiry": "2026-01-05",
+  "_synthetic": true,
+  "_fixture": "feed_all_error"
+}

@@ -1,0 +1,11 @@
+{
+  "status": "error",
+  "error": "unable to open database file",
+  "stacks": [],
+  "extremes": [],
+  "loaded_gun": {
+    "active": false
+  },
+  "_synthetic": true,
+  "_fixture": "feed_signals_error"
+}
