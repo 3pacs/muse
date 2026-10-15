@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: new source packet 5cd1e37d accepted for offline intake: 50 files, 48/48 checksums, 12 modules compile, supplied watcher/replay suites 12/12 + 50/50 (+ overlapping 27/27), and four synthetic signals-reader checks pass. New reference frontend boundary probes are 6/12; missing GEX becomes zero and invalid/future/naive clocks select live. Legacy null clustering is statically mislabeled isolated. Next task: ADOPT-F1 truthful frontend boundaries. Full SDK/self-host build and live/provenance claims remain unverified; prior 6ffff8ab findings stay separately scoped.**
+**Current status: ADOPT-F1 is accepted at e8274a1e. All 50 checksum entries match; pipeline bytes and passing compile/watcher/J1/signals checks are preserved. Original fixture regressions pass 12/12, additional probes 17/17, and 51 owner checks pass through a documented type-only execution adapter. Full native-TS entrypoint and SDK/React build remain unverified in this runtime. Next task: ADOPT-B1 dependency-locked offline build/fixture preview. No production, data-rights or empirical promotion is implied.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -8,6 +8,904 @@
 
 
 
+
+
+
+
+## 2026-10-15 — e8274a1e ADOPT-F1 bounded acceptance; advance offline build portability
+
+Reviewed substantive [Muse ADOPT-F1 response 6204367059](https://github.com/3pacs/muse/pull/2#issuecomment-6204367059), immutable **`e8274a1e93db780746e88a6938445abb1e14e880`**, on the existing implementation branch, against handoff `ad4e1000890345c0444e820d06c502a3745793cb`. **ADOPT-F1 is accepted for its three requested normalization/presentation boundaries.** Do not keep that task open or replace it with a numerical/calendar research cycle.
+
+### Verified scope, integrity and regressions
+
+Package now has **52 files**, with **50/50** SHA-256 entries matching; the two manifest files remain commit-anchored. The only changed paths from accepted intake `5cd1e37d` are the two dashboard sources, one boundary-test file, ADOPT-F1 note, TESTS and manifests. Every pipeline file is byte-identical to the accepted intake.
+
+Independent Python 3.14.4 checks on this exact pin again pass: **12 modules compile**, watcher **12/12**, full J1 replay **50/50**, earlier overlapping replay **27/27**, and four synthetic actual `build_signals()` database cases. The older 27 overlap the full suite; do not sum them as distinct independent coverage. Final guarded Python run took **616.56 ms**, with no socket/process calls or forbidden writes. No production DB/report, optional key utility, supervisor or provider was run.
+
+### Corrected boundaries independently verified
+
+- **Unknown versus zero GEX:** actual `mapStrikes` now retains null for missing/null/invalid values and preserves genuine zero. The schema is nullable; coverage counts zero as known. Actual full `normalize` produces the expected nulls and coverage counts. Source inspection confirms the chart excludes null-GEX rows and the table uses the nullable formatter. Coverage describes mapped packet rows, not proven full-market coverage.
+- **Clocks:** actual normalization rejects invalid, timezone-less and one-day-future inputs. The declared **120,000 ms** future-skew allowance is explicit; exact-boundary and one-millisecond-beyond tests behave accordingly. Client age/status helpers never select live for these unverifiable clocks; valid recent timestamps and accepted paused/down/closed/stale states remain intact. Aware offset equality and naive rejection pass under UTC, New York and Kolkata reviewer process timezone settings. Source-observation clocks remain separate from update receipts.
+- **Clustering:** actual pure `clusterState` returns clustering for true, isolated only for explicit false, unknown for null/missing. The component calls this helper and renders its unknown branch. Legacy tag normalization remains unchanged. This is helper execution plus inspected component wiring, not a full React DOM or hosted-browser claim.
+
+The **original twelve fixture checks now pass 12/12**, including the six previously failing GEX/clock cases and the six positive controls. Seventeen additional direct helper probes pass **17/17** (GEX, clocks, clustering, skew boundary and timezone behavior). These overlap in semantics and are not independent statistical evidence.
+
+### Owner tests and local runtime qualification
+
+The supplied test entrypoint was attempted unchanged. It reaches the first helper-presence checks, then this local Node **v22.22.1 build cannot import `.ts`** (`ERR_UNKNOWN_FILE_EXTENSION`; native TypeScript support is unavailable in this local runtime). This is a reviewer runtime capability limit, not a product assertion failure, and no install/download or alternate host was used.
+
+A published type-only execution adapter runs the actual marked production blocks with TypeScript annotations/assertions erased, retaining executable expressions. It executes the original **42 domain assertions unchanged**, plus the same **9 helper-presence checks**: **51/51 pass**. It separately executes the actual full normalizers/fetch functions with synthetic mock transport and fixed fixture clocks, and runs the original twelve checks and seventeen extra probes described above. No application source is patched. Adaptation of the reviewer harness to the new helper API preserved expected domain assertions; it is not claimed as an unmodified native-TS test run.
+
+The owner's `tsc --noEmit` receipt against their existing dependencies is **owner-reported, not independently reproduced here**. Full platform/SDK bundling, React DOM behavior and standalone self-host build remain **UNRUN**. The current reference still depends on an unprovided platform SDK and lacks a dependency lock; this already-recorded portability prerequisite is the next task, not a reason to withdraw bounded F1 acceptance.
+
+### One next task — ADOPT-B1 dependency-locked offline build and fixture preview
+
+Supply the smallest **source-only, reproducible offline build/preview packet** for the corrected reference, based on `e8274a1e`, in this same candidate lane:
+
+1. Declare exact runtime/compiler/dependency versions and lock the permitted dependencies. Provide a documented test/build entrypoint that does not silently assume this machine has native TypeScript loading or private absolute package paths.
+2. Where the platform SDK is unavailable for redistribution, use a clearly labeled **fixture-only platform boundary adapter** or a permitted standalone reference path. Do not publish an SDK without rights, request credentials, or disguise stubs as a working production integration.
+3. Supply a source-to-output hash manifest and an offline preview/test path using the existing success, last-session, error and legacy-tag fixtures. No provider/backend or hosted traffic; no production listener, deployment, host choice or real notifier.
+
+**Finite acceptance:** reproduce the F1 domain assertions and original twelve regressions; preserve the backend watcher/J1/signals checks; demonstrate missing GEX, genuine zero, unknown legacy clustering, bad/future clock status and independent signals failure in the compiled preview/view-state path. Produce build logs and exact output hashes, stating any component still unavailable. This is a build/fixture-composition slice, not a complete server migration or new estimator/scoring program. A portable TypeScript-capable toolchain is acceptable; custom type erasure is not a required product design.
+
+Prior `6ffff8ab` findings remain scoped to that separate non-ancestral candidate. This acceptance does not authorize runtime integration, production migration, provider polling, trading, canonical journal/scoring activation, empirical promotion, merge or deployment. Ownership/data-rights assertions, capture authenticity and hosted/source linkage remain separate evidence questions. Keep the same review owner and sole release controller.
+
+### Independent criticism and runnable verification
+
+Official Gemini 3.8 Flash High text-only criticism completed successfully in conversation **`fca7ff77-352d-421a-84c4-7e2c45e8b74c`**, without denied actions, and agreed with bounded acceptance. Codex independently verified source/manifest scope, normalizer/helper execution and wiring. Model statements that cached fallback or full UI behavior had been runtime-proved are not adopted; the SDK/action/DOM integration was not run. No model patch was applied and no new arbitrary clock/SLO threshold was introduced.
+
+Run in an isolated review copy whose `SOURCE_ROOT` contains `implementation/`:
+
+```bash
+python3 offline-checks.py SOURCE_ROOT OUTPUT_DIR e8274a1e93db780746e88a6938445abb1e14e880
+node review-boundaries.mjs SOURCE_ROOT OUTPUT_DIR
+```
+
+Python helper SHA-256 **`8736eb70ec012481b071c4f72369dd61cb526356868adb932765a5a0667d4c35`**; boundary adapter **`a633a6fd3a4ebac44dd1f0c48f66f57f455ac32dfeff3457a45ffbff5561fe98`**. Both are reviewer-only artifacts. The native owner entrypoint remains in the immutable package for TypeScript-capable runtimes.
+
+
+#### review-boundaries.mjs
+
+<!-- MUSE-E827-F1-REVIEW-BOUNDARIES-MJS -->
+```javascript
+// Type-only execution adapter for this pin; no application source is changed.
+import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';import crypto from 'node:crypto';
+process.env.TZ='UTC';
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),base=path.join(root,'implementation/dashboard-streaming');
+const server=fs.readFileSync(path.join(base,'server/src/actions.ts'),'utf8'),client=fs.readFileSync(path.join(base,'client/src/App.tsx'),'utf8'),owner=fs.readFileSync(path.join(base,'tests/boundaries.test.mjs'),'utf8');
+const block=s=>s.slice(s.indexOf('// === ADOPT-F1 PURE HELPERS'),s.indexOf('// === END ADOPT-F1 PURE HELPERS ==='));
+function erase(s){return s
+ .replace(/async function fetchFeed\(\): Promise<[\s\S]*?> \{/, 'async function fetchFeed() {')
+ .replace(/: Promise<SignalsPayload \| null>/g,'').replace(/: SignalsPayload\["(?:stacks|extremes)"\]/g,'').replace(/: SignalsPayload \| null/g,'')
+ .replace(/: LivePayload\["hedgeBuckets"\]/g,'').replace(/: LivePayload \| null/g,'').replace(/: [mc] is string/g,'')
+ .replace(/function strikeCoverage\([\s\S]*?\n\): \{[^\n]*\} \{/,'function strikeCoverage(rows) {')
+ .replace(/function selectConnStatus\(a: \{[\s\S]*?\}\): ConnStatus \{/,'function selectConnStatus(a) {')
+ .replace(/function clusterState\([\s\S]*?\): \{[^\n]*\} \{/,'function clusterState(cluster, prints60m) {')
+ .replace(/: Record<string, unknown>/g,'').replace(/ as Record<string, unknown>/g,'')
+ .replace(/: z\.infer<typeof (?:strikeGex|activityRow)>\[\]/g,'')
+ .replace(/: boolean \| null/g,'').replace(/: unknown/g,'').replace(/: number \| null/g,'').replace(/: string \| null/g,'').replace(/: (?:boolean|number|string)\b/g,'');}
+const NOW=Date.parse('2026-01-05T14:35:06Z');class FixedDate extends Date{constructor(...a){super(...(a.length?a:[NOW]));}static now(){return NOW;}}
+function load(code,exports,extra={}){const sandbox={Date:FixedDate,Number,Array,Object,Math,JSON,...extra};vm.createContext(sandbox);vm.runInContext(erase(code)+'\nthis.h={'+exports+'};',sandbox);return sandbox.h;}
+const serverBlock=block(server),clientBlock=block(client),S=load(serverBlock,'num,str,obj,mapStrikes,strikeCoverage,parseAwareInstant,updateClockAcceptable'),C=load(clientBlock,'parseAwareMs,feedAgeMs,selectConnStatus,clusterState');
+const ownerResults=[];const ownerSandbox={S,C,serverBlock,clientBlock,console:{log(){}},process:{exit(code){if(code)throw Error('owner assertions failed')}},check:(name,cond,detail='')=>ownerResults.push({name,pass:!!cond,detail})};vm.createContext(ownerSandbox);
+// Preserve every original owner assertion, including helper-presence checks.
+for(const fn of ['num','mapStrikes','strikeCoverage','parseAwareInstant','updateClockAcceptable'])ownerSandbox.check('server block exposes '+fn,serverBlock.includes('function '+fn));
+for(const fn of ['parseAwareMs','feedAgeMs','selectConnStatus','clusterState'])ownerSandbox.check('client block exposes '+fn,clientBlock.includes('function '+fn));
+let assertionText=owner.slice(owner.indexOf('// ---------------------------------------------------------------- GEX ----'),owner.lastIndexOf('\nconsole.log('));
+if(!assertionText||!assertionText.includes('cluster: missing tag'))throw Error('owner assertion slice changed');
+vm.runInContext(assertionText,ownerSandbox);
+const original=[];const check=(name,ok,observed)=>original.push({name,pass:!!ok,observed});
+for(const [kind,v]of [['zero',0],['missing',undefined],['null',null],['invalid','not-a-number']]){const r=S.mapStrikes([{strike:500,net_gex_m:v}])[0];check('original_gex_'+kind,kind==='zero'?r.netGexM===0:r.netGexM===null,{value:r.netGexM});}
+const state={paused:false,hasData:true,isError:false,showingStale:false,dataOk:true,marketOpen:true};
+for(const [kind,ts]of [['valid','2026-01-05T14:35:05+00:00'],['invalid','not-a-clock'],['future','2026-01-06T14:35:06Z'],['naive','2026-01-05T14:35:05']]){const allowed=S.updateClockAcceptable(ts,NOW),status=C.selectConnStatus({...state,ageMs:C.feedAgeMs(ts,NOW)});check('original_clock_'+kind,kind==='valid'?allowed&&status==='live':!allowed&&status!=='live',{allowed,status});}
+for(const [kind,c,n,want]of [['true',true,3,'clustering'],['false',false,1,'isolated'],['null',null,null,'unknown'],['missing',undefined,undefined,'unknown']]){const r=C.clusterState(c,n);check('cluster_'+kind,r.kind===want,{kind:r.kind,text:r.text});}
+// Explicit skew boundary and timezone equivalence, within the assigned clock contract.
+check('skew_exact_boundary',S.updateClockAcceptable(new Date(NOW+120000).toISOString(),NOW),{allowance_ms:120000});
+check('skew_over_boundary',!S.updateClockAcceptable(new Date(NOW+120001).toISOString(),NOW),{delta_ms:120001});
+for(const zone of ['UTC','America/New_York','Asia/Kolkata']){process.env.TZ=zone;check('aware_and_naive_'+zone,S.parseAwareInstant('2026-01-05T09:35:05-05:00')===Date.parse('2026-01-05T14:35:05Z')&&S.parseAwareInstant('2026-01-05T14:35:05')===null,{zone});}process.env.TZ='UTC';
+function extractFunction(name){const re=new RegExp('^(?:async )?function '+name+'\\(','m'),m=re.exec(server);if(!m)throw Error('missing helper '+name);const start=m.index,open=name==='fetchFeed'?server.indexOf('> {',start)+2:server.indexOf('{',start);let depth=0,quote=null,escape=false;for(let i=open;i<server.length;i++){const c=server[i];if(quote){if(escape)escape=false;else if(c==='\\')escape=true;else if(c===quote)quote=null;continue;}if(c==='"'||c==="'"||c==='`'){quote=c;continue;}if(c==='{')depth++;if(c==='}'&&--depth===0)return server.slice(start,i+1);}throw Error('unclosed helper '+name);}
+const fixture=n=>JSON.parse(fs.readFileSync(path.join(root,'implementation/fixtures',n+'.json'),'utf8'));let mock=fixture('feed_all_success'),fetchCalls=0;
+const extras=['boolOrNull','normalizeSignals','fetchSignals','mapActivity','normalize','fetchFeed'].map(extractFunction).join('\n');
+const N=load(serverBlock+'\n'+extras,'normalize,normalizeSignals,fetchFeed,fetchSignals',{AbortSignal,FEED_URLS:['https://offline.invalid/a','https://offline.invalid/b'],SIGNALS_URLS:['https://offline.invalid/s1','https://offline.invalid/s2'],fetch:async()=>{fetchCalls++;return{ok:true,status:200,json:async()=>structuredClone(mock)}}});
+const regression=[],reg=(name,pass,observed)=>regression.push({name,pass:!!pass,observed});const good=fixture('feed_all_success');
+mock=good;const success=await N.fetchFeed();reg('valid_feed_control',success.payload?.spot===good.spot,{spot:success.payload?.spot});
+mock=fixture('feed_all_error');const failed=await N.fetchFeed();reg('feed_error_control',!!failed.error,{error:!!failed.error});
+mock=fixture('feed_signals_error');reg('signals_error_control',(await N.fetchSignals())===null,{unavailable:true});
+const legacy=N.normalizeSignals(fixture('feed_signals_legacy_tags'));reg('legacy_missing_tags_control',legacy.extremes.filter(e=>e.type==='vol_ignition').every(e=>e.cluster===null&&e.mega===null),{unknownTagsPreserved:true});
+for(const[kind,v]of [['zero',0],['missing',undefined],['null',null],['invalid','not-a-number']]){const raw=structuredClone(good);raw.gamma.by_strike[0].net_gex_m=v;const n=N.normalize(raw),r=n.byStrike.find(r=>r.strike===raw.gamma.by_strike[0].strike);reg('original_normalize_gex_'+kind,kind==='zero'?r.netGexM===0:r.netGexM===null,{value:r.netGexM,coverage:n.strikeCoverage});}
+for(const[kind,ts]of [['valid',good.updated_at],['invalid','not-a-clock'],['future',new Date(NOW+86400000).toISOString()],['naive',good.updated_at.replace(/(?:Z|[+-]\d\d:\d\d)$/,'')]]){const raw=structuredClone(good);raw.updated_at=ts;raw.market_open=true;const n=N.normalize(raw),status=n?C.selectConnStatus({...state,ageMs:C.feedAgeMs(n.updatedAt,NOW)}):'rejected';reg('original_normalize_clock_'+kind,kind==='valid'?n!==null&&status==='live':n===null&&status!=='live',{admitted:n!==null,status});}
+
+const bindings={chart_filters_null:client.includes('.filter((s) => s.netGexM !== null)'),cluster_component_calls_helper:client.includes('clusterState(e.cluster, e.prints60m)'),status_component_calls_helpers:client.includes('feedAgeMs(display.updatedAt, nowMs)')&&client.includes('selectConnStatus({'),normalize_calls_clock_gate:server.includes('updateClockAcceptable(raw["updated_at"], Date.now())'),coverage_exposed:server.includes('strikeCoverage: strikeCoverage(byStrikeAll)')};
+const receipt={source_head:'e8274a1e93db780746e88a6938445abb1e14e880',runtime:process.version,unmodified_owner_entrypoint:'UNRUN beyond first import: local Node build has no native TypeScript loader',adapter:'Only TypeScript type syntax erased; original owner assertion text and production helper bodies executed',owner_assertions:ownerResults,owner_passes:ownerResults.filter(r=>r.pass).length,owner_failures:ownerResults.filter(r=>!r.pass).length,independent_probes:original,independent_passes:original.filter(r=>r.pass).length,independent_failures:original.filter(r=>!r.pass).length,original_fixture_regressions:regression,original_fixture_passes:regression.filter(r=>r.pass).length,original_fixture_failures:regression.filter(r=>!r.pass).length,mocked_fetch_calls:fetchCalls,production_bindings_static:bindings,full_react_sdk_build:'UNRUN',network_calls:0,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};fs.writeFileSync(path.join(out,'boundary-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({owner_passes:receipt.owner_passes,owner_failures:receipt.owner_failures,independent_passes:receipt.independent_passes,independent_failures:receipt.independent_failures,original_fixture_passes:receipt.original_fixture_passes,original_fixture_failures:receipt.original_fixture_failures,bindings,failedOriginal:regression.filter(r=>!r.pass),failedOwner:ownerResults.filter(r=>!r.pass),failedIndependent:original.filter(r=>!r.pass)},null,2));
+```
+<!-- /MUSE-E827-F1-REVIEW-BOUNDARIES-MJS -->
+
+#### offline-checks.py
+
+<!-- MUSE-E827-F1-OFFLINE-CHECKS-PY -->
+```python
+"""Offline compile and supplied test receipts; network/processes forbidden."""
+from pathlib import Path
+import contextlib
+import hashlib
+import importlib
+import io
+import json
+import os
+import py_compile
+import runpy
+import sys
+import tempfile
+import time
+import sqlite3
+from urllib.parse import urlsplit
+
+root=Path(sys.argv[1]).resolve();out=Path(sys.argv[2]).resolve();pipeline=root/'implementation/pipeline'
+scratch=tempfile.TemporaryDirectory(prefix='muse-intake-offline-');scratch_path=Path(scratch.name)
+tempfile.tempdir=str(scratch_path)
+violations=[]
+def audit(event,args):
+    if event.startswith('socket.') or event in {'subprocess.Popen','os.system','os.posix_spawn','os.fork','os.forkpty','os.exec','os.spawn'}:
+        violations.append(event);raise PermissionError('offline review forbids '+event)
+    if event=='sqlite3.connect' and args and args[0]!=':memory:':
+        p=Path(urlsplit(args[0]).path if str(args[0]).startswith('file:') else args[0]).resolve()
+        if not(p.is_relative_to(out) or p.is_relative_to(scratch_path)):
+            violations.append('sqlite3.connect outside review');raise PermissionError('database outside review')
+    if event=='open' and args and isinstance(args[0],(str,bytes,os.PathLike)):
+        path=Path(os.fsdecode(args[0])).resolve();mode=args[1];flags=args[2]
+        writing=(isinstance(mode,str) and any(c in mode for c in 'wax+')) or (isinstance(flags,int) and bool(flags&(os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC)))
+        if writing and not(path.is_relative_to(out) or path.is_relative_to(scratch_path)):
+            violations.append('write outside review');raise PermissionError('write outside review')
+sys.addaudithook(audit)
+sys.path.insert(0,str(pipeline))
+started=time.monotonic();results=[]
+modules=['interpreter.py','watcher.py','maxpain_log.py','tape_db.py','indicator_tracker.py','state_alerts.py','wall_tests.py','dashboard_build.py','ranges_today.py','maxpain_milestones.py','schwab_client.py','test_data_keys.py']
+for f in modules:py_compile.compile(str(pipeline/f),doraise=True)
+results.append({'name':'compile_12','pass':True,'modules':modules})
+# No production readers or optional key probes are run. Tests monkeypatch fetch.
+logger=importlib.import_module('maxpain_log')
+logger.FLOW_SNAP_PATH=str(scratch_path/'unasserted-flow.jsonl')
+for name in ['test_watcher_windows.py','tests/j1_replay_tests.py','j1_replay_tests.py']:
+    log=io.StringIO();start=time.monotonic();error=None
+    try:
+        with contextlib.redirect_stdout(log),contextlib.redirect_stderr(log):runpy.run_path(str(pipeline/name),run_name='__main__')
+    except SystemExit as e:
+        if e.code not in (None,0):error='SystemExit '+str(e.code)
+    except Exception as e:error=type(e).__name__+': '+str(e)
+    text=log.getvalue();(out/(name.replace('/','-')+'.log')).write_text(text)
+    results.append({'name':name,'pass':error is None,'elapsed_ms':round((time.monotonic()-start)*1000,2),'error':error,'pass_lines':sum(l.startswith('PASS ') for l in text.splitlines()),'fail_lines':sum(l.startswith('FAIL ') for l in text.splitlines()),'tail':text.splitlines()[-4:]})
+# Actual new read-only feed/signals function on a synthetic SQLite database.
+interpreter=importlib.import_module('interpreter')
+interpreter.TAPE_DB=str(scratch_path/'missing.db')
+missing=interpreter.build_signals()
+results.append({'name':'signals_missing_db','pass':missing.get('status')=='error' and not Path(interpreter.TAPE_DB).exists(),'observed_status':missing.get('status')})
+interpreter.TAPE_DB=str(scratch_path/'signals.db')
+with sqlite3.connect(interpreter.TAPE_DB) as c:
+    c.executescript("CREATE TABLE indicator_events(ts_utc TEXT,ts_et TEXT,day TEXT,type TEXT,symbol TEXT,direction TEXT,spot REAL,detail TEXT); CREATE TABLE state_events(ts_utc TEXT,ts_et TEXT,day TEXT,type TEXT,spot REAL,budget_left REAL,pin REAL,net_gex_m REAL,flip_dist REAL,charm_vel30 REAL);")
+empty=interpreter.build_signals()
+results.append({'name':'signals_empty_db','pass':empty.get('status')=='empty','observed_status':empty.get('status')})
+with sqlite3.connect(interpreter.TAPE_DB) as c:
+    for n in range(20):
+        c.execute('INSERT INTO indicator_events VALUES(?,?,?,?,?,?,?,?)',(f'2026-01-05T15:{n:02d}:00Z',f'2026-01-05 10:{n:02d}','2026-01-05','STACK','SYNTH','bull',500,json.dumps({'members':['synthetic_a','synthetic_b','synthetic_c']})))
+        c.execute('INSERT INTO indicator_events VALUES(?,?,?,?,?,?,?,?)',(f'2026-01-05T16:{n:02d}:00Z',f'2026-01-05 11:{n:02d}','2026-01-05','vol_ignition','SYNTH','bull',500,json.dumps({'vol':1000,'median30':200,'mult':5})))
+    c.execute('INSERT INTO state_events VALUES(?,?,?,?,?,?,?,?,?,?)',('2026-01-05T14:00:00Z','2026-01-05 09:00','2026-01-05','loaded_gun_on',500,.6,20,-1,-2,None))
+    c.execute('INSERT INTO state_events VALUES(?,?,?,?,?,?,?,?,?,?)',('2026-01-05T18:00:00Z','2026-01-05 13:00','2026-01-05','loaded_gun_off',500,.4,40,-1,-2,None))
+full=interpreter.build_signals()
+results.append({'name':'signals_saved_session_limits_legacy','pass':full.get('status')=='ok' and full.get('day')=='2026-01-05' and len(full.get('stacks',[]))==10 and len(full.get('extremes',[]))==15 and full['loaded_gun']['active'] is False and all('cluster' not in r['detail'] for r in full['extremes']),'observed':{'status':full.get('status'),'day':full.get('day'),'stacks':len(full.get('stacks',[])),'extremes':len(full.get('extremes',[])),'gun_active':full.get('loaded_gun',{}).get('active')}})
+with sqlite3.connect(interpreter.TAPE_DB) as c:c.execute('DROP TABLE state_events')
+broken=interpreter.build_signals()
+results.append({'name':'signals_bad_schema_isolated','pass':broken.get('status')=='error','observed_status':broken.get('status')})
+receipt={'source_head':sys.argv[3] if len(sys.argv)>3 else 'e8274a1e93db780746e88a6938445abb1e14e880','python':sys.version,'network_and_subprocess_blocked':True,'reports_over_runtime_db_run':False,'flow_path_redirected_to_review_scratch':True,'violations':violations,'results':results,'elapsed_ms':round((time.monotonic()-started)*1000,2),'harness_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+(out/'offline-checks-results.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps(receipt,indent=2));scratch.cleanup()
+```
+<!-- /MUSE-E827-F1-OFFLINE-CHECKS-PY -->
+
+#### boundary-results.json
+
+<!-- MUSE-E827-F1-BOUNDARY-RESULTS-JSON -->
+```json
+{
+  "source_head": "e8274a1e93db780746e88a6938445abb1e14e880",
+  "runtime": "v22.22.1",
+  "unmodified_owner_entrypoint": "UNRUN beyond first import: local Node build has no native TypeScript loader",
+  "adapter": "Only TypeScript type syntax erased; original owner assertion text and production helper bodies executed",
+  "owner_assertions": [
+    {
+      "name": "server block exposes num",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "server block exposes mapStrikes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "server block exposes strikeCoverage",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "server block exposes parseAwareInstant",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "server block exposes updateClockAcceptable",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "client block exposes parseAwareMs",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "client block exposes feedAgeMs",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "client block exposes selectConnStatus",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "client block exposes clusterState",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "gex: genuine zero preserved",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "gex: missing keys stay null (unavailable)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "gex: explicit nulls stay null",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "gex: non-numeric values stay null",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "gex: numeric string still parses (num contract)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "gex: strike-less row excluded, string strike parses",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "gex: coverage counts zero as known",
+      "pass": true,
+      "detail": "{\"total\":4,\"gexKnown\":2,\"gexMissing\":2}"
+    },
+    {
+      "name": "clock: aware Z accepted",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: aware +00:00 accepted",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: aware -05:00 accepted",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: timezone-less rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: garbage rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: empty rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: null rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: numeric rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: one day in the future rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: +60s inside explicit skew allowance",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: parseAwareInstant exact ms",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "clock: parseAwareInstant naive -> null",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "age: fresh aware frame",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "age: timezone-less -> null",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "age: garbage -> null",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "age: future +1 day -> null",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "age: future +60s clamps to 0",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "age: old frame exact",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: fresh + valid clock -> live",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: age 0 -> live",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: old age -> stale",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: unverifiable clock -> stale, never live",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: paused wins",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: no data -> down",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: query error -> down",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: showing stale snapshot -> down",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: action not ok -> down",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: market closed -> closed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: end-to-end future clock never live",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "status: end-to-end naive clock never live",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "cluster: true -> clustering with count",
+      "pass": true,
+      "detail": "⚠️ CLUSTERING (3 in last hour)"
+    },
+    {
+      "name": "cluster: true + unknown count -> clustering",
+      "pass": true,
+      "detail": "⚠️ CLUSTERING (count unknown)"
+    },
+    {
+      "name": "cluster: explicit false -> isolated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "cluster: legacy null -> unknown, NOT isolated",
+      "pass": true,
+      "detail": "clustering unknown (legacy row)"
+    },
+    {
+      "name": "cluster: missing tag -> unknown",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "owner_passes": 51,
+  "owner_failures": 0,
+  "independent_probes": [
+    {
+      "name": "original_gex_zero",
+      "pass": true,
+      "observed": {
+        "value": 0
+      }
+    },
+    {
+      "name": "original_gex_missing",
+      "pass": true,
+      "observed": {
+        "value": null
+      }
+    },
+    {
+      "name": "original_gex_null",
+      "pass": true,
+      "observed": {
+        "value": null
+      }
+    },
+    {
+      "name": "original_gex_invalid",
+      "pass": true,
+      "observed": {
+        "value": null
+      }
+    },
+    {
+      "name": "original_clock_valid",
+      "pass": true,
+      "observed": {
+        "allowed": true,
+        "status": "live"
+      }
+    },
+    {
+      "name": "original_clock_invalid",
+      "pass": true,
+      "observed": {
+        "allowed": false,
+        "status": "stale"
+      }
+    },
+    {
+      "name": "original_clock_future",
+      "pass": true,
+      "observed": {
+        "allowed": false,
+        "status": "stale"
+      }
+    },
+    {
+      "name": "original_clock_naive",
+      "pass": true,
+      "observed": {
+        "allowed": false,
+        "status": "stale"
+      }
+    },
+    {
+      "name": "cluster_true",
+      "pass": true,
+      "observed": {
+        "kind": "clustering",
+        "text": "⚠️ CLUSTERING (3 in last hour)"
+      }
+    },
+    {
+      "name": "cluster_false",
+      "pass": true,
+      "observed": {
+        "kind": "isolated",
+        "text": "isolated"
+      }
+    },
+    {
+      "name": "cluster_null",
+      "pass": true,
+      "observed": {
+        "kind": "unknown",
+        "text": "clustering unknown (legacy row)"
+      }
+    },
+    {
+      "name": "cluster_missing",
+      "pass": true,
+      "observed": {
+        "kind": "unknown",
+        "text": "clustering unknown (legacy row)"
+      }
+    },
+    {
+      "name": "skew_exact_boundary",
+      "pass": true,
+      "observed": {
+        "allowance_ms": 120000
+      }
+    },
+    {
+      "name": "skew_over_boundary",
+      "pass": true,
+      "observed": {
+        "delta_ms": 120001
+      }
+    },
+    {
+      "name": "aware_and_naive_UTC",
+      "pass": true,
+      "observed": {
+        "zone": "UTC"
+      }
+    },
+    {
+      "name": "aware_and_naive_America/New_York",
+      "pass": true,
+      "observed": {
+        "zone": "America/New_York"
+      }
+    },
+    {
+      "name": "aware_and_naive_Asia/Kolkata",
+      "pass": true,
+      "observed": {
+        "zone": "Asia/Kolkata"
+      }
+    }
+  ],
+  "independent_passes": 17,
+  "independent_failures": 0,
+  "original_fixture_regressions": [
+    {
+      "name": "valid_feed_control",
+      "pass": true,
+      "observed": {
+        "spot": 500.25
+      }
+    },
+    {
+      "name": "feed_error_control",
+      "pass": true,
+      "observed": {
+        "error": true
+      }
+    },
+    {
+      "name": "signals_error_control",
+      "pass": true,
+      "observed": {
+        "unavailable": true
+      }
+    },
+    {
+      "name": "legacy_missing_tags_control",
+      "pass": true,
+      "observed": {
+        "unknownTagsPreserved": true
+      }
+    },
+    {
+      "name": "original_normalize_gex_zero",
+      "pass": true,
+      "observed": {
+        "value": 0,
+        "coverage": {
+          "total": 2,
+          "gexKnown": 2,
+          "gexMissing": 0
+        }
+      }
+    },
+    {
+      "name": "original_normalize_gex_missing",
+      "pass": true,
+      "observed": {
+        "value": null,
+        "coverage": {
+          "total": 2,
+          "gexKnown": 1,
+          "gexMissing": 1
+        }
+      }
+    },
+    {
+      "name": "original_normalize_gex_null",
+      "pass": true,
+      "observed": {
+        "value": null,
+        "coverage": {
+          "total": 2,
+          "gexKnown": 1,
+          "gexMissing": 1
+        }
+      }
+    },
+    {
+      "name": "original_normalize_gex_invalid",
+      "pass": true,
+      "observed": {
+        "value": null,
+        "coverage": {
+          "total": 2,
+          "gexKnown": 1,
+          "gexMissing": 1
+        }
+      }
+    },
+    {
+      "name": "original_normalize_clock_valid",
+      "pass": true,
+      "observed": {
+        "admitted": true,
+        "status": "live"
+      }
+    },
+    {
+      "name": "original_normalize_clock_invalid",
+      "pass": true,
+      "observed": {
+        "admitted": false,
+        "status": "rejected"
+      }
+    },
+    {
+      "name": "original_normalize_clock_future",
+      "pass": true,
+      "observed": {
+        "admitted": false,
+        "status": "rejected"
+      }
+    },
+    {
+      "name": "original_normalize_clock_naive",
+      "pass": true,
+      "observed": {
+        "admitted": false,
+        "status": "rejected"
+      }
+    }
+  ],
+  "original_fixture_passes": 12,
+  "original_fixture_failures": 0,
+  "mocked_fetch_calls": 5,
+  "production_bindings_static": {
+    "chart_filters_null": true,
+    "cluster_component_calls_helper": true,
+    "status_component_calls_helpers": true,
+    "normalize_calls_clock_gate": true,
+    "coverage_exposed": true
+  },
+  "full_react_sdk_build": "UNRUN",
+  "network_calls": 0,
+  "harness_sha256": "a633a6fd3a4ebac44dd1f0c48f66f57f455ac32dfeff3457a45ffbff5561fe98"
+}
+```
+<!-- /MUSE-E827-F1-BOUNDARY-RESULTS-JSON -->
+
+#### offline-checks-results.json
+
+<!-- MUSE-E827-F1-OFFLINE-CHECKS-RESULTS-JSON -->
+```json
+{
+  "source_head": "e8274a1e93db780746e88a6938445abb1e14e880",
+  "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "network_and_subprocess_blocked": true,
+  "reports_over_runtime_db_run": false,
+  "flow_path_redirected_to_review_scratch": true,
+  "violations": [],
+  "results": [
+    {
+      "name": "compile_12",
+      "pass": true,
+      "modules": [
+        "interpreter.py",
+        "watcher.py",
+        "maxpain_log.py",
+        "tape_db.py",
+        "indicator_tracker.py",
+        "state_alerts.py",
+        "wall_tests.py",
+        "dashboard_build.py",
+        "ranges_today.py",
+        "maxpain_milestones.py",
+        "schwab_client.py",
+        "test_data_keys.py"
+      ]
+    },
+    {
+      "name": "test_watcher_windows.py",
+      "pass": true,
+      "elapsed_ms": 8.33,
+      "error": null,
+      "pass_lines": 12,
+      "fail_lines": 0,
+      "tail": [
+        "PASS down-15m fires: got=True want=True",
+        "PASS down-15m pct negative: got=True want=True",
+        "",
+        "0 failure(s)"
+      ]
+    },
+    {
+      "name": "tests/j1_replay_tests.py",
+      "pass": true,
+      "elapsed_ms": 345.72,
+      "error": null,
+      "pass_lines": 50,
+      "fail_lines": 0,
+      "tail": [
+        "already logged | ts=2026-10-05T19:59:00+00:00",
+        "PASS j1f_alias_insert_no_orphan",
+        "",
+        "50/50 pass"
+      ]
+    },
+    {
+      "name": "j1_replay_tests.py",
+      "pass": true,
+      "elapsed_ms": 164.71,
+      "error": null,
+      "pass_lines": 27,
+      "fail_lines": 0,
+      "tail": [
+        "already logged | ts=2026-10-05T19:59:00+00:00",
+        "PASS j1c_divergence_repaired",
+        "",
+        "27/27 pass"
+      ]
+    },
+    {
+      "name": "signals_missing_db",
+      "pass": true,
+      "observed_status": "error"
+    },
+    {
+      "name": "signals_empty_db",
+      "pass": true,
+      "observed_status": "empty"
+    },
+    {
+      "name": "signals_saved_session_limits_legacy",
+      "pass": true,
+      "observed": {
+        "status": "ok",
+        "day": "2026-01-05",
+        "stacks": 10,
+        "extremes": 15,
+        "gun_active": false
+      }
+    },
+    {
+      "name": "signals_bad_schema_isolated",
+      "pass": true,
+      "observed_status": "error"
+    }
+  ],
+  "elapsed_ms": 616.56,
+  "harness_sha256": "8736eb70ec012481b071c4f72369dd61cb526356868adb932765a5a0667d4c35"
+}
+```
+<!-- /MUSE-E827-F1-OFFLINE-CHECKS-RESULTS-JSON -->
+
+#### integrity.json
+
+<!-- MUSE-E827-F1-INTEGRITY-JSON -->
+```json
+{
+  "source_head": "e8274a1e93db780746e88a6938445abb1e14e880",
+  "files": 52,
+  "checksum_entries": 50,
+  "all_checksums_match": true,
+  "pipeline_bytes_unchanged": true,
+  "changed_files": [
+    "implementation/ADOPT-F1.md",
+    "implementation/MANIFEST.md",
+    "implementation/SHA256SUMS.txt",
+    "implementation/TESTS.md",
+    "implementation/dashboard-streaming/client/src/App.tsx",
+    "implementation/dashboard-streaming/server/src/actions.ts",
+    "implementation/dashboard-streaming/tests/boundaries.test.mjs"
+  ],
+  "unique_checksum_paths": 50,
+  "checksum_path_difference": []
+}
+```
+<!-- /MUSE-E827-F1-INTEGRITY-JSON -->
+
+#### summary.json
+
+<!-- MUSE-E827-F1-SUMMARY-JSON -->
+```json
+{
+  "source_head": "e8274a1e93db780746e88a6938445abb1e14e880",
+  "bounded_verdict": "ADOPT-F1 ACCEPTED",
+  "integrity": {
+    "source_head": "e8274a1e93db780746e88a6938445abb1e14e880",
+    "files": 52,
+    "checksum_entries": 50,
+    "all_checksums_match": true,
+    "pipeline_bytes_unchanged": true,
+    "changed_files": [
+      "implementation/ADOPT-F1.md",
+      "implementation/MANIFEST.md",
+      "implementation/SHA256SUMS.txt",
+      "implementation/TESTS.md",
+      "implementation/dashboard-streaming/client/src/App.tsx",
+      "implementation/dashboard-streaming/server/src/actions.ts",
+      "implementation/dashboard-streaming/tests/boundaries.test.mjs"
+    ]
+  },
+  "owner_assertions_via_type_only_adapter": {
+    "passes": 51,
+    "failures": 0
+  },
+  "original_fixture_regressions": {
+    "passes": 12,
+    "failures": 0
+  },
+  "additional_probes": {
+    "passes": 17,
+    "failures": 0
+  },
+  "counts_overlap": true,
+  "pipeline_all_checks_pass": true,
+  "pipeline_elapsed_ms": 616.56,
+  "native_ts_entrypoint": "LOCAL_RUNTIME_BLOCKED",
+  "full_sdk_react_build": "UNRUN",
+  "owner_tsc_receipt": "OWNER_REPORTED_NOT_INDEPENDENTLY_REPRODUCED",
+  "network_calls": 0,
+  "next_task": "ADOPT-B1 dependency-locked offline build and fixture preview",
+  "hashes": {
+    "review_boundaries": "a633a6fd3a4ebac44dd1f0c48f66f57f455ac32dfeff3457a45ffbff5561fe98",
+    "offline_checks": "8736eb70ec012481b071c4f72369dd61cb526356868adb932765a5a0667d4c35"
+  }
+}
+```
+<!-- /MUSE-E827-F1-SUMMARY-JSON -->
 
 
 
