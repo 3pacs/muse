@@ -364,14 +364,20 @@ const tooltipStyle = {
 // ---------------------------------------------------------------------------
 
 function GexChart({ live }: { live: Live }) {
-  const data = live.byStrike.map((s) => ({
-    strike: s.strike,
-    net: s.netGexM,
-  }));
+  // ADOPT-F1: strikes whose GEX is unavailable (null) are EXCLUDED from
+  // the chart — never drawn as zero-height bars pretending to be data.
+  // The coverage line under the chart states how many were excluded.
+  const data = live.byStrike
+    .filter((s) => s.netGexM !== null)
+    .map((s) => ({
+      strike: s.strike,
+      net: s.netGexM as number,
+    }));
   if (data.length === 0) {
-    return <p className="text-sm text-[var(--dim)]">No strike data in this snapshot.</p>;
+    return <p className="text-sm text-[var(--dim)]">No strike GEX data in this snapshot.</p>;
   }
   return (
+    <>
     <div className="h-56 w-full" aria-label="Net GEX by strike chart">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
@@ -407,6 +413,14 @@ function GexChart({ live }: { live: Live }) {
         </BarChart>
       </ResponsiveContainer>
     </div>
+    {live.strikeCoverage && live.strikeCoverage.gexMissing > 0 && (
+      <p className="mt-1 text-[11px] text-[var(--dim)]">
+        Strike GEX coverage: {live.strikeCoverage.gexKnown} of{" "}
+        {live.strikeCoverage.total} strikes reported —{" "}
+        {live.strikeCoverage.gexMissing} unavailable, excluded (not zeroed).
+      </p>
+    )}
+    </>
   );
 }
 
@@ -622,6 +636,7 @@ function SignalsPanel({
             <ul className="space-y-2 font-mono text-xs">
               {signals.extremes.map((e, i) => {
                 if (e.type === "vol_ignition") {
+                  const cs = clusterState(e.cluster, e.prints60m);
                   return (
                     <li
                       key={`${e.tsEt}-${e.symbol}-${e.type}-${i}`}
@@ -656,12 +671,12 @@ function SignalsPanel({
                         {e.atHighs === true && <span>at highs</span>}
                       </div>
                       <div className="mt-1">
-                        {e.cluster === true ? (
-                          <span style={{ color: "var(--amber)" }}>
-                            ⚠️ CLUSTERING ({fmtInt(e.prints60m)} in last hour)
-                          </span>
-                        ) : (
+                        {cs.kind === "clustering" ? (
+                          <span style={{ color: "var(--amber)" }}>{cs.text}</span>
+                        ) : cs.kind === "isolated" ? (
                           <span className="text-[var(--dim)]">isolated</span>
+                        ) : (
+                          <span className="text-[var(--dim)]">{cs.text}</span>
                         )}
                       </div>
                     </li>
@@ -696,6 +711,78 @@ function SignalsPanel({
 
 type ConnStatus = "live" | "stale" | "down" | "closed" | "paused";
 
+// === ADOPT-F1 PURE HELPERS =================================================
+// This block is extracted verbatim by tests/boundaries.test.mjs and run
+// offline. Keep it free of imports, hooks and I/O — pure view-state only.
+// ===========================================================================
+const STALE_AFTER_MS = 120_000;
+// Explicit clock-skew allowance: an updated_at up to this far ahead of the
+// local clock counts as skew; further out is a future-dated frame whose
+// clock cannot be trusted.
+const MAX_FUTURE_SKEW_MS = 120_000;
+// Timezone-aware ISO-8601 only (Z or ±hh:mm / ±hhmm). A timezone-less
+// string is rejected — the missing zone is never inferred from locale.
+const AWARE_TS_RE =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/;
+
+function parseAwareMs(v: unknown): number | null {
+  if (typeof v !== "string" || !AWARE_TS_RE.test(v)) return null;
+  const ms = Date.parse(v);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+// Age of a feed frame, or null when its clock is unverifiable (invalid,
+// timezone-less, or meaningfully in the future). Small negative ages
+// inside the skew allowance clamp to 0.
+function feedAgeMs(updatedAt: string, nowMs: number): number | null {
+  const ms = parseAwareMs(updatedAt);
+  if (ms === null) return null;
+  const age = nowMs - ms;
+  if (age < -MAX_FUTURE_SKEW_MS) return null;
+  return age < 0 ? 0 : age;
+}
+
+// Connection-status decision. ADOPT-F1: an unverifiable update clock
+// (ageMs === null) selects STALE, never LIVE.
+function selectConnStatus(a: {
+  paused: boolean;
+  hasData: boolean;
+  isError: boolean;
+  showingStale: boolean;
+  dataOk: boolean;
+  marketOpen: boolean | null;
+  ageMs: number | null;
+}): ConnStatus {
+  if (a.paused) return "paused";
+  if (!a.hasData || a.isError) return "down";
+  if (a.showingStale || !a.dataOk) return "down";
+  if (a.marketOpen === false) return "closed";
+  if (a.ageMs === null) return "stale";
+  if (a.ageMs > STALE_AFTER_MS) return "stale";
+  return "live";
+}
+
+// Print clustering has THREE truthful states. Legacy rows predate the
+// cluster tag: absence means unknown — only an explicit false may render
+// as "isolated".
+function clusterState(
+  cluster: boolean | null | undefined,
+  prints60m: number | null | undefined,
+): { kind: "clustering" | "isolated" | "unknown"; text: string } {
+  if (cluster === true) {
+    return {
+      kind: "clustering",
+      text:
+        prints60m !== null && prints60m !== undefined
+          ? "⚠️ CLUSTERING (" + prints60m + " in last hour)"
+          : "⚠️ CLUSTERING (count unknown)",
+    };
+  }
+  if (cluster === false) return { kind: "isolated", text: "isolated" };
+  return { kind: "unknown", text: "clustering unknown (legacy row)" };
+}
+// === END ADOPT-F1 PURE HELPERS ===
+
 export function App() {
   const [paused, setPaused] = useState(false);
   const query = useQuery({
@@ -718,19 +805,20 @@ export function App() {
   const display: Live | null = live ?? data?.staleSnapshot ?? null;
   const showingStale = live === null && display !== null;
   const nowMs = Date.now();
-  const ageMs = display ? nowMs - new Date(display.updatedAt).getTime() : null;
+  // ADOPT-F1: age comes from the aware-clock helper — an invalid,
+  // timezone-less or future-dated updatedAt yields null (unverifiable),
+  // and selectConnStatus maps that to STALE, never LIVE.
+  const ageMs = display ? feedAgeMs(display.updatedAt, nowMs) : null;
 
-  const status: ConnStatus = paused
-    ? "paused"
-    : !data || query.isError
-      ? "down"
-      : showingStale || !data.ok
-        ? "down"
-        : display && !display.marketOpen
-          ? "closed"
-          : ageMs !== null && ageMs > 120_000
-            ? "stale"
-            : "live";
+  const status: ConnStatus = selectConnStatus({
+    paused,
+    hasData: !!data,
+    isError: query.isError,
+    showingStale,
+    dataOk: data?.ok ?? false,
+    marketOpen: display ? display.marketOpen : null,
+    ageMs,
+  });
 
   const statusMeta: Record<
     ConnStatus,
@@ -1096,9 +1184,11 @@ export function App() {
                             className="py-1.5 text-right"
                             style={{
                               color:
-                                s.netGexM >= 0
-                                  ? "var(--gamma-pos)"
-                                  : "var(--gamma-neg)",
+                                s.netGexM === null
+                                  ? undefined
+                                  : s.netGexM >= 0
+                                    ? "var(--gamma-pos)"
+                                    : "var(--gamma-neg)",
                             }}
                           >
                             {fmt(s.netGexM, 0)}

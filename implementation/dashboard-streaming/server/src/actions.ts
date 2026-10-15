@@ -30,9 +30,12 @@ import * as schema from "./schema";
 
 const strikeGex = z.object({
   strike: z.number(),
-  netGexM: z.number(),
-  callGexM: z.number(),
-  putGexM: z.number(),
+  // ADOPT-F1: nullable on purpose — a strike whose GEX the feed did not
+  // report is "unavailable", never a fabricated 0. Genuine zeros reported
+  // by the feed remain 0.
+  netGexM: z.number().nullable(),
+  callGexM: z.number().nullable(),
+  putGexM: z.number().nullable(),
   src: z.string().nullable(),
 });
 
@@ -95,6 +98,15 @@ const livePayload = z.object({
   totalCharmK: z.number().nullable(),
   byStrike: z.array(strikeGex),
   topStrikes: z.array(strikeGex),
+  // ADOPT-F1: coverage evidence for byStrike — how many strikes carried a
+  // reported net GEX (genuine zeros count as known) vs unavailable.
+  strikeCoverage: z
+    .object({
+      total: z.number(),
+      gexKnown: z.number(),
+      gexMissing: z.number(),
+    })
+    .nullable(),
   elevatedActivity: z.array(activityRow),
   rtdStrikes: z.number().nullable(),
   nasdaqStrikes: z.number().nullable(),
@@ -302,6 +314,10 @@ const FEED_URLS = [
   "http://gex.stepdad.finance/feed/all",
 ];
 
+// === ADOPT-F1 PURE HELPERS =================================================
+// This block is extracted verbatim by tests/boundaries.test.mjs and run
+// offline. Keep it free of imports, module state and I/O.
+// ===========================================================================
 function num(v: unknown): number | null {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim() !== "") {
@@ -328,16 +344,56 @@ function mapStrikes(v: unknown): z.infer<typeof strikeGex>[] {
     const r = obj(row);
     const strike = num(r["strike"]);
     if (strike === null) continue;
+    // ADOPT-F1: missing/null/non-numeric GEX stays null (unavailable).
+    // Only a value the feed actually reported — including a genuine 0 —
+    // becomes a number. Never fabricate zero to fill the field.
     out.push({
       strike,
-      netGexM: num(r["net_gex_m"]) ?? 0,
-      callGexM: num(r["call_gex_m"]) ?? 0,
-      putGexM: num(r["put_gex_m"]) ?? 0,
+      netGexM: num(r["net_gex_m"]),
+      callGexM: num(r["call_gex_m"]),
+      putGexM: num(r["put_gex_m"]),
       src: str(r["src"]),
     });
   }
   return out;
 }
+
+// Coverage evidence for a mapped strike array: genuine zeros count as
+// known; only null (unreported/invalid) counts as missing.
+function strikeCoverage(
+  rows: { netGexM: number | null }[],
+): { total: number; gexKnown: number; gexMissing: number } {
+  let known = 0;
+  for (const r of rows) if (r.netGexM !== null) known += 1;
+  return { total: rows.length, gexKnown: known, gexMissing: rows.length - known };
+}
+
+// Explicit clock-skew allowance for the update (receipt) clock: an
+// updated_at up to this far ahead of our clock is treated as skew, not as
+// a future-dated frame. Anything further out is inadmissible.
+const MAX_FUTURE_SKEW_MS = 120_000;
+
+// Parse an ISO-8601 timestamp ONLY when it carries an explicit timezone
+// (Z or ±hh:mm / ±hhmm). A timezone-less string is rejected outright —
+// the missing zone is never inferred from the machine locale. Returns
+// epoch milliseconds, or null when invalid/naive.
+const AWARE_TS_RE =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/;
+function parseAwareInstant(v: unknown): number | null {
+  const s = str(v);
+  if (s === null || !AWARE_TS_RE.test(s)) return null;
+  const ms = Date.parse(s);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+// Admission rule for a feed frame's update clock: it must parse as an
+// aware instant and must not be meaningfully in the future.
+function updateClockAcceptable(v: unknown, nowMs: number): boolean {
+  const ms = parseAwareInstant(v);
+  if (ms === null) return false;
+  return ms - nowMs <= MAX_FUTURE_SKEW_MS;
+}
+// === END ADOPT-F1 PURE HELPERS ===
 
 function mapActivity(v: unknown): z.infer<typeof activityRow>[] {
   if (!Array.isArray(v)) return [];
@@ -361,7 +417,15 @@ function mapActivity(v: unknown): z.infer<typeof activityRow>[] {
 
 function normalize(raw: Record<string, unknown>): LivePayload | null {
   const updatedAt = str(raw["updated_at"]);
-  if (!updatedAt) return null;
+  // ADOPT-F1: the update (receipt) clock must be a valid timezone-aware
+  // timestamp and not meaningfully in the future. A naive, malformed or
+  // future-dated updated_at makes the whole frame inadmissible: normalize
+  // returns null and the caller keeps serving the last good snapshot
+  // rather than presenting this frame as LIVE. (quote_as_of below stays a
+  // separate source-observation clock and is not gated by this rule.)
+  if (!updatedAt || !updateClockAcceptable(raw["updated_at"], Date.now())) {
+    return null;
+  }
   const gamma = obj(raw["gamma"]);
   const positioning = obj(raw["positioning"]);
   const expectedMove = obj(positioning["expected_move"]);
@@ -445,6 +509,7 @@ function normalize(raw: Record<string, unknown>): LivePayload | null {
     totalCharmK: num(vc["total_charm_k"]),
     byStrike,
     topStrikes: mapStrikes(gamma["top_strikes"]).slice(0, 6),
+    strikeCoverage: strikeCoverage(byStrikeAll),
     elevatedActivity: mapActivity(flow["elevated_volume_activity"]),
     rtdStrikes: num(raw["n_strikes_rtd_live"]),
     nasdaqStrikes: num(raw["n_strikes_nasdaq_delayed"]),
