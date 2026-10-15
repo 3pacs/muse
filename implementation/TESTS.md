@@ -4,6 +4,26 @@ All runs executed 2026-10-15 against the **exact bytes in this
 package** (the staged tree that was hashed into SHA256SUMS.txt),
 Python 3, no network access required by any test.
 
+## ADOPT-F1 addition (dashboard boundary suite)
+
+```
+node implementation/dashboard-streaming/tests/boundaries.test.mjs
+→ 51 passed, 0 failed
+```
+
+The suite extracts the marked ADOPT-F1 pure-helper blocks verbatim from
+the production dashboard sources and asserts: GEX genuine-zero vs
+null/invalid preservation + coverage counts; server update-clock
+admission (aware/naive/garbage/future/explicit-skew); client age and
+the full status decision table (an unverifiable clock selects STALE,
+never LIVE); and the three print-clustering states (true/false/unknown).
+TypeScript compile integrity for the dashboard candidate: `tsc --noEmit`
+clean on the client and server projects (against the production
+install's dependency tree; the platform build itself remains UNRUN).
+Backend suites below were re-run unchanged at the ADOPT-F1 candidate:
+compile 12/12, watcher 12/12, J1 50/50, build_signals synthetic checks
+identical to the accepted intake pin. Change note: `ADOPT-F1.md`.
+
 | # | Command (from `implementation/pipeline/`) | Result |
 |---|---|---|
 | 1 | `python3 -m py_compile interpreter.py watcher.py maxpain_log.py tape_db.py indicator_tracker.py state_alerts.py wall_tests.py dashboard_build.py ranges_today.py maxpain_milestones.py schwab_client.py test_data_keys.py` | **OK** — all 12 modules compile |
