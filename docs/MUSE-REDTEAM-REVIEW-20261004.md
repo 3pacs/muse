@@ -1,12 +1,500 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: user-authorized offline stress at 6ffff8ab completed. Twelve controller workloads: 7 passing controls, 4 new data-integrity failures and 1 bounded stalled-request observation; six wrapper stress workloads pass. Prior 23/23 browser, 22/22 adapter, 7/7 wrapper and exact build acceptance remains. Next priority is STRESS-P1 validated atomic refresh admission. Known R4 date-only/readiness items remain separate; capture authenticity and hosted linkage are unverified.**
+**Current status: new source packet 5cd1e37d accepted for offline intake: 50 files, 48/48 checksums, 12 modules compile, supplied watcher/replay suites 12/12 + 50/50 (+ overlapping 27/27), and four synthetic signals-reader checks pass. New reference frontend boundary probes are 6/12; missing GEX becomes zero and invalid/future/naive clocks select live. Legacy null clustering is statically mislabeled isolated. Next task: ADOPT-F1 truthful frontend boundaries. Full SDK/self-host build and live/provenance claims remain unverified; prior 6ffff8ab findings stay separately scoped.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
 
 
 
+
+
+
+
+## 2026-10-15 — source intake 5cd1e37d verified; new reference dashboard needs truth-preserving admission
+
+New substantive [Muse response 6203440152](https://github.com/3pacs/muse/pull/2#issuecomment-6203440152), not our own source-request echo. Reviewed immutable **`5cd1e37df1f7dd4abee254e5a80b08d25e877fcb`**, branch `implementation/0dte-source-20261015`, root `implementation/`, on the existing authorized review runtime. This response supplies the missing implementation packet. **Accept source intake identity/completeness for offline review; do not repeat the missing-source request.** Same owner, same docs-only draft/index, no application merge/deployment or provider/data-collection action.
+
+### Verified intake and lineage
+
+Exactly **50 files** are added under `implementation/`; root application files are unchanged. Every **48/48** full SHA-256 checksum entries matches, with no missing/unexpected summed paths. `MANIFEST.md` and `SHA256SUMS.txt` are the two deliberately excluded, commit-anchored files. Manifest blob `fcb940fb12806f40f06cee3ec8af8932ef38697e`; sums blob `b5550ba5d0a560c002d73a51c8ab4eac7d12767a`. All six JSON fixtures explicitly carry `_synthetic: true`.
+
+Lineage explicitly descends from main **`43c2cd41`**, not the reviewed **`6ffff8ab`** delivery line. The export is a newly reviewable reference implementation, not proof of a deployment or an automatic transfer of earlier UI acceptance. The author's production/workspace history remains an owner statement. A closest file diff to `e201a45c` is not evidence that branch is an ancestor.
+
+Strong regression evidence: packaged `pipeline/tests/j1_replay_tests.py` is **byte-for-byte and AST-identical** to the accepted `8649ad54` test file, SHA-256 **`244aca93e9c568d6e520cf94ef8a20bdc9d9281b3ab1b50ec32a86fde4ceacff`**. Its results below are new executions against the packaged logger/database, not inherited pass claims.
+
+### Independent offline checks
+
+Python **3.14.4**, unmodified packaged source/tests, explicit audit denial of socket/process operations, scratch-only database/write paths:
+
+- **12/12 modules compile.** Optional key/probe modules are compiled only, never executed.
+- Watcher windows **12/12**, full J1 replay **50/50**, earlier overlapping replay copy **27/27** pass. Do not add the older 27 as distinct independent coverage of the newer 50.
+- Four extra actual `build_signals()` checks pass on disposable synthetic SQLite: missing DB returns error without creating it; empty schema returns empty; last saved session yields at most ten stacks/fifteen extremes and preserves absent legacy tags; broken schema returns error without escaping the endpoint.
+- Final Python runner elapsed **548.76 ms**, with **zero denied-I/O events**. It redirects the unasserted flow output to review scratch. Initial reviewer temp-directory construction was corrected to use that same scratch; no outside/production write was permitted.
+
+Owner report smokes against accumulated runtime DB and the omitted ad-hoc eight-case wall-break harness were **not** reproduced. No runtime database, optional credential utility, supervisor, service listener, notifier or provider was invoked. Passing compile/replay checks do not validate indicator profitability, speed arithmetic, a hosted page or the entire pipeline.
+
+### New reference frontend: precise reproduced boundaries
+
+Actual server source SHA-256 **`a18c3ca65c20b90ca3d64acd9cf0163bf88d2376317e40971fdae18f56a142fb`**; `App.tsx` SHA-256 **`40ad4559ab9290ff0342e190104f7f58bf338caf423eb1287d0fafc728a0afec`**.
+
+A focused Node harness executes the actual production helper bodies after removing TypeScript annotations/assertions only, and executes the exact extracted status-selection expression. It uses the supplied synthetic fixtures, five mocked fetches, no network, and a fixed fixture-relative clock in a reviewer-only UTC process. It is **not a full TypeScript compiler, SDK integration, React DOM or hosted-browser test**. Twelve boundary probes yield **6 pass / 6 fail**:
+
+| Boundary | Independently observed result |
+| --- | --- |
+| Normal success, explicit error and signals failure controls | Pass: normal fixture admitted; feed error unavailable; signals failure returns null independently. |
+| Genuine strike GEX zero | Pass: zero remains zero. |
+| Absent, null or nonnumeric strike GEX | **Three failures:** each becomes numeric zero. |
+| Recent aware update timestamp | Pass: one-second-old valid fixture can select live. |
+| `not-a-clock`, one-day future timestamp, timezone-less datetime | **Three failures:** each is admitted and selects `live`; invalid age is NaN, future age negative. |
+| Legacy missing print tags, normalization only | Pass: absent cluster/mega become null, not fabricated false. |
+
+The final row describes one of the six passing probes; it is not an extra thirteenth probe.
+
+[mapStrikes at lines 324–335](https://github.com/3pacs/muse/blob/5cd1e37df1f7dd4abee254e5a80b08d25e877fcb/implementation/dashboard-streaming/server/src/actions.ts#L324) uses `num(...) ?? 0`, collapsing missing/invalid values into genuine zero. [normalize at lines 362–364](https://github.com/3pacs/muse/blob/5cd1e37df1f7dd4abee254e5a80b08d25e877fcb/implementation/dashboard-streaming/server/src/actions.ts#L362) only requires a nonempty update string. [The client status selector](https://github.com/3pacs/muse/blob/5cd1e37df1f7dd4abee254e5a80b08d25e877fcb/implementation/dashboard-streaming/client/src/App.tsx#L720) falls through to live when NaN or negative age fails its sole upper-age comparison. No arbitrary tiny clock-skew threshold is imposed by this review; the synthetic future case is a full day ahead.
+
+**Additional source-traced UI defect:** actual `normalizeSignals` maps legacy `cluster` to null, but [App.tsx lines 659–664](https://github.com/3pacs/muse/blob/5cd1e37df1f7dd4abee254e5a80b08d25e877fcb/implementation/dashboard-streaming/client/src/App.tsx#L659) has `cluster === true ? clustering : isolated`. Null therefore selects “isolated,” contradicting the handoff's unknown-tag requirement. This is verified normalization plus static JSX branch tracing, **not a claimed rendered DOM observation** and not included as a seventh runtime failure.
+
+### Packaging, provenance and separate holds
+
+The React/server-action reference depends on an unprovided platform SDK local tarball; no dependency lock is included. Full frontend build and platform behavior remain **UNRUN**; no installation or dependency download was attempted. The owner explicitly distinguishes this reference from the self-host page specification. Accept that distinction; missing standalone build evidence is a separate portability prerequisite, not a reason to claim the source bundle was not delivered.
+
+Ownership/source descriptions, dependency-license references and personal-display data rights have been supplied as declarations. They are not independent redistribution/license verification or authentic saved-runtime evidence. Limited literal-secret-pattern screening found no obvious literals; optional key utilities/environment probes were not executed, and this is not a complete secret audit.
+
+Earlier `6ffff8ab` bounded acceptance and R4/STRESS-P1 findings remain scoped to that separate candidate. Do not claim its specific DOM/queue behavior reproduces in this new React code or that those findings are globally cleared. Existing backend/math research holds, conditional GRID #821/#822 arithmetic bounds, hypothetical inventory and separate empirical promotion gates remain intact. No full numerical re-audit or profitability claim is made here.
+
+### One next task — ADOPT-F1 truthful reference-dashboard boundaries
+
+Modify only the candidate's normalization/display boundary and its offline tests:
+
+1. Preserve real GEX zero, while absent/null/invalid strike GEX remains unavailable or explicitly excluded with coverage evidence. Do not silently fabricate zero to satisfy a non-null schema.
+2. Validate aware update clocks and handle invalid/meaningfully future timestamps as unknown/stale/rejected, never live. Any clock-skew allowance must be explicit; do not infer a missing timezone from machine locale. Keep source observation clocks distinct from update receipts.
+3. Render print clustering as true/false/unknown: only explicit false can say “isolated.” Preserve the passing legacy normalizer and other absent-tag semantics.
+
+**Finite pass/fail acceptance:** preserve all six passing frontend boundary controls and make the six failing cases pass. Add actual presentation/pure view-state assertions for cluster true, false and missing/null, retaining the source-traced legacy regression without pretending our current helper is a React DOM suite. Preserve independent signals-failure isolation, the 12 watcher and full 50 J1 checks, compile integrity and synthetic-fixture labels. A refactor may expose pure production helpers for a portable offline test entrypoint; keep the expected domain assertions, rather than retaining this pin-specific type-erasure mechanism at all costs.
+
+Supply a new immutable candidate, updated manifest and runnable offline test receipt in this same thread/branch. Do not request publication of unavailable proprietary/platform dependencies, credentials, provider data collection, application merge or deployment. Dependency-locked self-host portability/build evidence is the following separate task after truthful data handling, not an implicit install instruction now. Do not reopen the entire numerical or empirical research program to fix these finite presentation cases.
+
+### Independent criticism and runnable evidence
+
+Official Gemini 3.8 Flash High text-only criticism completed successfully in conversation **`b7840d8c-080b-4249-a978-783536f40f49`**, without denied actions. Codex independently verified source hashes, test lineage, runtime helper results and JSX lines. Model mistakes were corrected: actual Python is 3.14.4; excluded files are `MANIFEST.md` and `SHA256SUMS.txt`; closest-source diffs do not establish `e201a45c` ancestry; separate prior bugs are not automatically absent; and sequential timeout totals do not prove TanStack query queue buildup. No unsupported supervisor/SIGKILL or live-deployment conclusions are adopted, and no model patch was applied.
+
+Run these reviewers only against an isolated source copy under the output/review directory:
+
+```bash
+python3 offline-checks.py SOURCE_ROOT OUTPUT_DIR
+node frontend-boundaries.mjs SOURCE_ROOT OUTPUT_DIR
+```
+
+`SOURCE_ROOT` contains `implementation/`. The Python runner writes only review/scratch paths and denies network/process APIs. The Node runner uses synthetic mock transport and exact source-body extraction; no SDK or provider is loaded. Helper hashes: Python **`05e770a68fdf24a4765f2ba7f34402b92d988de3820d390ff64f0f48f3c4b215`**; Node **`e945c2e3565f9b30dd8ca7b6f4d2f2115f0e6f84f127e0f4c2cc7c752546690c`**.
+
+
+#### offline-checks.py
+
+<!-- MUSE-INTAKE-5CD1-OFFLINE-CHECKS-PY -->
+```python
+"""Offline compile and supplied test receipts; network/processes forbidden."""
+from pathlib import Path
+import contextlib
+import hashlib
+import importlib
+import io
+import json
+import os
+import py_compile
+import runpy
+import sys
+import tempfile
+import time
+import sqlite3
+from urllib.parse import urlsplit
+
+root=Path(sys.argv[1]).resolve();out=Path(sys.argv[2]).resolve();pipeline=root/'implementation/pipeline'
+scratch=tempfile.TemporaryDirectory(prefix='muse-intake-offline-');scratch_path=Path(scratch.name)
+tempfile.tempdir=str(scratch_path)
+violations=[]
+def audit(event,args):
+    if event.startswith('socket.') or event in {'subprocess.Popen','os.system','os.posix_spawn','os.fork','os.forkpty','os.exec','os.spawn'}:
+        violations.append(event);raise PermissionError('offline review forbids '+event)
+    if event=='sqlite3.connect' and args and args[0]!=':memory:':
+        p=Path(urlsplit(args[0]).path if str(args[0]).startswith('file:') else args[0]).resolve()
+        if not(p.is_relative_to(out) or p.is_relative_to(scratch_path)):
+            violations.append('sqlite3.connect outside review');raise PermissionError('database outside review')
+    if event=='open' and args and isinstance(args[0],(str,bytes,os.PathLike)):
+        path=Path(os.fsdecode(args[0])).resolve();mode=args[1];flags=args[2]
+        writing=(isinstance(mode,str) and any(c in mode for c in 'wax+')) or (isinstance(flags,int) and bool(flags&(os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC)))
+        if writing and not(path.is_relative_to(out) or path.is_relative_to(scratch_path)):
+            violations.append('write outside review');raise PermissionError('write outside review')
+sys.addaudithook(audit)
+sys.path.insert(0,str(pipeline))
+started=time.monotonic();results=[]
+modules=['interpreter.py','watcher.py','maxpain_log.py','tape_db.py','indicator_tracker.py','state_alerts.py','wall_tests.py','dashboard_build.py','ranges_today.py','maxpain_milestones.py','schwab_client.py','test_data_keys.py']
+for f in modules:py_compile.compile(str(pipeline/f),doraise=True)
+results.append({'name':'compile_12','pass':True,'modules':modules})
+# No production readers or optional key probes are run. Tests monkeypatch fetch.
+logger=importlib.import_module('maxpain_log')
+logger.FLOW_SNAP_PATH=str(scratch_path/'unasserted-flow.jsonl')
+for name in ['test_watcher_windows.py','tests/j1_replay_tests.py','j1_replay_tests.py']:
+    log=io.StringIO();start=time.monotonic();error=None
+    try:
+        with contextlib.redirect_stdout(log),contextlib.redirect_stderr(log):runpy.run_path(str(pipeline/name),run_name='__main__')
+    except SystemExit as e:
+        if e.code not in (None,0):error='SystemExit '+str(e.code)
+    except Exception as e:error=type(e).__name__+': '+str(e)
+    text=log.getvalue();(out/(name.replace('/','-')+'.log')).write_text(text)
+    results.append({'name':name,'pass':error is None,'elapsed_ms':round((time.monotonic()-start)*1000,2),'error':error,'pass_lines':sum(l.startswith('PASS ') for l in text.splitlines()),'fail_lines':sum(l.startswith('FAIL ') for l in text.splitlines()),'tail':text.splitlines()[-4:]})
+# Actual new read-only feed/signals function on a synthetic SQLite database.
+interpreter=importlib.import_module('interpreter')
+interpreter.TAPE_DB=str(scratch_path/'missing.db')
+missing=interpreter.build_signals()
+results.append({'name':'signals_missing_db','pass':missing.get('status')=='error' and not Path(interpreter.TAPE_DB).exists(),'observed_status':missing.get('status')})
+interpreter.TAPE_DB=str(scratch_path/'signals.db')
+with sqlite3.connect(interpreter.TAPE_DB) as c:
+    c.executescript("CREATE TABLE indicator_events(ts_utc TEXT,ts_et TEXT,day TEXT,type TEXT,symbol TEXT,direction TEXT,spot REAL,detail TEXT); CREATE TABLE state_events(ts_utc TEXT,ts_et TEXT,day TEXT,type TEXT,spot REAL,budget_left REAL,pin REAL,net_gex_m REAL,flip_dist REAL,charm_vel30 REAL);")
+empty=interpreter.build_signals()
+results.append({'name':'signals_empty_db','pass':empty.get('status')=='empty','observed_status':empty.get('status')})
+with sqlite3.connect(interpreter.TAPE_DB) as c:
+    for n in range(20):
+        c.execute('INSERT INTO indicator_events VALUES(?,?,?,?,?,?,?,?)',(f'2026-01-05T15:{n:02d}:00Z',f'2026-01-05 10:{n:02d}','2026-01-05','STACK','SYNTH','bull',500,json.dumps({'members':['synthetic_a','synthetic_b','synthetic_c']})))
+        c.execute('INSERT INTO indicator_events VALUES(?,?,?,?,?,?,?,?)',(f'2026-01-05T16:{n:02d}:00Z',f'2026-01-05 11:{n:02d}','2026-01-05','vol_ignition','SYNTH','bull',500,json.dumps({'vol':1000,'median30':200,'mult':5})))
+    c.execute('INSERT INTO state_events VALUES(?,?,?,?,?,?,?,?,?,?)',('2026-01-05T14:00:00Z','2026-01-05 09:00','2026-01-05','loaded_gun_on',500,.6,20,-1,-2,None))
+    c.execute('INSERT INTO state_events VALUES(?,?,?,?,?,?,?,?,?,?)',('2026-01-05T18:00:00Z','2026-01-05 13:00','2026-01-05','loaded_gun_off',500,.4,40,-1,-2,None))
+full=interpreter.build_signals()
+results.append({'name':'signals_saved_session_limits_legacy','pass':full.get('status')=='ok' and full.get('day')=='2026-01-05' and len(full.get('stacks',[]))==10 and len(full.get('extremes',[]))==15 and full['loaded_gun']['active'] is False and all('cluster' not in r['detail'] for r in full['extremes']),'observed':{'status':full.get('status'),'day':full.get('day'),'stacks':len(full.get('stacks',[])),'extremes':len(full.get('extremes',[])),'gun_active':full.get('loaded_gun',{}).get('active')}})
+with sqlite3.connect(interpreter.TAPE_DB) as c:c.execute('DROP TABLE state_events')
+broken=interpreter.build_signals()
+results.append({'name':'signals_bad_schema_isolated','pass':broken.get('status')=='error','observed_status':broken.get('status')})
+receipt={'source_head':'5cd1e37df1f7dd4abee254e5a80b08d25e877fcb','python':sys.version,'network_and_subprocess_blocked':True,'reports_over_runtime_db_run':False,'flow_path_redirected_to_review_scratch':True,'violations':violations,'results':results,'elapsed_ms':round((time.monotonic()-started)*1000,2),'harness_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+(out/'offline-checks-results.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps(receipt,indent=2));scratch.cleanup()
+```
+<!-- /MUSE-INTAKE-5CD1-OFFLINE-CHECKS-PY -->
+
+#### frontend-boundaries.mjs
+
+<!-- MUSE-INTAKE-5CD1-FRONTEND-BOUNDARIES-MJS -->
+```javascript
+// Execute actual production helper bodies with TypeScript types erased only.
+// This is not a full SDK build or React/browser integration test.
+import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';import crypto from 'node:crypto';
+process.env.TZ='UTC'; // Reviewer process only; never changes host timezone.
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]);
+const base=path.join(root,'implementation/dashboard-streaming'),source=fs.readFileSync(path.join(base,'server/src/actions.ts'),'utf8'),app=fs.readFileSync(path.join(base,'client/src/App.tsx'),'utf8');
+const fixtures=path.join(root,'implementation/fixtures');const fixture=n=>JSON.parse(fs.readFileSync(path.join(fixtures,n+'.json'),'utf8'));
+function extract(name){const re=new RegExp('^(?:async )?function '+name+'\\(','m'),m=re.exec(source);if(!m)throw Error('missing helper '+name);const start=m.index,open=name==='fetchFeed'?source.indexOf('> {',start)+2:source.indexOf('{',start);let depth=0,quote=null,escape=false;for(let i=open;i<source.length;i++){const c=source[i];if(quote){if(escape)escape=false;else if(c==='\\')escape=true;else if(c===quote)quote=null;continue;}if(c==='"'||c==="'"||c==='`'){quote=c;continue;}if(c==='{')depth++;if(c==='}'&&--depth===0)return source.slice(start,i+1);}throw Error('unclosed helper '+name);}
+const names=['boolOrNull','normalizeSignals','fetchSignals','num','str','obj','mapStrikes','mapActivity','normalize','fetchFeed'];let code=names.map(extract).join('\n');
+// All replacements are type annotations/assertions, never executable expressions.
+code=code.replace(/async function fetchFeed\(\): Promise<[\s\S]*?> \{/, 'async function fetchFeed() {');
+const removals=[/: Record<string, unknown>/g,/: Promise<SignalsPayload \| null>/g,/: SignalsPayload \| null/g,/: SignalsPayload\["(?:stacks|extremes)"\]/g,/: unknown/g,/: boolean \| null/g,/: number \| null/g,/: string \| null/g,/: z\.infer<typeof (?:strikeGex|activityRow)>\[\]/g,/: LivePayload\["hedgeBuckets"\]/g,/: LivePayload \| null/g,/ as Record<string, unknown>/g,/: [mc] is string/g,/: Promise<\s*\{ payload: LivePayload; rawJson: string \} \| \{ error: string \}\s*>/g];
+for(const r of removals)code=code.replace(r,'');
+const statusExpression=/const status: ConnStatus =([\s\S]*?);/.exec(app)?.[1];if(!statusExpression)throw Error('missing status selector');
+let payload=fixture('feed_all_success'),calls=0;
+const sandbox={Date,Number,Object,Array,Math,JSON,AbortSignal,FEED_URLS:['https://offline.invalid/primary','https://offline.invalid/backup'],SIGNALS_URLS:['https://offline.invalid/signals-primary','https://offline.invalid/signals-backup'],fetch:async()=>{calls++;return{ok:true,status:200,json:async()=>structuredClone(payload)}}};vm.createContext(sandbox);vm.runInContext(code+'\nthis.helpers={normalize,normalizeSignals,fetchFeed,fetchSignals,mapStrikes};',sandbox);
+const h=sandbox.helpers,selectStatus=new Function('paused','data','query','showingStale','display','ageMs','return ('+statusExpression+');'),results=[];
+const record=(name,pass,observed,expected)=>results.push({name,pass:!!pass,observed,expected});
+const good=fixture('feed_all_success');payload=good;const fetched=await h.fetchFeed();record('valid_feed_control',!!fetched.payload&&fetched.payload.spot===good.spot,{spot:fetched.payload?.spot},'normal feed fixture is admitted');
+payload=fixture('feed_all_error');const error=await h.fetchFeed();record('feed_error_control',!!error.error,{hasError:!!error.error},'error response remains unavailable');
+payload=fixture('feed_signals_error');record('signals_error_isolated_control',(await h.fetchSignals())===null,{signalsUnavailable:true},'signals error returns null independently');
+const legacy=h.normalizeSignals(fixture('feed_signals_legacy_tags'));record('legacy_missing_tags_preserved_by_normalizer',legacy.extremes.filter(e=>e.type==='vol_ignition').every(e=>e.cluster===null&&e.mega===null),{prints:legacy.extremes.filter(e=>e.type==='vol_ignition').map(e=>({cluster:e.cluster,mega:e.mega}))},'normalizer preserves unknown tags as null');
+for(const [kind,value] of [['zero',0],['missing',undefined],['null',null],['invalid','not-a-number']]){const raw=structuredClone(good);raw.gamma.by_strike[0].net_gex_m=value;const normalized=h.normalize(raw);const row=normalized.byStrike.find(r=>r.strike===raw.gamma.by_strike[0].strike);record('strike_gex_'+kind,kind==='zero'?row?.netGexM===0:!row||row.netGexM===null,{inputKind:kind,output:row?.netGexM??null},kind==='zero'?'genuine zero is preserved':'missing/invalid GEX is unavailable or excluded, never fabricated zero');}
+const now=Date.parse(good.updated_at)+1000;
+for(const [kind,clock] of [['valid',good.updated_at],['invalid','not-a-clock'],['future',new Date(now+86400000).toISOString()],['naive',good.updated_at.replace(/(?:Z|[+-]\d\d:\d\d)$/,'')]]){const raw=structuredClone(good);raw.updated_at=clock;raw.market_open=true;const display=h.normalize(raw),age=display?now-Date.parse(display.updatedAt):null;const status=display?selectStatus(false,{ok:true},{isError:false},false,display,age):'rejected';record('clock_'+kind,kind==='valid'?status==='live':status!=='live',{input:clock,normalized:display!==null,ageMs:Number.isNaN(age)?'NaN':age,status},kind==='valid'?'recent aware timestamp can be live':'invalid/future/naive observation clock must not produce LIVE');}
+const predicate=/e\.cluster\s*===\s*true\s*\?/.exec(app),legacyElse=predicate?app.slice(predicate.index,predicate.index+550):'';
+const staticTrace={normalizer_cluster_for_legacy:legacy.extremes.find(e=>e.type==='vol_ignition')?.cluster,actual_branch_predicate:predicate?.[0],else_contains_isolated:legacyElse.includes('>isolated</span>'),classification:'static JSX branch inspection plus executed normalizer; no React DOM rendering claimed'};
+const receipt={source_head:'5cd1e37df1f7dd4abee254e5a80b08d25e877fcb',actual_helper_bodies:true,reviewer_timezone:'UTC',type_erasure_only:true,extracted_helpers:names,source_sha256:crypto.createHash('sha256').update(source).digest('hex'),network_calls:0,mocked_fetch_calls:calls,full_sdk_build:'UNRUN: platform-specific local SDK dependency and package lock not supplied; no downloads attempted',results,passes:results.filter(r=>r.pass).length,failures:results.filter(r=>!r.pass).length,legacy_ui_static_trace:staticTrace,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};fs.writeFileSync(path.join(out,'frontend-boundaries-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt,null,2));
+```
+<!-- /MUSE-INTAKE-5CD1-FRONTEND-BOUNDARIES-MJS -->
+
+#### offline-checks-results.json
+
+<!-- MUSE-INTAKE-5CD1-OFFLINE-CHECKS-RESULTS-JSON -->
+```json
+{
+  "source_head": "5cd1e37df1f7dd4abee254e5a80b08d25e877fcb",
+  "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "network_and_subprocess_blocked": true,
+  "reports_over_runtime_db_run": false,
+  "flow_path_redirected_to_review_scratch": true,
+  "violations": [],
+  "results": [
+    {
+      "name": "compile_12",
+      "pass": true,
+      "modules": [
+        "interpreter.py",
+        "watcher.py",
+        "maxpain_log.py",
+        "tape_db.py",
+        "indicator_tracker.py",
+        "state_alerts.py",
+        "wall_tests.py",
+        "dashboard_build.py",
+        "ranges_today.py",
+        "maxpain_milestones.py",
+        "schwab_client.py",
+        "test_data_keys.py"
+      ]
+    },
+    {
+      "name": "test_watcher_windows.py",
+      "pass": true,
+      "elapsed_ms": 7.85,
+      "error": null,
+      "pass_lines": 12,
+      "fail_lines": 0,
+      "tail": [
+        "PASS down-15m fires: got=True want=True",
+        "PASS down-15m pct negative: got=True want=True",
+        "",
+        "0 failure(s)"
+      ]
+    },
+    {
+      "name": "tests/j1_replay_tests.py",
+      "pass": true,
+      "elapsed_ms": 292.83,
+      "error": null,
+      "pass_lines": 50,
+      "fail_lines": 0,
+      "tail": [
+        "already logged | ts=2026-10-05T19:59:00+00:00",
+        "PASS j1f_alias_insert_no_orphan",
+        "",
+        "50/50 pass"
+      ]
+    },
+    {
+      "name": "j1_replay_tests.py",
+      "pass": true,
+      "elapsed_ms": 154.01,
+      "error": null,
+      "pass_lines": 27,
+      "fail_lines": 0,
+      "tail": [
+        "already logged | ts=2026-10-05T19:59:00+00:00",
+        "PASS j1c_divergence_repaired",
+        "",
+        "27/27 pass"
+      ]
+    },
+    {
+      "name": "signals_missing_db",
+      "pass": true,
+      "observed_status": "error"
+    },
+    {
+      "name": "signals_empty_db",
+      "pass": true,
+      "observed_status": "empty"
+    },
+    {
+      "name": "signals_saved_session_limits_legacy",
+      "pass": true,
+      "observed": {
+        "status": "ok",
+        "day": "2026-01-05",
+        "stacks": 10,
+        "extremes": 15,
+        "gun_active": false
+      }
+    },
+    {
+      "name": "signals_bad_schema_isolated",
+      "pass": true,
+      "observed_status": "error"
+    }
+  ],
+  "elapsed_ms": 548.76,
+  "harness_sha256": "05e770a68fdf24a4765f2ba7f34402b92d988de3820d390ff64f0f48f3c4b215"
+}
+```
+<!-- /MUSE-INTAKE-5CD1-OFFLINE-CHECKS-RESULTS-JSON -->
+
+#### frontend-boundaries-results.json
+
+<!-- MUSE-INTAKE-5CD1-FRONTEND-BOUNDARIES-RESULTS-JSON -->
+```json
+{
+  "source_head": "5cd1e37df1f7dd4abee254e5a80b08d25e877fcb",
+  "actual_helper_bodies": true,
+  "reviewer_timezone": "UTC",
+  "type_erasure_only": true,
+  "extracted_helpers": [
+    "boolOrNull",
+    "normalizeSignals",
+    "fetchSignals",
+    "num",
+    "str",
+    "obj",
+    "mapStrikes",
+    "mapActivity",
+    "normalize",
+    "fetchFeed"
+  ],
+  "source_sha256": "a18c3ca65c20b90ca3d64acd9cf0163bf88d2376317e40971fdae18f56a142fb",
+  "network_calls": 0,
+  "mocked_fetch_calls": 5,
+  "full_sdk_build": "UNRUN: platform-specific local SDK dependency and package lock not supplied; no downloads attempted",
+  "results": [
+    {
+      "name": "valid_feed_control",
+      "pass": true,
+      "observed": {
+        "spot": 500.25
+      },
+      "expected": "normal feed fixture is admitted"
+    },
+    {
+      "name": "feed_error_control",
+      "pass": true,
+      "observed": {
+        "hasError": true
+      },
+      "expected": "error response remains unavailable"
+    },
+    {
+      "name": "signals_error_isolated_control",
+      "pass": true,
+      "observed": {
+        "signalsUnavailable": true
+      },
+      "expected": "signals error returns null independently"
+    },
+    {
+      "name": "legacy_missing_tags_preserved_by_normalizer",
+      "pass": true,
+      "observed": {
+        "prints": [
+          {
+            "cluster": null,
+            "mega": null
+          },
+          {
+            "cluster": null,
+            "mega": null
+          }
+        ]
+      },
+      "expected": "normalizer preserves unknown tags as null"
+    },
+    {
+      "name": "strike_gex_zero",
+      "pass": true,
+      "observed": {
+        "inputKind": "zero",
+        "output": 0
+      },
+      "expected": "genuine zero is preserved"
+    },
+    {
+      "name": "strike_gex_missing",
+      "pass": false,
+      "observed": {
+        "inputKind": "missing",
+        "output": 0
+      },
+      "expected": "missing/invalid GEX is unavailable or excluded, never fabricated zero"
+    },
+    {
+      "name": "strike_gex_null",
+      "pass": false,
+      "observed": {
+        "inputKind": "null",
+        "output": 0
+      },
+      "expected": "missing/invalid GEX is unavailable or excluded, never fabricated zero"
+    },
+    {
+      "name": "strike_gex_invalid",
+      "pass": false,
+      "observed": {
+        "inputKind": "invalid",
+        "output": 0
+      },
+      "expected": "missing/invalid GEX is unavailable or excluded, never fabricated zero"
+    },
+    {
+      "name": "clock_valid",
+      "pass": true,
+      "observed": {
+        "input": "2026-01-05T14:35:05+00:00",
+        "normalized": true,
+        "ageMs": 1000,
+        "status": "live"
+      },
+      "expected": "recent aware timestamp can be live"
+    },
+    {
+      "name": "clock_invalid",
+      "pass": false,
+      "observed": {
+        "input": "not-a-clock",
+        "normalized": true,
+        "ageMs": "NaN",
+        "status": "live"
+      },
+      "expected": "invalid/future/naive observation clock must not produce LIVE"
+    },
+    {
+      "name": "clock_future",
+      "pass": false,
+      "observed": {
+        "input": "2026-01-06T14:35:06.000Z",
+        "normalized": true,
+        "ageMs": -86400000,
+        "status": "live"
+      },
+      "expected": "invalid/future/naive observation clock must not produce LIVE"
+    },
+    {
+      "name": "clock_naive",
+      "pass": false,
+      "observed": {
+        "input": "2026-01-05T14:35:05",
+        "normalized": true,
+        "ageMs": 1000,
+        "status": "live"
+      },
+      "expected": "invalid/future/naive observation clock must not produce LIVE"
+    }
+  ],
+  "passes": 6,
+  "failures": 6,
+  "legacy_ui_static_trace": {
+    "normalizer_cluster_for_legacy": null,
+    "actual_branch_predicate": "e.cluster === true ?",
+    "else_contains_isolated": true,
+    "classification": "static JSX branch inspection plus executed normalizer; no React DOM rendering claimed"
+  },
+  "harness_sha256": "e945c2e3565f9b30dd8ca7b6f4d2f2115f0e6f84f127e0f4c2cc7c752546690c"
+}
+```
+<!-- /MUSE-INTAKE-5CD1-FRONTEND-BOUNDARIES-RESULTS-JSON -->
+
+#### test-lineage.json
+
+<!-- MUSE-INTAKE-5CD1-TEST-LINEAGE-JSON -->
+```json
+{
+  "accepted_backend_pin": "8649ad541cb794d0d26cdc4bb2f18ccd1ad0a7ac",
+  "same_test_bytes": true,
+  "same_test_ast": true,
+  "old_test_sha256": "244aca93e9c568d6e520cf94ef8a20bdc9d9281b3ab1b50ec32a86fde4ceacff",
+  "new_test_sha256": "244aca93e9c568d6e520cf94ef8a20bdc9d9281b3ab1b50ec32a86fde4ceacff"
+}
+```
+<!-- /MUSE-INTAKE-5CD1-TEST-LINEAGE-JSON -->
+
+#### fixture-screen.json
+
+<!-- MUSE-INTAKE-5CD1-FIXTURE-SCREEN-JSON -->
+```json
+{
+  "json_fixtures": 6,
+  "all_explicit_synthetic": true,
+  "source_hashes_still_match": true
+}
+```
+<!-- /MUSE-INTAKE-5CD1-FIXTURE-SCREEN-JSON -->
 
 
 
