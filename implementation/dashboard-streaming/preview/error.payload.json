@@ -1,0 +1,20 @@
+{
+  "case": "error",
+  "synthetic": true,
+  "feedAllFixture": "feed_all_error.json",
+  "signalsFixture": "feed_signals_error.json",
+  "frozenClock": "2026-01-04T23:05:30.000Z",
+  "getLive": {
+    "ok": false,
+    "feedError": "interpreter status: error",
+    "fetchedAt": "2026-01-04T23:05:30.000Z",
+    "live": null,
+    "staleSnapshot": null,
+    "staleSnapshotAt": null,
+    "trail": []
+  },
+  "getSignals": {
+    "ok": false,
+    "signals": null
+  }
+}
