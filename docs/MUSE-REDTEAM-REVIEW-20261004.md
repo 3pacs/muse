@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: ADOPT-F1 is accepted at e8274a1e. All 50 checksum entries match; pipeline bytes and passing compile/watcher/J1/signals checks are preserved. Original fixture regressions pass 12/12, additional probes 17/17, and 51 owner checks pass through a documented type-only execution adapter. Full native-TS entrypoint and SDK/React build remain unverified in this runtime. Next task: ADOPT-B1 dependency-locked offline build/fixture preview. No production, data-rights or empirical promotion is implied.**
+**Current status: ADOPT-B1 at e2cfa0d5 has verified 75-file integrity (73/73 checksums), matching available snapshot hashes and preserved F1/backend passes. B1 remains incomplete: public-only adapter assembly, independent-clock/adversarial SSR matrix and dependency/environment receipts need correction. Next single task: ADOPT-B1-R1. F1 stays accepted; full build/SSR is owner-reported and UNRUN locally. No production, data-rights or empirical promotion is implied.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,121 @@
 
 
 
+
+## 2026-10-16 — e2cfa0d5 ADOPT-B1 review: packet verified; portable assembly and adversarial preview evidence still open
+
+Reviewed [Muse response 6208845958](https://github.com/3pacs/muse/pull/2#issuecomment-6208845958), exact implementation **`e2cfa0d5bd934b49fcee37b61021c2591550ebd4`**, same `implementation/0dte-source-20261015` lane, against the existing ADOPT-B1 assignment at docs `fd636cfa43e163a1648d665630cbec03a1fd27e0`. The incoming issue-comment webhook is substantive, not our earlier coordinator comment. **Accept package integrity and preservation of F1; ADOPT-B1 remains incomplete for portable setup and the assigned preview boundary matrix.** Keep this same review owner and handoff.
+
+### Verified progress and execution limits
+
+- **75 package files; all 73 SHA-256 entries match** using the documented `implementation/` checksum base. All **25** committed build-input hashes match the pinned source. All **11 available** output artifacts match their declared hashes (five SSR HTML/payload pairs and the client HTML shell). Three intentionally omitted JS/CSS bundles remain hash declarations, not independently regenerated evidence.
+- The five committed SSR snapshots contain their claimed synthetic labels and states: success LIVE/isolated, last-session MARKET CLOSED, legacy unknown clustering, positive clustering count, and both-feeds error FEED DOWN. This is inspection of matching published snapshots, **not a new SSR execution or browser/DOM/layout verification**. Empty charts and uncompiled Tailwind are explicitly disclosed adapter limitations and are not application regressions.
+- App, server actions, F1 owner tests and every pipeline file are unchanged from accepted `e8274a1e`. Independent checks at this new pin pass again: **51 owner assertions through the qualified type-only adapter**, **12 original fixture regressions**, **17 supplemental probes**, **12 modules compile**, watcher **12/12**, full J1 **50/50**, older overlapping J1 **27/27**, and **four** synthetic actual signals-reader checks. Counts overlap; do not sum as independent evidence. Guarded Python execution took **669.15 ms**, with no forbidden socket/process/database/write operation.
+- Actual Precision connection was checked before local work; no host switch, application edit, merge, publish/deploy, provider request, credentials or production DB/process operation occurred. This reviewer has no Bun/tsc/dependency installation and the existing Node build lacks native TS loading. Consequently the new full bundles, typecheck and React SSR run are **UNRUN locally**, not failed application assertions. The owner's build receipts remain owner-reported.
+- The real build entrypoint with missing `--deps` exits **2**, explicitly requesting arguments; it does not install/download dependencies.
+
+### Reproduced bounded findings
+
+**B1-R1a — fixture adapter depends on a proprietary namespace already being present.** In [offline-build.mjs lines 89–102](https://github.com/3pacs/muse/blob/e2cfa0d5bd934b49fcee37b61021c2591550ebd4/implementation/dashboard-streaming/offline/offline-build.mjs#L89), adapter creation is nested inside `if (name === "@hatch")` while iterating the supplied dependency directory. Execute the exact orchestration body with real scratch file copying/symlinking and intercepted child commands: a public-only directory without `@hatch` leaves the fixture adapter **absent**; adding only an empty `@hatch` directory makes it **present**. This isolates the branch defect without requiring real compiler packages. No compiler failure is claimed from this instrumented run. Install the adapter independently of the source dependency directory's scopes.
+
+The supplied package/lock still require a withheld proprietary `file:` tarball at a platform absolute path, while the documented prerequisite is an existing installation from that lock. The adapter is substituted only after installation. Thus the packet supplies an offline executor for a pre-existing reference tree but does not yet supply a public-only dependency preparation recipe/lock. Provide a separate fixture dependency graph using the permitted local adapter; the proprietary production lock may remain preserved as provenance. Do not request or redistribute the SDK.
+
+**B1-R1b — the assigned adversarial view-state cases are absent, and packet-relative time cannot test future admission.** The exact runner schedules success/last-session/legacy/clustering/both-error only. Both successful feed fixtures contain GEX **210.4 and 320.1**, with neither missing GEX nor genuine zero. Every scheduled update clock parses; the only signals error is paired with a feed error. There is no good live feed plus independently failed signals case.
+
+The exact clock block in [preview.ts](https://github.com/3pacs/muse/blob/e2cfa0d5bd934b49fcee37b61021c2591550ebd4/implementation/dashboard-streaming/offline/preview.ts#L35) sets receipt time to `feedAll.updated_at + 30 seconds`. With an externally future fixture timestamp `2026-01-06T14:35:05Z`, its receipt clock moves to `2026-01-06T14:35:35Z`; it cannot reproduce the existing future-rejection contract against an independent `2026-01-05` receipt. With `updated_at="not-a-clock"`, the exact clock block yields NaN and the evidence formatter throws **RangeError**. These are preview-harness gaps; F1 application clock admission remains accepted and passing. Fixture-relative clocks are useful for the existing baseline snapshots. Add an independently supplied valid receipt clock for adversarial cases and preserve those baseline outputs.
+
+**B1-R1c — dependency/environment receipts need a clear boundary.** The runner trusts the caller's `--deps` and copies declared versions into `dependenciesExact`; it does not attest loaded dependency versions/integrities. A synthetic sentinel TypeScript package version `999.0.0-review-sentinel` reaches all **11 intercepted command requests** without a preflight rejection, while the declaration remains `5.6.3`. This demonstrates absent verification, **not a real successful compiler/build or a broken supported dependency tree**. The documented caller precondition must be supported by a reproducible public-only lock installation receipt, or checked before build. Keep declared and observed versions distinct, including the disclosed Bun manager drift.
+
+The note/comment says a generated privileged contract was used and recorded, but the committed `BUILD-MANIFEST.json` has `environmentProvided: []`. Reconcile the receipt. No source import of `@space/privileged` was found; its tsconfig mapping alone does **not** prove a missing-file compiler blocker. Do not require disclosure of an unused proprietary generated file.
+
+### One next task — ADOPT-B1-R1 complete the fixture-only portable path
+
+Continue this single finite build/composition task on top of `e2cfa0d5`, keeping application/F1/backend logic unchanged:
+
+1. Make adapter assembly independent of any existing `@hatch` scope. Supply an exact-version fixture-only dependency lock/preparation recipe with no proprietary absolute tarball requirement. The build phase remains zero-network and uses only permitted preinstalled/cached dependencies. State toolchain requirements and exact observed versions; reject mismatched prepared dependencies or supply verifiable frozen-install evidence. No private SDK/credential request.
+2. Retain the existing five preview controls. Add synthetic cases, with case names of your choosing, for missing/invalid GEX alongside genuine zero, bad and beyond-skew future clocks against an **independent valid receipt clock**, and good live feed plus failed signals. Assert real handler/App-derived output or view-state, not just that HTML was emitted. Bad/future clocks must never become LIVE; unknown GEX must not become zero; a signals-only failure must preserve the valid live panel. Keep the existing unknown/false/true clustering cases. SSR remains acceptable for this bounded slice; no browser layout/production SDK claim is required.
+3. Regenerate exact input/output/fixture hashes and build logs. Reconcile environment-provided inputs with the actual run; hash any such input that is actually used, or explicitly record none. Preserve original 12 regression expectations, 51 owner domain/presence assertions, 17 additional probes and watcher/J1/signals checks. Report unavailable components rather than converting declarations to evidence.
+
+**Pass/fail acceptance:** a clean public-only prepared dependency tree without `@hatch` resolves the fixture adapter; locked supported toolchain runs checks/typechecks/bundles/SSR with zero build-time traffic; the new adversarial matrix passes against independent clocks without evidence-generation exceptions; regenerated outputs and environment/dependency receipts match the exact candidate. The original F1 acceptance stays closed. This is not a server migration, numerical/calendar research cycle, empirical promotion or trading task.
+
+### Runnable reviewer evidence and independent criticism
+
+The reviewer below requires only Node built-ins and this exact pinned `SOURCE_ROOT/implementation`. It executes the actual build-orchestration body with imports injected and **child-process calls intercepted**; file assembly and hashing run in reviewer-owned scratch. It separately executes the exact preview clock block with type syntax removed. No compiler, bundler, SSR, provider or listener is run. Its **four passing controls/five unmet expectation probes** overlap the three findings above; they are not nine product/DOM tests. Exit **1** is expected at this pin. The dependency-sentinel probe deliberately violates the caller precondition to measure validation and is qualified as such.
+
+```bash
+node review-build.mjs SOURCE_ROOT REVIEW_OUTPUT_DIR
+python3 offline-checks.py SOURCE_ROOT REVIEW_OUTPUT_DIR e2cfa0d5bd934b49fcee37b61021c2591550ebd4
+node review-boundaries.mjs SOURCE_ROOT REVIEW_OUTPUT_DIR e2cfa0d5bd934b49fcee37b61021c2591550ebd4
+```
+
+The prior F1 reviewer scripts remain published below; `offline-checks.py` already accepts the source pin argument. For `review-boundaries.mjs`, change only its receipt's `source_head` value to the new pin (the tested source bytes/expectations are unchanged). New reviewer SHA-256: **`2ff771300111af77f774a62dc8362a932f8b32d4b10ea982746eda666694f652`**.
+
+Official Gemini **3.8 Flash High** text-only criticism succeeded in conversation **`7170fce6-4f56-4abe-8da3-aef57e564e52`**, no denied actions. Codex independently reproduced scope assembly, matrix omissions, clock behavior and receipt mismatch. Model claims that a real compiler failure/full UI run was observed are not adopted; no such run occurred. Earlier non-ancestral candidate holds, data rights, capture authenticity, hosted/source linkage and empirical questions remain separately scoped. The hosted artifact was not updated by this candidate.
+
+#### review-build.mjs
+
+<!-- MUSE-E2CFA-B1-REVIEW-BUILD-MJS -->
+```javascript
+// Reviewer-only offline orchestration probes; never executes compiler/bundler children.
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as crypto from 'node:crypto';
+import * as url from 'node:url';
+import * as os from 'node:os';
+import vm from 'node:vm';
+const root=path.resolve(process.argv[2]), out=path.resolve(process.argv[3]);
+const space=path.join(root,'implementation/dashboard-streaming');
+const script=path.join(space,'offline/offline-build.mjs');
+const text=fs.readFileSync(script,'utf8');
+const results=[];const check=(name,pass,observed)=>results.push({name,pass:!!pass,observed});
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const impl=path.join(root,'implementation');
+const checksumRows=fs.readFileSync(path.join(impl,'SHA256SUMS.txt'),'utf8').trim().split('\n').map(l=>{const [expected,...p]=l.trim().split(/\s+/);const f=p.join(' ').replace(/^\*/, '');return{path:f,pass:sha(fs.readFileSync(path.join(impl,f)))===expected};});
+check('package_73_checksum_entries',checksumRows.length===73&&checksumRows.every(x=>x.pass),{count:checksumRows.length,failed:checksumRows.filter(x=>!x.pass)});
+const committed=JSON.parse(fs.readFileSync(path.join(space,'preview/BUILD-MANIFEST.json'),'utf8'));
+check('committed_25_input_hashes',committed.inputs.length===25&&committed.inputs.every(x=>sha(fs.readFileSync(path.join(space,x.path)))===x.sha256),{count:committed.inputs.length});
+const presentOutputs=committed.outputs.filter(x=>x.path.startsWith('preview/')||x.path==='client/index.html');
+check('committed_11_available_output_hashes',presentOutputs.length===11&&presentOutputs.every(x=>sha(fs.readFileSync(x.path==='client/index.html'?path.join(space,'preview/client-index.html'):path.join(space,x.path)))===x.sha256),{present:presentOutputs.length,bundle_outputs_unavailable:committed.outputs.filter(x=>!presentOutputs.includes(x)).map(x=>x.path)});
+// Execute the exact orchestration body with ONLY imports injected and process calls recorded.
+// Real file copying/symlinking/hashing occurs in reviewer-owned scratch. No TS/React/build claim.
+const body=text.replace(/^#![^\n]*\n/,'').replace(/import\s+[\s\S]*?\sfrom\s+"[^"]+";/g,'').replace(/import\.meta\.url/g,JSON.stringify(url.pathToFileURL(script).href));
+const probeRoot=fs.mkdtempSync(path.join(out,'orchestration-'));
+function probe(label,scope){
+ const base=path.join(probeRoot,label), deps=path.join(base,'deps/node_modules'), work=path.join(base,'work'), output=path.join(base,'out');
+ fs.mkdirSync(path.join(deps,'typescript'),{recursive:true});
+ fs.writeFileSync(path.join(deps,'typescript/package.json'),JSON.stringify({name:'typescript',version:'999.0.0-review-sentinel'}));
+ if(scope)fs.mkdirSync(path.join(deps,'@hatch'),{recursive:true});
+ const calls=[];
+ const child=(cmd,args,opts)=>{calls.push({cmd,args});return cmd==='bun'&&args[0]==='--version'?'0.0.0-review-sentinel\n':Buffer.from('');};
+ const sandbox={...fs,...path,createHash:crypto.createHash,fileURLToPath:url.fileURLToPath,tmpdir:os.tmpdir,execFileSync:child,console:{log() {},error() {}},process:{argv:['node',script,'--deps',deps,'--out',output,'--work',work],execPath:process.execPath,version:process.version,env:{},stdout:{write(){}},exit(c){throw Error('exit '+c)}}};
+ vm.runInNewContext(body,sandbox,{filename:script,timeout:10000});
+ const manifest=JSON.parse(fs.readFileSync(path.join(output,'BUILD-MANIFEST.json'),'utf8'));
+ const previews=calls.filter(c=>c.args[0]==='run'&&String(c.args[1]).endsWith('/offline/preview.ts'));
+ return{scope,adapterInstalled:fs.existsSync(path.join(work,'node_modules/@hatch/space-sdk/package.json')),calls: calls.length,claimedTS:manifest.dependenciesExact.typescript,observedTS:manifest.toolchain.typescript,manifestOutputs:manifest.outputs.length,inputs:manifest.inputs.length,previewCalls:previews.map(c=>c.args[2]),previewCases:previews.map(c=>({name:c.args[2],feed:JSON.parse(fs.readFileSync(c.args[3],'utf8')),signals:JSON.parse(fs.readFileSync(c.args[4],'utf8'))})),validationReachedWithoutLockDeps:true};
+}
+const noScope=probe('public-only',false),withScope=probe('empty-hatch-scope',true);
+const casePackets=noScope.previewCases;delete noScope.previewCases;delete withScope.previewCases;
+check('adapter_installed_without_private_scope',noScope.adapterInstalled,noScope);
+check('adapter_installed_with_empty_scope_control',withScope.adapterInstalled,withScope);
+check('reject_mismatched_dependency_before_children',noScope.calls===0,noScope);
+const rows=casePackets.flatMap(c=>c.feed.gamma?.by_strike??[]);
+const matrix={missing_gex:rows.some(r=>r.net_gex_m===undefined||r.net_gex_m===null),genuine_zero:rows.some(r=>r.net_gex_m===0),bad_clock:casePackets.some(c=>!Number.isFinite(Date.parse(c.feed.updated_at))),signals_only_error:casePackets.some(c=>c.feed.status==='ok'&&c.signals.status==='error')};
+check('compiled_preview_cases_cover_finite_assignment',Object.values(matrix).every(Boolean),{actual:noScope.previewCalls,semantic_coverage:matrix,qualification:'inspects supplied fixtures used by actual runner; case names are unconstrained; separate clock probe checks independent future clock'});
+const preview=fs.readFileSync(path.join(space,'offline/preview.ts'),'utf8');
+const clock=preview.slice(preview.indexOf('const anchor ='),preview.indexOf('// --- fixture transport'))
+ .replace('...args: unknown[]','...args').replace(' as [number]','').replace('static now(): number','static now()').replace('(globalThis as { Date: unknown })','globalThis');
+function clockProbe(updated_at){const context={feedAll:{updated_at},Date};vm.createContext(context);vm.runInContext(clock+'\nthis.result={now:Date.now(),stamp:(()=>{try{return new Date().toISOString()}catch(e){return e.name}})()};',context);return context.result;}
+const future='2026-01-06T14:35:05Z',futureResult=clockProbe(future),invalidResult=clockProbe('not-a-clock');
+check('preview_has_independent_receipt_clock_for_future_case',futureResult.now===Date.parse('2026-01-05T14:35:35Z'),{fixture:future,observed:futureResult,qualification:'fixture-relative clock is disclosed for baseline snapshots; cannot itself test future admission'});
+check('invalid_clock_can_emit_evidence_without_rangeerror',invalidResult.stamp!=='RangeError',invalidResult);
+const evidence={source_commit:'e2cfa0d5bd934b49fcee37b61021c2591550ebd4',runtime:process.version,mode:'exact orchestration body with child-process calls intercepted; real file assembly, no compiler or React execution',network_calls:0,child_processes_executed:0,passes:results.filter(x=>x.pass).length,failures:results.filter(x=>!x.pass).length,results,checksumRows,harness_sha256:sha(fs.readFileSync(url.fileURLToPath(import.meta.url)))};
+fs.writeFileSync(path.join(out,'build-review-results.json'),JSON.stringify(evidence,null,2)+'\n');
+console.log(JSON.stringify({passes:evidence.passes,failures:evidence.failures,results},null,2));
+// Failures represent unmet B1 acceptance requirements; sentinel compiler calls are never success receipts.
+process.exitCode=evidence.failures?1:0;
+
+```
+<!-- /MUSE-E2CFA-B1-REVIEW-BUILD-MJS -->
 
 ## 2026-10-15 — e8274a1e ADOPT-F1 bounded acceptance; advance offline build portability
 
