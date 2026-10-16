@@ -11,8 +11,8 @@
     "tailwindPlugin": "0.0.15",
     "fixtureAdapter": "0.0.0-fixture-adapter"
   },
-  "network": "fixture pages load from file:// URLs — no HTTP server and no IP networking are involved. Chromium's Fetch interception (offline/cdp-drive.mjs) refuses every non-file request (recorded per viewport as externalRequests, asserted zero), and the in-page bootstrap independently traps fetch/XHR and asserts zero attempts. (A loopback HTTP origin was tried first; Chrome 152's Local Network Access checks refuse even the navigation to it in this environment, net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS, so the evidence uses file://.)",
-  "clock": "each page freezes Date at the case's independent receipt instant (see responses/*.json: frozenClock + clockSource from the handler run)",
+  "network": "fixture pages load from file:// URLs \u2014 no HTTP server and no IP networking are involved. Chromium's Fetch interception (offline/cdp-drive.mjs) refuses every non-file request (recorded per viewport as externalRequests, asserted zero), and the in-page bootstrap independently refuses requests: fetch is rejected, and XHR open() records the attempt while send() is refused in-page with the refusal labeled in the report's xhrRefused list \u2014 the native open/send are never invoked (ADOPT-B2-R1; proven by the control-xhr controlled page in controls). Zero attempts are asserted per case. (A loopback HTTP origin was tried first; Chrome 152's Local Network Access checks refuse even the navigation to it in this environment, net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS, so the evidence uses file://.)",
+  "clock": "each page freezes Date at the case's independent receipt instant (see responses/*.json: frozenClock + clockSource from the handler run). The checker's settle budget is measured on performance.now (monotonic elapsed time), so the wait expires and emits its report even though Date is frozen (ADOPT-B2-R1); each report records settle.budgetMs / settle.elapsedMs / settle.outcome.",
   "viewports": [
     "desktop 1280x900",
     "mobile 390x844"
@@ -38,6 +38,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"LIVE\"",
@@ -64,12 +65,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 452,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 452,
+                    "svgH": 224,
+                    "marks": 8,
+                    "validMarks": 7,
+                    "valid": true
                   }
                 ]
               },
@@ -101,9 +108,20 @@
             "charts": [
               {
                 "w": 452,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 452,
+                "svgH": 224,
+                "marks": 8,
+                "validMarks": 7,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 626,
+              "outcome": "settled"
+            }
           }
         },
         {
@@ -118,6 +136,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"LIVE\"",
@@ -144,12 +163,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 332,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 332,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -181,9 +206,20 @@
             "charts": [
               {
                 "w": 332,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 332,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 602,
+              "outcome": "settled"
+            }
           }
         }
       ]
@@ -208,6 +244,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"MARKET CLOSED\"",
@@ -218,12 +255,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 452,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 452,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -255,9 +298,20 @@
             "charts": [
               {
                 "w": 452,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 452,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 602,
+              "outcome": "settled"
+            }
           }
         },
         {
@@ -272,6 +326,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"MARKET CLOSED\"",
@@ -282,12 +337,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 332,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 332,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -319,9 +380,20 @@
             "charts": [
               {
                 "w": 332,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 332,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 606,
+              "outcome": "settled"
+            }
           }
         }
       ]
@@ -346,6 +418,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"clustering unknown (legacy row)\"",
@@ -360,12 +433,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 452,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 452,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -397,9 +476,20 @@
             "charts": [
               {
                 "w": 452,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 452,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 620,
+              "outcome": "settled"
+            }
           }
         },
         {
@@ -414,6 +504,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"clustering unknown (legacy row)\"",
@@ -428,12 +519,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 332,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 332,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -465,9 +562,20 @@
             "charts": [
               {
                 "w": 332,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 332,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 602,
+              "outcome": "settled"
+            }
           }
         }
       ]
@@ -492,6 +600,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"CLUSTERING (3 in last hour)\"",
@@ -506,12 +615,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 452,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 452,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -543,9 +658,20 @@
             "charts": [
               {
                 "w": 452,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 452,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 602,
+              "outcome": "settled"
+            }
           }
         },
         {
@@ -560,6 +686,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"CLUSTERING (3 in last hour)\"",
@@ -574,12 +701,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 332,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 332,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -611,9 +744,20 @@
             "charts": [
               {
                 "w": 332,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 332,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 604,
+              "outcome": "settled"
+            }
           }
         }
       ]
@@ -638,13 +782,14 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"FEED DOWN\"",
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "name": "charts mounted with finite SVG plotted geometry (0/0)",
                 "pass": true,
                 "observed": []
               },
@@ -673,7 +818,12 @@
               "w": 1280,
               "h": 900
             },
-            "charts": []
+            "charts": [],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 601,
+              "outcome": "settled"
+            }
           }
         },
         {
@@ -688,13 +838,14 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"FEED DOWN\"",
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "name": "charts mounted with finite SVG plotted geometry (0/0)",
                 "pass": true,
                 "observed": []
               },
@@ -723,7 +874,12 @@
               "w": 390,
               "h": 844
             },
-            "charts": []
+            "charts": [],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 602,
+              "outcome": "settled"
+            }
           }
         }
       ]
@@ -748,6 +904,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"Strike GEX coverage: 3 of 4\"",
@@ -758,12 +915,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 452,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 452,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -795,9 +958,20 @@
             "charts": [
               {
                 "w": 452,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 452,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 602,
+              "outcome": "settled"
+            }
           }
         },
         {
@@ -812,6 +986,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"Strike GEX coverage: 3 of 4\"",
@@ -822,12 +997,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 332,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 332,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -859,9 +1040,20 @@
             "charts": [
               {
                 "w": 332,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 332,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 603,
+              "outcome": "settled"
+            }
           }
         }
       ]
@@ -886,6 +1078,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"FEED DOWN\"",
@@ -900,7 +1093,7 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "name": "charts mounted with finite SVG plotted geometry (0/0)",
                 "pass": true,
                 "observed": []
               },
@@ -929,7 +1122,12 @@
               "w": 1280,
               "h": 900
             },
-            "charts": []
+            "charts": [],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 601,
+              "outcome": "settled"
+            }
           }
         },
         {
@@ -944,6 +1142,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"FEED DOWN\"",
@@ -958,7 +1157,7 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "name": "charts mounted with finite SVG plotted geometry (0/0)",
                 "pass": true,
                 "observed": []
               },
@@ -987,7 +1186,12 @@
               "w": 390,
               "h": 844
             },
-            "charts": []
+            "charts": [],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 601,
+              "outcome": "settled"
+            }
           }
         }
       ]
@@ -1012,6 +1216,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"FEED DOWN\"",
@@ -1026,7 +1231,7 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "name": "charts mounted with finite SVG plotted geometry (0/0)",
                 "pass": true,
                 "observed": []
               },
@@ -1055,7 +1260,12 @@
               "w": 1280,
               "h": 900
             },
-            "charts": []
+            "charts": [],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 602,
+              "outcome": "settled"
+            }
           }
         },
         {
@@ -1070,6 +1280,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"FEED DOWN\"",
@@ -1084,7 +1295,7 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "name": "charts mounted with finite SVG plotted geometry (0/0)",
                 "pass": true,
                 "observed": []
               },
@@ -1113,7 +1324,12 @@
               "w": 390,
               "h": 844
             },
-            "charts": []
+            "charts": [],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 602,
+              "outcome": "settled"
+            }
           }
         }
       ]
@@ -1138,6 +1354,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"LIVE\"",
@@ -1152,12 +1369,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 452,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 452,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -1189,9 +1412,20 @@
             "charts": [
               {
                 "w": 452,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 452,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 602,
+              "outcome": "settled"
+            }
           }
         },
         {
@@ -1206,6 +1440,7 @@
             "errors": [],
             "consoleErrors": [],
             "requests": [],
+            "xhrRefused": [],
             "assertions": [
               {
                 "name": "text includes \"LIVE\"",
@@ -1220,12 +1455,18 @@
                 "pass": true
               },
               {
-                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "name": "charts mounted with finite SVG plotted geometry (1/1)",
                 "pass": true,
                 "observed": [
                   {
                     "w": 332,
-                    "h": 224
+                    "h": 224,
+                    "svg": true,
+                    "svgW": 332,
+                    "svgH": 224,
+                    "marks": 10,
+                    "validMarks": 9,
+                    "valid": true
                   }
                 ]
               },
@@ -1257,12 +1498,333 @@
             "charts": [
               {
                 "w": 332,
-                "h": 224
+                "h": 224,
+                "svg": true,
+                "svgW": 332,
+                "svgH": 224,
+                "marks": 10,
+                "validMarks": 9,
+                "valid": true
               }
-            ]
+            ],
+            "settle": {
+              "budgetMs": 6000,
+              "elapsedMs": 605,
+              "outcome": "settled"
+            }
           }
         }
       ]
+    }
+  ],
+  "controls": [
+    {
+      "name": "control-svg",
+      "kind": "checker",
+      "expectedReportPass": true,
+      "controlPass": true,
+      "report": {
+        "case": "control-svg",
+        "errors": [],
+        "consoleErrors": [],
+        "requests": [],
+        "assertions": [
+          {
+            "name": "text includes \"LIVE\"",
+            "pass": true
+          },
+          {
+            "name": "charts mounted with finite SVG plotted geometry (1/1)",
+            "pass": true,
+            "observed": [
+              {
+                "w": 332,
+                "h": 224,
+                "svg": true,
+                "svgW": 332,
+                "svgH": 224,
+                "marks": 1,
+                "validMarks": 1,
+                "valid": true
+              }
+            ]
+          },
+          {
+            "name": "no uncaught errors",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "no console errors",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "no outgoing requests",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "synthetic banner present",
+            "pass": true
+          }
+        ],
+        "pass": true,
+        "viewport": {
+          "w": 390,
+          "h": 844
+        },
+        "charts": [
+          {
+            "w": 332,
+            "h": 224,
+            "svg": true,
+            "svgW": 332,
+            "svgH": 224,
+            "marks": 1,
+            "validMarks": 1,
+            "valid": true
+          }
+        ],
+        "settle": {
+          "budgetMs": 6000,
+          "elapsedMs": 603,
+          "outcome": "settled"
+        }
+      }
+    },
+    {
+      "name": "control-empty",
+      "kind": "checker",
+      "expectedReportPass": false,
+      "controlPass": true,
+      "report": {
+        "case": "control-empty",
+        "errors": [],
+        "consoleErrors": [],
+        "requests": [],
+        "assertions": [
+          {
+            "name": "text includes \"LIVE\"",
+            "pass": true
+          },
+          {
+            "name": "charts mounted with finite SVG plotted geometry (0/1)",
+            "pass": false,
+            "observed": [
+              {
+                "w": 332,
+                "h": 224,
+                "svg": false,
+                "svgW": 0,
+                "svgH": 0,
+                "marks": 0,
+                "validMarks": 0,
+                "valid": false
+              }
+            ]
+          },
+          {
+            "name": "no uncaught errors",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "no console errors",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "no outgoing requests",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "synthetic banner present",
+            "pass": true
+          }
+        ],
+        "pass": false,
+        "viewport": {
+          "w": 390,
+          "h": 844
+        },
+        "charts": [
+          {
+            "w": 332,
+            "h": 224,
+            "svg": false,
+            "svgW": 0,
+            "svgH": 0,
+            "marks": 0,
+            "validMarks": 0,
+            "valid": false
+          }
+        ],
+        "settle": {
+          "budgetMs": 6000,
+          "elapsedMs": 2414,
+          "outcome": "invalid-chart"
+        }
+      }
+    },
+    {
+      "name": "control-missing",
+      "kind": "checker",
+      "expectedReportPass": false,
+      "controlPass": true,
+      "report": {
+        "case": "control-missing",
+        "errors": [],
+        "consoleErrors": [],
+        "requests": [],
+        "assertions": [
+          {
+            "name": "text includes \"LIVE\"",
+            "pass": true
+          },
+          {
+            "name": "charts mounted with finite SVG plotted geometry (0/0)",
+            "pass": false,
+            "observed": []
+          },
+          {
+            "name": "no uncaught errors",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "no console errors",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "no outgoing requests",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "synthetic banner present",
+            "pass": true
+          }
+        ],
+        "pass": false,
+        "viewport": {
+          "w": 390,
+          "h": 844
+        },
+        "charts": [],
+        "settle": {
+          "budgetMs": 6000,
+          "elapsedMs": 6011,
+          "outcome": "budget-expired"
+        }
+      }
+    },
+    {
+      "name": "control-malformed",
+      "kind": "checker",
+      "expectedReportPass": false,
+      "controlPass": true,
+      "report": {
+        "case": "control-malformed",
+        "errors": [],
+        "consoleErrors": [],
+        "requests": [],
+        "assertions": [
+          {
+            "name": "text includes \"LIVE\"",
+            "pass": true
+          },
+          {
+            "name": "charts mounted with finite SVG plotted geometry (0/1)",
+            "pass": false,
+            "observed": [
+              {
+                "w": 332,
+                "h": 224,
+                "svg": true,
+                "svgW": 332,
+                "svgH": 224,
+                "marks": 2,
+                "validMarks": 0,
+                "valid": false
+              }
+            ]
+          },
+          {
+            "name": "no uncaught errors",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "no console errors",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "no outgoing requests",
+            "pass": true,
+            "observed": []
+          },
+          {
+            "name": "synthetic banner present",
+            "pass": true
+          }
+        ],
+        "pass": false,
+        "viewport": {
+          "w": 390,
+          "h": 844
+        },
+        "charts": [
+          {
+            "w": 332,
+            "h": 224,
+            "svg": true,
+            "svgW": 332,
+            "svgH": 224,
+            "marks": 2,
+            "validMarks": 0,
+            "valid": false
+          }
+        ],
+        "settle": {
+          "budgetMs": 6000,
+          "elapsedMs": 2408,
+          "outcome": "invalid-chart"
+        }
+      }
+    },
+    {
+      "name": "control-xhr",
+      "kind": "xhr",
+      "expectedReportPass": true,
+      "controlPass": true,
+      "report": {
+        "case": "control-xhr",
+        "nativeOpen": 0,
+        "nativeSend": 0,
+        "recordedRequests": [
+          "https://offline.invalid/control"
+        ],
+        "refusedSends": [
+          "send refused in-page (fixture network block): https://offline.invalid/control"
+        ],
+        "threwOnSend": true,
+        "pass": true
+      }
+    }
+  ],
+  "extraCaptures": [
+    {
+      "id": "gex-mix-mobile-chart",
+      "case": "gex-mix",
+      "viewport": "mobile 390x844",
+      "mode": "full-height capture (Page.captureScreenshot captureBeyondViewport) of the same fixture page as gex-mix-mobile; coverage label and chart plot visible in one frame",
+      "screenshot": "shots/gex-mix-mobile-chart.png",
+      "screenshotBytes": 213327,
+      "screenshotSha256": "732109ca7ce9c39e247cf31fbece54ecd3c4fb57d525215113028ed06bcb4f00"
     }
   ],
   "inputs": [
@@ -1347,14 +1909,19 @@
       "sha256": "817e930587c995e1c30d75cb4b4a2e42e75534c20dc9221456540b19b5094a96"
     },
     {
+      "path": "offline/browser-controls.mjs",
+      "bytes": 6660,
+      "sha256": "1a5d48f8c306c1404e4eb2ac7e4bb16949f15c97be847787d335ee9775d09e04"
+    },
+    {
       "path": "offline/browser-entry.tsx",
-      "bytes": 7091,
-      "sha256": "573909ef327002d96b8e9746f6a5f84c6080914d2000f11b665af18d3fb27e5c"
+      "bytes": 10236,
+      "sha256": "42002eb9573bfbd0b4dbdb4ec94aa45a9499dd65b4ca698e6e682cd8c3be38af"
     },
     {
       "path": "offline/browser-fixture.mjs",
-      "bytes": 18003,
-      "sha256": "74beefa8395e34cbda1d3441445aa6b8058ce66cedf77ff430144168ef3c37e6"
+      "bytes": 21424,
+      "sha256": "5156faa4ec819d662965f71988da5376f55f265c3b7e41cbf7678aecff33a38e"
     },
     {
       "path": "offline/build-browser.ts",
@@ -1363,8 +1930,8 @@
     },
     {
       "path": "offline/cdp-drive.mjs",
-      "bytes": 6247,
-      "sha256": "a2c53f1607119f260924c91442c4b2b66e15a7de88842310be159d21dd8d9fce"
+      "bytes": 6474,
+      "sha256": "0ede28d94869cb682a864770c4a0fea5f0f80a089c6696556e3b5da7432339d1"
     },
     {
       "path": "offline/fixture-deps.json",
@@ -1477,8 +2044,8 @@
   "outputs": [
     {
       "path": "README.md",
-      "bytes": 630,
-      "sha256": "a141cf2fa59368f0802fca1b310b2c4aebeb1b958c70b5f7a0bf284f37f8a383"
+      "bytes": 785,
+      "sha256": "9ed86e6c6696d6de1b41c4f35509f04342aaa6abf3fef8ce56a310df171c3680"
     },
     {
       "path": "assets/app.css",
@@ -1487,8 +2054,8 @@
     },
     {
       "path": "assets/app.js",
-      "bytes": 2030433,
-      "sha256": "5e3124fae951fa8a9192cddc5a5dea2e895fb80bf3829ecafd13cccaa98f109e"
+      "bytes": 2032363,
+      "sha256": "5af92807a5c3b1a98f400001f18bf17361a9efc7dd1f2de88083bd05fbb5d7eb"
     },
     {
       "path": "bad-clock.html",
@@ -1614,6 +2181,11 @@
       "path": "shots/gex-mix-desktop.png",
       "bytes": 111372,
       "sha256": "837b1721d585cec2da18c828cb6898925dc0f907762d762896f85151181140ce"
+    },
+    {
+      "path": "shots/gex-mix-mobile-chart.png",
+      "bytes": 213327,
+      "sha256": "732109ca7ce9c39e247cf31fbece54ecd3c4fb57d525215113028ed06bcb4f00"
     },
     {
       "path": "shots/gex-mix-mobile.png",
