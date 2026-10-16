@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: db14d4bd B2 styled fixture packet and owner screenshot/report evidence verified (132 files / 130 checksums; 31 inputs / 10 fixtures / 37 available outputs). F1/backend checks remain green. Controlled Chrome probes reproduce a frozen settle deadline and empty-wrapper chart false-pass; the XHR hook observes rather than refuses. Next task: ADOPT-B2-R1 bounded browser failure evidence. Full App browser reproduction remains UNRUN locally; no production/data-rights/empirical promotion.**
+**Current status: 7addef72 monotonic wait, explicit negative-report recovery, XHR refusal and mobile chart capture verified. Package 135 files / 133 checksums; 32 input / 10 fixture / 38 available output hashes match. Five exact browser controls match, but axis-only/invalid-series-plus-axis still falsely pass and arbitrary failures can satisfy negative-control aggregation. Next: ADOPT-B2-R2 series-bound chart and intended-negative gate. F1/backend remain green; full App rerun UNRUN locally. No production/data-rights/empirical promotion.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,230 @@
 
 
 
+
+## 2026-10-16 — 7addef72 clock/XHR/mobile corrections verified; finish the series/control gate
+
+Reviewed [Muse B2-R1 response 6226201916](https://github.com/3pacs/muse/pull/2#issuecomment-6226201916), immutable **`7addef72d76cb8a0e2f028b0fa04a218ae3d3dfb`**, same implementation branch, against docs `899b80bd190bfcdb91389031b0b1ed36d46acbad`. **Accept the monotonic settle, explicit negative-report recovery, in-page XHR refusal, empty-wrapper rejection and requested mobile capture corrections.** Actual plotted-series validation and negative-control result aggregation still need the narrow R2 completion below. This does not reopen F1/B1 or relabel the owner's positive dashboard scenarios as failed.
+
+### Verified source, provenance and preserved behavior
+
+- **135 pinned files / 133 matching checksums**; browser manifest **32 input hashes / 10 fixture hashes / 38 available output hashes** match. The only unavailable listed outputs are the two intentionally omitted browser bundles (40 listed outputs total).
+- All **18 original B2 PNGs are retained byte-identically**, while all corresponding R1 report objects differ. The owner explicitly discloses this pairing. These are historical B2 visual evidence plus fresh **owner-reported R1 DOM results**, not eighteen attested same-run report/image pairs. Preserve that provenance and the earlier timing-flake record; no requirement to overwrite the originals is introduced.
+- The added [mobile gex-mix full-height capture](https://github.com/3pacs/muse/blob/7addef72d76cb8a0e2f028b0fa04a218ae3d3dfb/implementation/dashboard-streaming/browser-preview/shots/gex-mix-mobile-chart.png) is **390×2701**, hash **`732109ca7ce9c39e247cf31fbece54ecd3c4fb57d525215113028ed06bcb4f00`**, matching its manifest. The reviewer viewed it: the actual chart bars, zero-position label, and “3 of 4” coverage/unavailable text are visible together. Capture time/authenticity is owner-declared; hash/header/content inspection is independently verified.
+- App/client, server, F1 tests and every pipeline byte remain unchanged. The twenty retained SSR files are byte-identical to B2 (excluding the changed manifest). Fresh independent checks pass: owner **51** via the qualified type-only adapter, original **12** regressions, supplemental **17**, compile **12**, watcher **12/12**, J1 **50/50**, older overlapping J1 **27/27**, and **four** synthetic actual signals-reader cases. Guarded Python elapsed **505.33 ms**, zero forbidden operations. Counts overlap.
+- Precision5520 was confirmed. Reviewer Chrome **155.0.8059.79** ran controlled source-extracted checker pages only; owner reports use Chromium **152.0.7977.82**. Full supported Bun/React/App browser reconstruction remains **UNRUN locally**, since the generated bundles/toolchain are unavailable. No provider, production DB/service, credential or deployment action occurred.
+
+### Closed R1 checks independently reproduced
+
+The exact in-package `browser-controls.mjs` creates five pages from the pinned checker source. Independent Chrome execution with all non-file requests blocked matches **all five intended control outcomes**:
+
+| Controlled page | Evaluated result | Reviewer control outcome |
+|---|---|---|
+| Sized SVG/path control | PASS, settled **604 ms** | MATCH |
+| Empty wrapper | Chart assertion FAIL, `invalid-chart`, **2406 ms** | MATCH |
+| No chart wrapper | Chart assertion FAIL, `budget-expired`, **6008 ms** | MATCH |
+| Only degenerate shapes | Chart assertion FAIL, `invalid-chart`, **2406 ms** | MATCH |
+| Exact XHR hook with inert native counters | Attempt recorded once; refusal labeled; native send **0** | MATCH |
+
+The frozen data clock remains unchanged while elapsed time progresses. This closes the old frozen-deadline problem without changing receipt-time semantics. A missing driver report remains **BLOCKED/NO_REPORT, assertion UNKNOWN**, distinct from these evaluated negative FAIL reports. The XHR layer now genuinely refuses; captured native-open count is diagnostic, not an additional acceptance requirement.
+
+The owner-supplied three chart negatives also fail **only** their intended chart assertion, with other assertions true. The remaining aggregator issue below is prospective and does not invalidate those particular captured results.
+
+### Two remaining bounded findings
+
+**B2-R2a — axes still count as plotted data.** `measureCharts()` selects every SVG `path, rect, circle, line, polyline, polygon` and accepts the chart when any such shape has finite width/height and positive extent on one axis. It does not distinguish the actual data series from axes, grid, clipping/decorative shapes or expected nonzero GEX rows.
+
+Two additional controlled real-Chrome pages running the **exact checker** both return **PASS/settled** incorrectly:
+- A sized SVG containing **only a horizontal axis line**, with **zero data shapes**, passes in **603 ms**.
+- A valid axis line plus two data-class shapes whose bounds are both **0×0** passes in **604 ms**.
+
+The independently supplied success fixture contains two nonzero GEX rows (210.4 and 320.1); these controls deliberately have no valid data rendering for them. This proves a checker false-positive, not that any owner's screenshot lacks its bars. The prior empty-wrapper fix works; the missing distinction is **actual plotted series versus non-data SVG structure**. Keep genuine zero numeric in chart input; its rendered shape may be absent/collapsed and must not be forced to have positive pixels.
+
+**B2-R2b — any failure can certify an expected-negative control.** The exact aggregation expression in `browser-fixture.mjs` is:
+
+```javascript
+!!report &&
+(c.kind === "xhr" ? report.pass === true : report.pass === c.expectReportPass)
+```
+
+For a chart negative, both **`{pass:false}` without assertions** and a complete report where the **chart passes but only an unrelated error fails** are accepted as `controlPass=true`. Duplicate/inconsistent/wrong-case or wrong-settle-result synthetic reports are also accepted. The prepared result-classification slice and exact-expression proof reproduce these counterexamples; **15/15 proof checks** pass, meaning the proof matches the expected source behavior, not that fifteen candidate/product scenarios passed.
+
+Require the intended chart assertion to fail with the declared diagnostic outcome, unrelated required assertions to pass, report structure/summary/case to match, and missing/malformed reports to remain unevaluated. An expected-negative assertion **FAIL** can be a control **MATCH**; it must not silently become an application PASS. `report=null` already rejects the run; preserve that behavior and its UNKNOWN evaluation rather than converting absence into an assertion failure.
+
+### One next task — ADOPT-B2-R2 series-bound chart and intended-negative gate
+
+Limit this completion to `measureCharts`, control definitions/aggregation, their reviewer tests and evidence:
+
+1. Validate the existing net-GEX **data series**, excluding axes/grid/defs/legend/decorations. Bind expected nonzero strike rows from the existing fixture/chart data to valid series marks, so axis-only and invalid-data-plus-axis controls fail for the intended reason. Preserve numeric zero and missing-value behavior; a zero SVG mark may be absent or collapsed. Keep the expected chart count and App/F1/server/backend semantics unchanged.
+2. Validate the existing control report before declaring a negative MATCH: expected case, complete required assertions with consistent summary, the intended chart assertion false, unrelated assertions true, and expected settle outcome. Reject wrong-reason/malformed/missing reports with explicit classification. Keep direct XHR sentinel evidence; do not rely solely on its top-level pass boolean.
+3. Preserve the accepted five control outcomes and eighteen positive scenario meanings. Add the two axis/data geometry negatives and synthetic aggregation counterexamples. Publish exact source/output hashes and clearly separate retained B2 images, new reports and any new captures; keep the mobile capture/provenance and prior failure history intact.
+
+**Finite acceptance:** real data chart controls pass; axis-only/degenerate-series-plus-axis controls emit the intended chart FAIL; an unrelated runtime/text/request failure or malformed report cannot satisfy an expected-negative test; intended chart failures remain MATCH; NO_REPORT remains BLOCKED/UNKNOWN; the corrected monotonic budget and XHR refusal stay intact. No new numerical/calendar/scoring program, dependency-closure task, production/SDK rollout, provider call, credentials, merge/deploy or trading. Keep this same author/review owner and draft handoff.
+
+### Independent review slices, criticism and runnable proofs
+
+The two previously prepared fresh test-design owners were reused only for their distinct source-bound slices:
+- Result-state slice: exact aggregation expression, intended-negative classifications, and retained-image provenance; **15** proof checks. No browser or candidate modification.
+- Geometry/transport slice: seven serialized fake-DOM/source-oracle comparisons plus the exact inert XHR hook. These are synthetic/source checks, not actual DOM evidence. The root independently confirmed the two relevant geometry witnesses in real Chrome. Stronger native-open or send-without-open policies were not added to candidate acceptance.
+
+Official Gemini **3.8 Flash High** text criticism succeeded in conversation **`618a5226-7396-4209-8668-bd519c621782`**, no denied actions. Codex independently verified all adopted findings. Model phrases implying screenshot authenticity/same-run linkage or full App execution are not adopted. Existing direct/transitive dependency, hosted/source, data-rights and empirical limitations remain separate.
+
+The browser proof below requires existing compatible Puppeteer/Chrome (configurable `MUSE_PUPPETEER_MODULE` / `MUSE_CHROME_BIN`), Node, the exact pinned source, and an existing output directory. It loads only generated controlled pages from `browser-controls.mjs`, then adds the two axis counterexamples. **Five matches / two unmet geometry expectations**, expected exit **1** here; no App or bundles are loaded and no non-file request was observed.
+
+The aggregation proof uses Node built-ins only; **15 checks**, exit **0** here because its source counterexamples are successfully reproduced. Optional prior B2 source enables the 18-image historical-byte comparison; if absent that comparison is explicitly UNRUN and not counted as passed. It is not a candidate acceptance decision.
+
+```bash
+node review-r1-browser.mjs SOURCE_ROOT REVIEW_OUTPUT_DIR
+node prove-aggregation.mjs SOURCE_ROOT REVIEW_OUTPUT_DIR [PRIOR_B2_SOURCE_ROOT]
+python3 offline-checks.py SOURCE_ROOT REVIEW_OUTPUT_DIR 7addef72d76cb8a0e2f028b0fa04a218ae3d3dfb
+node review-boundaries.mjs SOURCE_ROOT REVIEW_OUTPUT_DIR 7addef72d76cb8a0e2f028b0fa04a218ae3d3dfb
+```
+
+Prior F1 reviewer scripts remain below; update only the boundary receipt's source pin (tested source bytes unchanged). Browser proof SHA-256 **`bad920c908812832ee83575f52dd34dd8a0f9ee1099bf1cfdb8a47511a4abc1e`**; aggregation proof **`68c0de4e72d885695af3f9340274f83cb649660c4884f49b2d9bc5e1e7242744`**.
+
+#### review-r1-browser.mjs
+
+<!-- MUSE-7ADDEF-B2R1-BROWSER-MJS -->
+```javascript
+// Controlled exact-source browser-checker review; does not load App/React/generated bundles.
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {pathToFileURL} from 'node:url';
+const {puppeteer}=await import(process.env.MUSE_PUPPETEER_MODULE??'/opt/antigravity-2.19.1/resources/app.asar.unpacked/node_modules/chrome-devtools-mcp/build/src/third_party/index.js');
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),space=path.join(root,'implementation/dashboard-streaming');
+const {buildControls}=await import(pathToFileURL(path.join(space,'offline/browser-controls.mjs')).href);
+const controlsDir=fs.mkdtempSync(path.join(out,'controlled-pages-'));
+const entry=fs.readFileSync(path.join(space,'offline/browser-entry.tsx'),'utf8');
+const defs=buildControls(controlsDir,entry);
+const template=fs.readFileSync(defs[0].page,'utf8');
+const variants=[
+ {id:'review-axis-only',replacement:'<g class="recharts-cartesian-axis"><line x1="10" y1="210" x2="310" y2="210" stroke="black"/></g>'},
+ {id:'review-axis-with-degenerate-data',replacement:'<g class="recharts-cartesian-axis"><line x1="10" y1="210" x2="310" y2="210" stroke="black"/></g><g class="recharts-bar-rectangles"><path class="recharts-rectangle" d="M0 0"/><rect class="recharts-rectangle" width="0" height="0"/></g>'},
+];
+for(const v of variants){const page=path.join(controlsDir,v.id+'.html');const html=template.replace(/control-svg/g,v.id).replace('<path d="M0 0 L10 10"/>',v.replacement);if(!html.includes(v.replacement))throw Error('control template mismatch');fs.writeFileSync(page,html);defs.push({id:v.id,kind:'checker',expectReportPass:false,page});}
+const fixture=JSON.parse(fs.readFileSync(path.join(root,'implementation/fixtures/feed_all_success.json'),'utf8'));
+const expectedNonzeroRows=fixture.gamma.by_strike.filter(x=>typeof x.net_gex_m==='number'&&x.net_gex_m!==0).map(x=>({strike:x.strike,gex:x.net_gex_m}));
+const profile=fs.mkdtempSync('/tmp/muse-b2r1-checker-');
+const browser=await puppeteer.launch({executablePath:process.env.MUSE_CHROME_BIN??'/opt/google/chrome/chrome',headless:true,userDataDir:profile,args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND']});
+const browserVersion=await browser.version(),requests=[],results=[];
+try{for(const d of defs){const page=await browser.newPage(),consoleErrors=[],errors=[];await page.setViewport({width:390,height:844});await page.setRequestInterception(true);page.on('request',r=>{if(r.url().startsWith('file:')||r.url().startsWith('data:'))r.continue();else{requests.push(r.url());r.abort()}});page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});const start=performance.now();await page.goto(pathToFileURL(d.page).href,{waitUntil:'load'});let report=null;try{await page.waitForSelector('#fixture-report',{timeout:10000});report=await page.$eval('#fixture-report',e=>JSON.parse(e.textContent))}catch{}const geometry=await page.evaluate(()=>({svgCount:document.querySelectorAll('.recharts-wrapper svg').length,axisCount:document.querySelectorAll('.recharts-cartesian-axis line').length,dataShapeCount:document.querySelectorAll('.recharts-bar-rectangles .recharts-rectangle').length,dataShapeBounds:[...document.querySelectorAll('.recharts-bar-rectangles .recharts-rectangle')].map(x=>{const r=x.getBoundingClientRect();return{w:r.width,h:r.height}}),frozenNow:Date.now()}));
+ const fails=report?.assertions?.filter(x=>!x.pass)??[];
+ const expectedNegative=d.kind==='checker'&&!d.expectReportPass;
+ const intendedChartFailure=fails.length===1&&fails[0].name.startsWith('charts mounted with finite SVG plotted geometry');
+ const result={id:d.id,expectedReportPass:d.expectReportPass,report,realElapsedMs:Math.round(performance.now()-start),geometry,errors,consoleErrors,pass_contract:!!report&&report.pass===d.expectReportPass&&(!expectedNegative||intendedChartFailure)};
+ if(d.id==='control-missing')result.pass_contract=result.pass_contract&&report.settle?.outcome==='budget-expired'&&report.settle?.elapsedMs<10000;
+ if(d.id==='control-xhr')result.pass_contract=result.pass_contract&&report.nativeSend===0&&report.recordedRequests?.length===1&&report.refusedSends?.length===1;
+ if(d.id.startsWith('review-axis'))result.independentExpectedNonzeroRows=expectedNonzeroRows;
+ results.push(result);await page.close();}}
+finally{await browser.close();fs.rmSync(profile,{recursive:true,force:true})}
+const receipt={source_commit:'7addef72d76cb8a0e2f028b0fa04a218ae3d3dfb',runtime:process.version,browser:browserVersion,mode:'exact candidate-generated checker/control pages plus axis-only mutations; no App/generated bundle execution',non_file_requests:requests,passes:results.filter(x=>x.pass_contract).length,failures:results.filter(x=>!x.pass_contract).length,results,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};fs.writeFileSync(path.join(out,'browser-review-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({source:receipt.source_commit,browser:browserVersion,passes:receipt.passes,failures:receipt.failures,non_file_requests:requests,results:results.map(r=>({id:r.id,pass_contract:r.pass_contract,reportedPass:r.report?.pass,settle:r.report?.settle,geometry:r.geometry,errors:r.errors,consoleErrors:r.consoleErrors}))},null,2));process.exitCode=receipt.failures?1:0;
+```
+<!-- /MUSE-7ADDEF-B2R1-BROWSER-MJS -->
+
+#### prove-aggregation.mjs
+
+<!-- MUSE-7ADDEF-B2R1-AGGREGATION-MJS -->
+```javascript
+// Reviewer-only source-bound proof. Synthetic reports; no product/driver execution.
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import os from 'node:os';
+import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+// Usage: node prove-aggregation.mjs [SOURCE_ROOT [OUTPUT_DIR [PRIOR_B2_SOURCE_ROOT]]]
+// Roots contain implementation/dashboard-streaming. With explicit source/output
+// arguments and no prior root, prior-image comparison is UNRUN, never passed.
+// No arguments retain this review workspace's original defaults.
+if (process.argv.length > 5) throw new Error('usage: node prove-aggregation.mjs [SOURCE_ROOT [OUTPUT_DIR [PRIOR_B2_SOURCE_ROOT]]]');
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const out = path.resolve(process.argv[3] ?? scriptDir);
+const source = path.resolve(process.argv[2] ?? path.join(scriptDir, '../source'));
+const app = path.join(source, 'implementation/dashboard-streaming');
+const priorSource = process.argv[4] ? path.resolve(process.argv[4]) : (process.argv.length === 2 ? path.resolve(scriptDir, '../../adopt-b2-db14d4bd/source') : null);
+const prior = priorSource ? path.join(priorSource, 'implementation/dashboard-streaming') : null;
+const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const read = rel => fs.readFileSync(path.join(app, rel));
+const entry = read('offline/browser-fixture.mjs').toString('utf8');
+const manifest = JSON.parse(read('browser-preview/BROWSER-MANIFEST.json'));
+const previous = prior ? JSON.parse(fs.readFileSync(path.join(prior, 'browser-preview/BROWSER-MANIFEST.json'))) : null;
+const aggregationStart = entry.indexOf('const controlResults = controls.map((c) => {');
+assert.ok(aggregationStart >= 0);
+const match = entry.slice(aggregationStart).match(/const controlPass =([\s\S]*?);/);
+assert.ok(match);
+const expression = match[1].trim();
+const expectedExpression = '!!report &&\n    (c.kind === "xhr" ? report.pass === true : report.pass === c.expectReportPass)';
+assert.equal(expression, expectedExpression, 'immutable aggregation expression changed');
+const sourceInput = manifest.inputs.find(x => x.path === 'offline/browser-fixture.mjs');
+assert.equal(hash(read(sourceInput.path)), sourceInput.sha256);
+assert.equal(read(sourceInput.path).length, sourceInput.bytes);
+const exact = (c, report) => vm.runInNewContext(`(${expression})`, { c, report }, { timeout: 100 });
+const normalize = name => /^charts mounted with finite SVG plotted geometry \(\d+\/\d+\)$/.test(name) ? 'chart' : name;
+const required = ['text includes "LIVE"', 'chart', 'no uncaught errors', 'no console errors', 'no outgoing requests', 'synthetic banner present'];
+const expectedOutcome = { 'control-svg': 'settled', 'control-empty': 'invalid-chart', 'control-missing': 'budget-expired', 'control-malformed': 'invalid-chart' };
+// Narrow reviewer adapter for this packet's chart reports; not a new product schema.
+function adapt(c, report) {
+  if (report === null) return { classification: 'BLOCKED', evaluatedAssertion: 'UNKNOWN', reason: 'NO_REPORT', controlExpectation: 'NOT_EVALUABLE' };
+  if (!report || typeof report !== 'object' || typeof report.pass !== 'boolean' || !Array.isArray(report.assertions) ||
+      report.assertions.some(a => !a || typeof a.name !== 'string' || typeof a.pass !== 'boolean')) return { classification: 'BLOCKED', evaluatedAssertion: 'UNKNOWN', reason: 'INVALID_REPORT', controlExpectation: 'NOT_EVALUABLE' };
+  const names = report.assertions.map(a => normalize(a.name));
+  if (names.length !== required.length || new Set(names).size !== names.length || !required.every(n => names.includes(n)) || report.pass !== report.assertions.every(a => a.pass)) return { classification: 'BLOCKED', evaluatedAssertion: 'UNKNOWN', reason: 'INVALID_REPORT', controlExpectation: 'NOT_EVALUABLE' };
+  if (report.case !== c.id) return { classification: 'BLOCKED', evaluatedAssertion: 'UNKNOWN', reason: 'CASE_MISMATCH', controlExpectation: 'NOT_EVALUABLE' };
+  const failed = report.assertions.filter(a => !a.pass).map(a => normalize(a.name));
+  const intended = c.expectReportPass ? report.pass : !report.pass && failed.length === 1 && failed[0] === 'chart';
+  return { classification: report.pass ? 'PASS' : 'FAIL', evaluatedAssertion: report.pass ? 'PASS' : 'FAIL', reason: report.pass ? 'ASSERTIONS_PASSED' : 'ASSERTION_FAILED', controlExpectation: intended && report.settle?.outcome === expectedOutcome[c.id] ? 'MATCH' : 'MISMATCH', failed };
+}
+const checks = [];
+const run = (name, fn) => { try { checks.push({ name, pass: true, detail: fn() }); } catch (e) { checks.push({ name, pass: false, error: e.message }); } };
+const controls = manifest.controls.map(x => ({ id: x.name, kind: x.kind, expectReportPass: x.expectedReportPass }));
+const captured = manifest.controls.map((x, i) => ({ name: x.name, exactControlPass: exact(controls[i], x.report), reviewer: x.kind === 'checker' ? adapt(controls[i], x.report) : { qualification: 'XHR report read only; hook behavior belongs to separate review slice' } }));
+for (const [i, control] of manifest.controls.entries()) run(`captured ${control.name}: exact aggregation agrees`, () => { assert.equal(exact(controls[i], control.report), control.controlPass); if (control.kind === 'checker') assert.equal(adapt(controls[i], control.report).controlExpectation, 'MATCH'); return captured[i]; });
+const c = controls.find(x => x.id === 'control-empty');
+const negative = manifest.controls.find(x => x.name === c.id).report;
+function mutation(name, mutate, expectedReason, expectedClass = 'FAIL', expectedControl = 'MISMATCH') {
+  run(name, () => {
+    const report = structuredClone(negative); mutate(report);
+    const actual = exact(c, report), reviewer = adapt(c, report);
+    assert.equal(actual, true, 'candidate permissive aggregation should accept synthetic report');
+    assert.equal(reviewer.classification, expectedClass); assert.equal(reviewer.reason, expectedReason); assert.equal(reviewer.controlExpectation, expectedControl);
+    return { synthetic: true, candidateControlPass: actual, reviewer, report };
+  });
+}
+mutation('unrelated error only falsely satisfies negative', r => { r.assertions.find(a => normalize(a.name) === 'chart').pass = true; r.assertions.find(a => a.name === 'no uncaught errors').pass = false; r.errors = ['synthetic unrelated error']; }, 'ASSERTION_FAILED');
+mutation('intended chart failure plus unrelated error falsely satisfies negative', r => { r.assertions.find(a => a.name === 'no uncaught errors').pass = false; r.errors = ['synthetic unrelated error']; }, 'ASSERTION_FAILED');
+mutation('inconsistent pass summary falsely satisfies negative', r => { r.assertions.forEach(a => a.pass = true); }, 'INVALID_REPORT', 'BLOCKED', 'NOT_EVALUABLE');
+mutation('missing assertions falsely satisfies negative', r => { delete r.assertions; }, 'INVALID_REPORT', 'BLOCKED', 'NOT_EVALUABLE');
+mutation('duplicate assertions falsely satisfies negative', r => { r.assertions.push(r.assertions[0]); }, 'INVALID_REPORT', 'BLOCKED', 'NOT_EVALUABLE');
+mutation('wrong-case report falsely satisfies negative', r => { r.case = 'synthetic-other-case'; }, 'CASE_MISMATCH', 'BLOCKED', 'NOT_EVALUABLE');
+mutation('wrong settle reason falsely satisfies negative', r => { r.settle.outcome = 'settled'; }, 'ASSERTION_FAILED');
+run('minimal malformed report falsely satisfies negative', () => { const report = { pass: false }; assert.equal(exact(c, report), true); const reviewer = adapt(c, report); assert.equal(reviewer.reason, 'INVALID_REPORT'); return { synthetic: true, candidateControlPass: true, reviewer, report }; });
+run('NO_REPORT rejects control without evaluating assertion', () => { assert.equal(exact(c, null), false); const reviewer = adapt(c, null); assert.deepEqual(reviewer, { classification: 'BLOCKED', evaluatedAssertion: 'UNKNOWN', reason: 'NO_REPORT', controlExpectation: 'NOT_EVALUABLE' }); return { synthetic: true, candidateControlPass: false, reviewer }; });
+run('unexpectedly passing negative cannot satisfy control', () => { const report = structuredClone(negative); report.pass = true; report.assertions.forEach(a => a.pass = true); assert.equal(exact(c, report), false); const reviewer = adapt(c, report); assert.equal(reviewer.classification, 'PASS'); assert.equal(reviewer.controlExpectation, 'MISMATCH'); return { synthetic: true, candidateControlPass: false, reviewer }; });
+const pngs = previous ? manifest.cases.flatMap(k => k.viewports.map(v => {
+  const old = previous.cases.find(x => x.case === k.case).viewports.find(x => x.viewport === v.viewport);
+  const currentBytes = read('browser-preview/' + v.screenshot);
+  const priorBytes = fs.readFileSync(path.join(prior, 'browser-preview', old.screenshot));
+  assert.equal(hash(currentBytes), v.screenshotSha256); assert.equal(hash(priorBytes), old.screenshotSha256); assert.equal(hash(currentBytes), hash(priorBytes));
+  assert.notEqual(JSON.stringify(v.report), JSON.stringify(old.report));
+  return { id: `${k.case}-${v.viewport}`, retainedB2Bytes: true, sha256: hash(currentBytes), freshReportDiffers: true, evidenceClass: 'reused B2 image; fresh R1 owner report; not attested same-run capture' };
+})) : [];
+const extras = manifest.extraCaptures.map(x => { const bytes = read('browser-preview/' + x.screenshot); assert.equal(hash(bytes), x.screenshotSha256); assert.equal(bytes.length, x.screenshotBytes); assert.equal(bytes.subarray(1, 4).toString(), 'PNG'); return { id: x.id, sha256: hash(bytes), bytes: bytes.length, pngWidth: bytes.readUInt32BE(16), pngHeight: bytes.readUInt32BE(20), evidenceClass: 'owner-declared fresh R1 full-height capture; extraCaptures contains no report/run identifier' }; });
+const relevant = ['offline/browser-fixture.mjs', 'offline/browser-controls.mjs', 'offline/cdp-drive.mjs', 'browser-preview/BROWSER-MANIFEST.json'];
+const receipt = {
+  scope: 'Distinct reviewer result-classification/provenance slice; no full candidate acceptance', sourceCommit: '7addef72d76cb8a0e2f028b0fa04a218ae3d3dfb', host: os.hostname(), node: process.version,
+  sourceBinding: 'Locally supplied immutable source pin; aggregation SHA-256 also matches candidate manifest input. No network/Git ref verification.',
+  sourceRoot: source, outputDir: out, priorB2SourceRoot: priorSource,
+  reviewerCodeSha256: hash(fs.readFileSync(fileURLToPath(import.meta.url))),
+  files: Object.fromEntries(relevant.map(file => [file, hash(read(file))])), adoptNoteSha256: hash(fs.readFileSync(path.join(source, 'implementation/ADOPT-B2-R1.md'))),
+  expression, captured, checks, passed: checks.filter(x => x.pass).length, failed: checks.filter(x => !x.pass).length,
+  provenance: { priorImageComparison: previous ? { status: 'RUN', compared: pngs.length } : { status: 'UNRUN', reason: 'PRIOR_B2_SOURCE_ROOT not supplied; prior-image comparison skipped and not counted as passed' }, retainedCount: previous ? pngs.length : null, retained: pngs, extras, sameRunLimit: 'Hashes prove retained file identity, not capture time or fresh report/image co-generation. ADOPT-B2-R1 explicitly discloses reuse. No requirement to overwrite originals is inferred.' },
+  candidateAcceptance: 'UNASSESSED', unrun: [...(previous ? [] : ['Prior B2 image comparison (PRIOR_B2_SOURCE_ROOT not supplied)']), 'Browser/DOM execution', 'App/build/full regression suite', 'XHR hook execution', 'PNG visual inspection', 'Network/provider/service/database/schedule operations']
+};
+fs.mkdirSync(out, { recursive: true });
+fs.writeFileSync(path.join(out, 'aggregation-proof.json'), JSON.stringify(receipt, null, 2) + '\n');
+console.log(JSON.stringify({ sourceCommit: receipt.sourceCommit, reviewerCodeSha256: receipt.reviewerCodeSha256, passed: receipt.passed, failed: receipt.failed, capturedReports: captured.length, priorImageComparison: receipt.provenance.priorImageComparison, retainedB2PNGs: receipt.provenance.retainedCount, extraCapture: extras, candidateAcceptance: receipt.candidateAcceptance }, null, 2));
+process.exitCode = receipt.failed ? 1 : 0;
+```
+<!-- /MUSE-7ADDEF-B2R1-AGGREGATION-MJS -->
 
 ## 2026-10-16 — db14d4bd styled browser packet verified; B2-R1 checker failure evidence next
 
