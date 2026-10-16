@@ -1,0 +1,195 @@
+{
+  "status": "ok",
+  "updated_at": "2026-01-06T14:35:05+00:00",
+  "market_open": true,
+  "quote_as_of": "2026-01-05T14:33:39+00:00",
+  "spot": 500.25,
+  "expiry": "2026-01-05",
+  "n_strikes": 151,
+  "n_strikes_rtd_live": 3,
+  "n_strikes_nasdaq_delayed": 148,
+  "sources": {
+    "rtd": {
+      "as_of": "2026-01-05T14:33:39+00:00",
+      "delay": "realtime",
+      "n_strikes": 3
+    },
+    "nasdaq": {
+      "as_of": "2026-01-05T14:31:56+00:00",
+      "delay": "~15min",
+      "n_strikes": 148,
+      "stale": false
+    }
+  },
+  "gamma": {
+    "spot": 500.25,
+    "expiry": "2026-01-05",
+    "gex_formula": "v2",
+    "gex_units": "USD millions per 1% spot move",
+    "net_gex_m": 1234.5,
+    "gamma_flip": 498.6,
+    "gamma_flip_method": "spot_root_frozen_iv_oi",
+    "gamma_flip_roots": [
+      498.6
+    ],
+    "gamma_flip_residuals": [
+      0.001
+    ],
+    "gamma_flip_scale": 11573296.48,
+    "gamma_flip_underflow_samples": 12,
+    "speed_m_per_pt2": 42.0,
+    "speed_wide_m_per_pt2": 19.5,
+    "speed_note": "d(dealer gamma $M/pt)/dSpot, central differences on the frozen-IV/OI flip solver",
+    "gamma_flip_note": null,
+    "call_wall": 505.0,
+    "put_wall": 495.0,
+    "regime": "positive-gamma (pinning)",
+    "by_strike": [
+      {
+        "strike": 500.0,
+        "net_gex_m": 210.4,
+        "call_gex_m": 180.2,
+        "put_gex_m": -30.2,
+        "call_oi": 42000,
+        "put_oi": 31000
+      },
+      {
+        "strike": 505.0,
+        "net_gex_m": 320.1,
+        "call_gex_m": 300.0,
+        "put_gex_m": -20.1,
+        "call_oi": 51000,
+        "put_oi": 12000
+      }
+    ],
+    "_by_strike_truncated": "2 of 151 rows shown; full payload carries every strike",
+    "top_strikes": [
+      {
+        "strike": 505.0,
+        "net_gex_m": 320.1
+      },
+      {
+        "strike": 500.0,
+        "net_gex_m": 210.4
+      }
+    ],
+    "max_pain": 500.0
+  },
+  "flow": {
+    "spot": 500.25,
+    "expiry": "2026-01-05",
+    "pc_volume": 1.05,
+    "pc_oi": 1.71,
+    "call_volume": 1200000.0,
+    "put_volume": 1260000.0,
+    "call_oi": 231000.0,
+    "put_oi": 395000.0,
+    "elevated_volume_activity": [
+      {
+        "strike": 500.0,
+        "type": "call",
+        "volume": 45000,
+        "oi": 42000,
+        "vol_oi": 1.07
+      }
+    ],
+    "top_volume_activity": [
+      {
+        "strike": 500.0,
+        "type": "put",
+        "volume": 60000,
+        "notional_m": 3.1
+      }
+    ],
+    "activity_note": "flow is unsigned (no official open/close or buy/sell tags in source data)"
+  },
+  "vanna_charm": {
+    "spot": 500.25,
+    "expiry": "2026-01-05",
+    "T_years": 2e-06,
+    "assumptions": {
+      "r": 0.043,
+      "q": 0.013,
+      "dealer_position": "long calls / short puts",
+      "vanna_units": "$ thousands per +1pt IV",
+      "charm_units": "$ thousands per hour"
+    },
+    "total_vanna_k": -990.1,
+    "total_charm_k": 5629.2,
+    "by_strike": [
+      {
+        "strike": 500.0,
+        "vanna_k": -210.0,
+        "charm_k": 1400.0
+      }
+    ]
+  },
+  "iv": {
+    "spot": 500.25,
+    "expiry": "2026-01-05",
+    "atm_strike": 500.0,
+    "atm_call_iv": 0.179,
+    "atm_put_iv": 0.199,
+    "risk_reversal_25d": null,
+    "risk_reversal_note": "put25 IV minus call25 IV; >0 = downside bid",
+    "skew_by_strike": [
+      {
+        "strike": 500.0,
+        "call_iv": 0.179,
+        "put_iv": 0.199
+      }
+    ],
+    "smile_2pct": {
+      "width": 0.0619,
+      "min_iv_strike": 502.0
+    },
+    "term_structure": null,
+    "term_structure_note": "single-expiry (0DTE) feed; no term structure available"
+  },
+  "positioning": {
+    "expected_move": {
+      "dollars": 2.4,
+      "dollars_kind": "quoted",
+      "pct": 0.48,
+      "remaining_dollars": 1.1,
+      "remaining_kind": "quoted",
+      "remaining_pct": 0.22,
+      "atm_strike": 500.0,
+      "note": "ATM straddle quote; remaining == quoted (no sqrt-time rescale, post-R8)"
+    },
+    "hedge_buckets": [
+      {
+        "move": "+10bp",
+        "dealer_trade_m": -12.5,
+        "side": "sell"
+      },
+      {
+        "move": "-10bp",
+        "dealer_trade_m": 12.1,
+        "side": "buy"
+      }
+    ],
+    "hedge_buckets_note": "signed $M dealers must trade for the given spot move",
+    "dealer_gamma_notional_m_per_pt": 320.5,
+    "pin_score": 55.0,
+    "pin_magnet": 500.0,
+    "pin_components": {
+      "concentration": 0.61,
+      "proximity": 0.82,
+      "time_elapsed": 0.45
+    },
+    "assumptions": "dealers long calls / short puts (standard GEX sign convention)",
+    "reversal_watch": {
+      "magnet": 500.0,
+      "displacement_dollars": -0.51,
+      "displacement_pct": -0.1,
+      "expected_move_remaining": 1.1,
+      "stretched": false,
+      "flip_distance_dollars": 1.65,
+      "conditions": [],
+      "note": "mean-reversion setup read, not a directional forecast"
+    }
+  },
+  "_synthetic": true,
+  "_fixture": "feed_all_future_clock"
+}
