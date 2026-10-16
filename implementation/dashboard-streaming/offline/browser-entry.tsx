@@ -43,6 +43,7 @@ const report = {
   errors: [] as string[],
   consoleErrors: [] as string[],
   requests: [] as string[],
+  xhrRefused: [] as string[],
   assertions: [] as { name: string; pass: boolean; observed?: unknown }[],
 };
 (window as { __REPORT__?: unknown }).__REPORT__ = report;
@@ -64,14 +65,32 @@ const recordRequest = (url: string) => {
 window.fetch = ((input: unknown) =>
   recordRequest(String((input as { url?: string })?.url ?? input))) as typeof fetch;
 const origOpen = XMLHttpRequest.prototype.open;
+const origSend = XMLHttpRequest.prototype.send;
+void origOpen;
+void origSend;
+// ADOPT-B2-R1: XHR is REFUSED in-page, not merely observed. open()
+// records the attempt and remembers the URL on the instance, but the
+// native open is never invoked; send() records a labeled refusal and
+// throws, so the native send is never reached either. (The natives are
+// captured above only so the trap's installation is explicit; the void
+// references document that non-delegation is deliberate.) The CDP Fetch
+// interception in the driver remains the second, outer layer.
+const xhrUrls = new WeakMap();
 XMLHttpRequest.prototype.open = function (
   this: XMLHttpRequest,
   _method: string,
   url: string | URL,
 ) {
   report.requests.push(String(url));
-  return origOpen.apply(this, arguments as never);
+  xhrUrls.set(this, String(url));
+  return undefined;
 } as typeof XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.send = function () {
+  const url = String(xhrUrls.get(this) || "(unopened)");
+  const refused = report.xhrRefused || (report.xhrRefused = []);
+  refused.push("send refused in-page (fixture network block): " + url);
+  throw new Error("fixture browser: network blocked (XHR refused): " + url);
+};
 
 // --- deterministic receipt clock -------------------------------------------
 const frozenMs = Date.parse(packet.frozenIso);
@@ -120,30 +139,96 @@ createRoot(rootEl).render(
   </StrictMode>,
 );
 
-// --- measure + assert after the App settles -----------------------------------
 // --- measure + assert once the App has settled ------------------------------
-// Recharts' ResponsiveContainer only renders its wrapper after measuring
-// a positive parent size, which can lag under load; poll for the chart
-// threshold for up to ~6s instead of assuming a fixed delay suffices.
-// If the threshold never arrives the assertion fails for real.
+// ADOPT-B2-R1: the settle budget runs on a MONOTONIC elapsed clock
+// (performance.now), never on the frozen fixture Date — a chart that
+// never mounts now produces an explicit failed assertion report within
+// the budget instead of looping forever against a deadline that cannot
+// move. (The App's receipt/data clock stays frozen; only the wait is
+// monotonic.) Chart validity inspects the rendered SVG and its plotted
+// marks, not just the wrapper box: a sized but empty wrapper does not
+// count, and neither does a wrapper whose marks are all degenerate
+// (zero-extent or non-finite). A genuine zero-valued bar still counts:
+// its mark's bounding box is finite with positive extent on one axis.
+// A wrapper that exists but stays invalid for a sustained grace period
+// fails fast with outcome "invalid-chart"; no wrapper at all waits out
+// the full budget ("budget-expired"); a valid chart settles at once.
 function measureCharts() {
   return Array.from(
     document.querySelectorAll<HTMLElement>(".recharts-wrapper"),
   ).map((el) => {
     const r = el.getBoundingClientRect();
-    return { w: Math.round(r.width), h: Math.round(r.height) };
+    const svg = el.querySelector("svg");
+    let svgW = 0;
+    let svgH = 0;
+    let marks = 0;
+    let validMarks = 0;
+    if (svg) {
+      const sr = svg.getBoundingClientRect();
+      svgW = sr.width;
+      svgH = sr.height;
+      const markEls = svg.querySelectorAll(
+        "path, rect, circle, line, polyline, polygon",
+      );
+      marks = markEls.length;
+      markEls.forEach((m) => {
+        const b = m.getBoundingClientRect();
+        if (
+          Number.isFinite(b.width) &&
+          Number.isFinite(b.height) &&
+          (b.width > 0 || b.height > 0)
+        ) {
+          validMarks++;
+        }
+      });
+    }
+    const valid =
+      Number.isFinite(r.width) &&
+      Number.isFinite(r.height) &&
+      r.width > 0 &&
+      r.height > 0 &&
+      svg !== null &&
+      Number.isFinite(svgW) &&
+      Number.isFinite(svgH) &&
+      svgW > 0 &&
+      svgH > 0 &&
+      validMarks > 0;
+    return {
+      w: Math.round(r.width),
+      h: Math.round(r.height),
+      svg: svg !== null,
+      svgW: Math.round(svgW),
+      svgH: Math.round(svgH),
+      marks,
+      validMarks,
+      valid,
+    };
   });
 }
 function check(name: string, pass: boolean, observed?: unknown) {
   report.assertions.push({ name, pass, observed });
 }
-const settleDeadline = Date.now() + 6000;
+const settleBudgetMs = 6000;
+const settleStartMs = performance.now();
+const settleDeadlineMs = settleStartMs + settleBudgetMs;
+const invalidGraceMs = 1800;
+let invalidSinceMs = -1;
 function settle() {
   const minCharts = packet.expect.minCharts ?? 0;
-  const sized = measureCharts().filter(
-    (c) => c.w > 0 && c.h > 0 && Number.isFinite(c.w) && Number.isFinite(c.h),
-  );
-  if (sized.length < minCharts && Date.now() < settleDeadline) {
+  const nowMs = performance.now();
+  const charts = measureCharts();
+  const validCount = charts.filter((c) => c.valid).length;
+  let outcome = null;
+  if (validCount >= minCharts) {
+    outcome = "settled";
+  } else if (charts.length > 0) {
+    if (invalidSinceMs < 0) invalidSinceMs = nowMs;
+    if (nowMs - invalidSinceMs >= invalidGraceMs) outcome = "invalid-chart";
+  } else {
+    invalidSinceMs = -1;
+  }
+  if (outcome === null && nowMs >= settleDeadlineMs) outcome = "budget-expired";
+  if (outcome === null) {
     setTimeout(settle, 200);
     return;
   }
@@ -154,11 +239,13 @@ function settle() {
   for (const s of packet.expect.textExcludes ?? []) {
     check("text excludes " + JSON.stringify(s), !visibleText.includes(s));
   }
-  const charts = measureCharts();
   check(
-    "charts mounted with nonzero finite geometry (" +
-      sized.length + "/" + charts.length + ")",
-    sized.length >= minCharts,
+    "charts mounted with finite SVG plotted geometry (" +
+      validCount +
+      "/" +
+      charts.length +
+      ")",
+    validCount >= minCharts,
     charts,
   );
   check("no uncaught errors", report.errors.length === 0, report.errors);
@@ -176,6 +263,11 @@ function settle() {
     pass: report.assertions.every((a) => a.pass),
     viewport: { w: window.innerWidth, h: window.innerHeight },
     charts,
+    settle: {
+      budgetMs: settleBudgetMs,
+      elapsedMs: Math.round(performance.now() - settleStartMs),
+      outcome,
+    },
   });
   document.body.appendChild(pre);
 }

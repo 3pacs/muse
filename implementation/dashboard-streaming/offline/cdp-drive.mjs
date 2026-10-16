@@ -132,7 +132,11 @@ for (const job of cfg.jobs) {
     }
     let shotBytes = 0;
     if (report) {
-      const shot = await send("Page.captureScreenshot", { format: "png" }, sessionId);
+      const shotParams = { format: "png" };
+      // fullPage jobs (ADOPT-B2-R1 extra capture) shoot the whole
+      // document height, not just the emulated viewport.
+      if (job.fullPage) shotParams.captureBeyondViewport = true;
+      const shot = await send("Page.captureScreenshot", shotParams, sessionId);
       const buf = Buffer.from(shot.data, "base64");
       fs.mkdirSync(path.dirname(job.shotPath), { recursive: true });
       fs.writeFileSync(job.shotPath, buf);

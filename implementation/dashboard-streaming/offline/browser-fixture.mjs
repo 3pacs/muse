@@ -29,9 +29,12 @@
 //      App, then measures the DOM and writes a JSON assertion report
 //      into the page (read back here via --dump-dom). Screenshots are
 //      captured per case per viewport.
-//   5. Write BROWSER-MANIFEST.json: browser + toolchain versions, the
-//      per-case reports, and SHA-256 hashes of inputs, fixtures used,
-//      and outputs.
+//   5. Drive the ADOPT-B2-R1 controlled checker pages (offline/
+//      browser-controls.mjs) through the same driver, and capture one
+//      additional full-height mobile gex-mix screenshot.
+//   6. Write BROWSER-MANIFEST.json: browser + toolchain versions, the
+//      per-case reports, the control reports, and SHA-256 hashes of
+//      inputs, fixtures used, and outputs.
 //
 // Exit codes: 0 all cases pass · 2 usage/assembly error · 3 dependency
 // attestation failure · 4 a case failed its assertions.
@@ -40,6 +43,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildControls } from "./browser-controls.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const spaceRoot = path.resolve(here, "..");
@@ -280,6 +284,28 @@ for (const c of CASES) {
     });
   }
 }
+// ADOPT-B2-R1 controls: controlled pages running the exact checker /
+// clock / XHR-hook source extracted from browser-entry.tsx (see
+// offline/browser-controls.mjs), judged separately from the 18 cases.
+const controls = buildControls(
+  path.join(workDir, ".controls"),
+  fs.readFileSync(path.join(spaceRoot, "offline", "browser-entry.tsx"), "utf8"),
+);
+for (const c of controls) {
+  jobs.push({
+    id: c.id, page: c.page, w: 390, h: 844, mobile: false,
+    shotPath: path.join(workDir, ".controls", c.id + ".png"),
+  });
+}
+// ADOPT-B2-R1 item 4: one additional full-height capture of the mobile
+// gex-mix page, so the coverage label and the chart plot below the fold
+// are both visible. The 18 committed case screenshots are unchanged.
+jobs.push({
+  id: "gex-mix-mobile-chart",
+  page: path.join(outAbs, "gex-mix.html"),
+  w: 390, h: 844, mobile: true, fullPage: true,
+  shotPath: path.join(outAbs, "shots", "gex-mix-mobile-chart.png"),
+});
 const jobsPath = path.join(workDir, ".cdp-jobs.json");
 const resultsPath = path.join(workDir, ".cdp-results.json");
 fs.writeFileSync(jobsPath, JSON.stringify({
@@ -328,6 +354,47 @@ for (const c of CASES) {
   caseResults.push({ case: c.name, fixtures: c.fixtures, receiptClock: c.receipt, viewports });
 }
 
+// --- ADOPT-B2-R1 controls + extra capture -------------------------------------
+const controlResults = controls.map((c) => {
+  const res = byId.get(c.id);
+  const report = res?.report ?? null;
+  const controlPass =
+    !!report &&
+    (c.kind === "xhr" ? report.pass === true : report.pass === c.expectReportPass);
+  if (!controlPass) anyFail = true;
+  console.log(
+    c.id + ": " + (controlPass ? "CONTROL PASS" : "CONTROL FAIL") +
+      (report ? " report.pass=" + report.pass : " (no report in DOM)"),
+  );
+  return {
+    name: c.id,
+    kind: c.kind,
+    expectedReportPass: c.expectReportPass,
+    controlPass,
+    report,
+  };
+});
+const extraShotPath = path.join(outAbs, "shots", "gex-mix-mobile-chart.png");
+const extraShot = fs.existsSync(extraShotPath)
+  ? fs.readFileSync(extraShotPath)
+  : null;
+if (!extraShot || extraShot.length <= 5000) anyFail = true;
+const extraCaptures = [
+  {
+    id: "gex-mix-mobile-chart",
+    case: "gex-mix",
+    viewport: "mobile 390x844",
+    mode: "full-height capture (Page.captureScreenshot captureBeyondViewport) of the same fixture page as gex-mix-mobile; coverage label and chart plot visible in one frame",
+    screenshot: "shots/gex-mix-mobile-chart.png",
+    screenshotBytes: extraShot ? extraShot.length : 0,
+    screenshotSha256: extraShot ? sha256(extraShot) : null,
+  },
+];
+console.log(
+  "gex-mix-mobile-chart: " +
+    (extraShot ? extraShot.length + "B full-height png" : "MISSING"),
+);
+
 // --- README + BROWSER-MANIFEST.json -------------------------------------------
 const readme =
   "# Fixture browser preview — SYNTHETIC, NOT MARKET DATA\n\n" +
@@ -339,7 +406,10 @@ const readme =
   "network requests blocked. `shots/` holds the desktop (1280x900)\n" +
   "and mobile (390x844) screenshots; `BROWSER-MANIFEST.json` records\n" +
   "the per-case DOM assertion reports, browser/toolchain versions,\n" +
-  "and SHA-256 hashes of inputs, fixtures, and outputs.\n";
+  "and SHA-256 hashes of inputs, fixtures, and outputs. The manifest\n" +
+  "also records the ADOPT-B2-R1 controlled checker pages (controls)\n" +
+  "and one full-height mobile gex-mix capture\n" +
+  "(shots/gex-mix-mobile-chart.png).\n";
 fs.writeFileSync(path.join(outAbs, "README.md"), readme);
 function hashTree(root, files) {
   return files.map((rel) => {
@@ -363,11 +433,13 @@ const manifest = {
     fixtureAdapter: adapterVersion,
   },
   network:
-    "fixture pages load from file:// URLs — no HTTP server and no IP networking are involved. Chromium's Fetch interception (offline/cdp-drive.mjs) refuses every non-file request (recorded per viewport as externalRequests, asserted zero), and the in-page bootstrap independently traps fetch/XHR and asserts zero attempts. (A loopback HTTP origin was tried first; Chrome 152's Local Network Access checks refuse even the navigation to it in this environment, net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS, so the evidence uses file://.)",
+    "fixture pages load from file:// URLs — no HTTP server and no IP networking are involved. Chromium's Fetch interception (offline/cdp-drive.mjs) refuses every non-file request (recorded per viewport as externalRequests, asserted zero), and the in-page bootstrap independently refuses requests: fetch is rejected, and XHR open() records the attempt while send() is refused in-page with the refusal labeled in the report's xhrRefused list — the native open/send are never invoked (ADOPT-B2-R1; proven by the control-xhr controlled page in controls). Zero attempts are asserted per case. (A loopback HTTP origin was tried first; Chrome 152's Local Network Access checks refuse even the navigation to it in this environment, net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS, so the evidence uses file://.)",
   clock:
-    "each page freezes Date at the case's independent receipt instant (see responses/*.json: frozenClock + clockSource from the handler run)",
+    "each page freezes Date at the case's independent receipt instant (see responses/*.json: frozenClock + clockSource from the handler run). The checker's settle budget is measured on performance.now (monotonic elapsed time), so the wait expires and emits its report even though Date is frozen (ADOPT-B2-R1); each report records settle.budgetMs / settle.elapsedMs / settle.outcome.",
   viewports: VIEWPORTS.map((v) => v.name + " " + v.w + "x" + v.h),
   cases: caseResults,
+  controls: controlResults,
+  extraCaptures,
   inputs: hashTree(spaceRoot, inputFiles),
   fixturesUsed: fixtureFiles.map((f) => {
     const buf = fs.readFileSync(path.join(fixturesDir, f));
@@ -380,5 +452,5 @@ fs.writeFileSync(
   JSON.stringify(manifest, null, 2) + "\n",
 );
 if (!keepWork) fs.rmSync(workDir, { recursive: true, force: true });
-console.log("BROWSER-MANIFEST.json written; cases failing: " + (anyFail ? "YES" : "none"));
+console.log("BROWSER-MANIFEST.json written; failures (cases/controls/captures): " + (anyFail ? "YES" : "none"));
 process.exit(anyFail ? 4 : 0);
