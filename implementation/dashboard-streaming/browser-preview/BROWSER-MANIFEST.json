@@ -1,0 +1,1674 @@
+{
+  "generatedBy": "offline/browser-fixture.mjs (fixture-only; no network, no SDK)",
+  "browser": {
+    "path": "/opt/meta-chromium/chrome",
+    "version": "Chromium 152.0.7977.82"
+  },
+  "toolchain": {
+    "bun": "1.4.2",
+    "node": "v24.20.0",
+    "typescript": "5.6.3",
+    "tailwindPlugin": "0.0.15",
+    "fixtureAdapter": "0.0.0-fixture-adapter"
+  },
+  "network": "fixture pages load from file:// URLs — no HTTP server and no IP networking are involved. Chromium's Fetch interception (offline/cdp-drive.mjs) refuses every non-file request (recorded per viewport as externalRequests, asserted zero), and the in-page bootstrap independently traps fetch/XHR and asserts zero attempts. (A loopback HTTP origin was tried first; Chrome 152's Local Network Access checks refuse even the navigation to it in this environment, net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS, so the evidence uses file://.)",
+  "clock": "each page freezes Date at the case's independent receipt instant (see responses/*.json: frozenClock + clockSource from the handler run)",
+  "viewports": [
+    "desktop 1280x900",
+    "mobile 390x844"
+  ],
+  "cases": [
+    {
+      "case": "success",
+      "fixtures": [
+        "feed_all_success.json",
+        "feed_signals_success.json"
+      ],
+      "receiptClock": "",
+      "viewports": [
+        {
+          "viewport": "desktop",
+          "size": "1280x900",
+          "screenshot": "shots/success-desktop.png",
+          "screenshotBytes": 111043,
+          "screenshotSha256": "6d166fd603d63935f291a4ae03d15c3f3ddc1a2469cefd0ce347ddaea57e852e",
+          "externalRequests": [],
+          "report": {
+            "case": "success",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"LIVE\"",
+                "pass": true
+              },
+              {
+                "name": "text includes \"isolated\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"MARKET CLOSED\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"CLUSTERING (\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"clustering unknown\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 452,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 1280,
+              "h": 900
+            },
+            "charts": [
+              {
+                "w": 452,
+                "h": 224
+              }
+            ]
+          }
+        },
+        {
+          "viewport": "mobile",
+          "size": "390x844",
+          "screenshot": "shots/success-mobile.png",
+          "screenshotBytes": 78593,
+          "screenshotSha256": "cdbef630d144da091ca97716a13cfd1c180f137b1fb038f6655bab42f1f0be06",
+          "externalRequests": [],
+          "report": {
+            "case": "success",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"LIVE\"",
+                "pass": true
+              },
+              {
+                "name": "text includes \"isolated\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"MARKET CLOSED\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"CLUSTERING (\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"clustering unknown\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 332,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            },
+            "charts": [
+              {
+                "w": 332,
+                "h": 224
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "case": "last-session",
+      "fixtures": [
+        "feed_all_last_session.json",
+        "feed_signals_success.json"
+      ],
+      "receiptClock": "",
+      "viewports": [
+        {
+          "viewport": "desktop",
+          "size": "1280x900",
+          "screenshot": "shots/last-session-desktop.png",
+          "screenshotBytes": 113486,
+          "screenshotSha256": "1b95084e897bb51b6b40ccfc5bdc6b05ca963d86d513857a2ba01e625eae3c7c",
+          "externalRequests": [],
+          "report": {
+            "case": "last-session",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"MARKET CLOSED\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 452,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 1280,
+              "h": 900
+            },
+            "charts": [
+              {
+                "w": 452,
+                "h": 224
+              }
+            ]
+          }
+        },
+        {
+          "viewport": "mobile",
+          "size": "390x844",
+          "screenshot": "shots/last-session-mobile.png",
+          "screenshotBytes": 78063,
+          "screenshotSha256": "13dc82900085e915d61f26c98ebcad65742bdc42e44425e8cdae59e2a67d08db",
+          "externalRequests": [],
+          "report": {
+            "case": "last-session",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"MARKET CLOSED\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 332,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            },
+            "charts": [
+              {
+                "w": 332,
+                "h": 224
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "case": "legacy",
+      "fixtures": [
+        "feed_all_success.json",
+        "feed_signals_legacy_tags.json"
+      ],
+      "receiptClock": "",
+      "viewports": [
+        {
+          "viewport": "desktop",
+          "size": "1280x900",
+          "screenshot": "shots/legacy-desktop.png",
+          "screenshotBytes": 107213,
+          "screenshotSha256": "72c04e9c0a2427ee546337b5a754b8d0167ba702aaf92bc4e24ed8be8af30f9b",
+          "externalRequests": [],
+          "report": {
+            "case": "legacy",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"clustering unknown (legacy row)\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"CLUSTERING (\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"isolated\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 452,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 1280,
+              "h": 900
+            },
+            "charts": [
+              {
+                "w": 452,
+                "h": 224
+              }
+            ]
+          }
+        },
+        {
+          "viewport": "mobile",
+          "size": "390x844",
+          "screenshot": "shots/legacy-mobile.png",
+          "screenshotBytes": 73856,
+          "screenshotSha256": "b79e8a92cdf206cc03bb06a59f843501929fe184b0387c6bfb15c71d39dd2868",
+          "externalRequests": [],
+          "report": {
+            "case": "legacy",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"clustering unknown (legacy row)\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"CLUSTERING (\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"isolated\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 332,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            },
+            "charts": [
+              {
+                "w": 332,
+                "h": 224
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "case": "clustering",
+      "fixtures": [
+        "feed_all_success.json",
+        "feed_signals_cluster_true.json"
+      ],
+      "receiptClock": "",
+      "viewports": [
+        {
+          "viewport": "desktop",
+          "size": "1280x900",
+          "screenshot": "shots/clustering-desktop.png",
+          "screenshotBytes": 112547,
+          "screenshotSha256": "8046d6ddabc481f5638fefa7ef9f50186aa768d8f8cfb9c94c60968e65c04b33",
+          "externalRequests": [],
+          "report": {
+            "case": "clustering",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"CLUSTERING (3 in last hour)\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"isolated\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 452,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 1280,
+              "h": 900
+            },
+            "charts": [
+              {
+                "w": 452,
+                "h": 224
+              }
+            ]
+          }
+        },
+        {
+          "viewport": "mobile",
+          "size": "390x844",
+          "screenshot": "shots/clustering-mobile.png",
+          "screenshotBytes": 74392,
+          "screenshotSha256": "d36935040b8451d71f482a1c3fa868e38cb7735430fc4aec4c34684803d0f032",
+          "externalRequests": [],
+          "report": {
+            "case": "clustering",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"CLUSTERING (3 in last hour)\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"isolated\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 332,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            },
+            "charts": [
+              {
+                "w": 332,
+                "h": 224
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "case": "error",
+      "fixtures": [
+        "feed_all_error.json",
+        "feed_signals_error.json"
+      ],
+      "receiptClock": "",
+      "viewports": [
+        {
+          "viewport": "desktop",
+          "size": "1280x900",
+          "screenshot": "shots/error-desktop.png",
+          "screenshotBytes": 38535,
+          "screenshotSha256": "9235830c1e47f6fbac4957cbe62260f93d9bd34603f272304e8e4127e39e7d01",
+          "externalRequests": [],
+          "report": {
+            "case": "error",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 1280,
+              "h": 900
+            },
+            "charts": []
+          }
+        },
+        {
+          "viewport": "mobile",
+          "size": "390x844",
+          "screenshot": "shots/error-mobile.png",
+          "screenshotBytes": 33021,
+          "screenshotSha256": "f2fa04b603bfdf2feccf908cf77f69b935f5ae0aebf58d9699b78b3ba14b47f3",
+          "externalRequests": [],
+          "report": {
+            "case": "error",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            },
+            "charts": []
+          }
+        }
+      ]
+    },
+    {
+      "case": "gex-mix",
+      "fixtures": [
+        "feed_all_gex_mix.json",
+        "feed_signals_success.json"
+      ],
+      "receiptClock": "",
+      "viewports": [
+        {
+          "viewport": "desktop",
+          "size": "1280x900",
+          "screenshot": "shots/gex-mix-desktop.png",
+          "screenshotBytes": 111372,
+          "screenshotSha256": "837b1721d585cec2da18c828cb6898925dc0f907762d762896f85151181140ce",
+          "externalRequests": [],
+          "report": {
+            "case": "gex-mix",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"Strike GEX coverage: 3 of 4\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 452,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 1280,
+              "h": 900
+            },
+            "charts": [
+              {
+                "w": 452,
+                "h": 224
+              }
+            ]
+          }
+        },
+        {
+          "viewport": "mobile",
+          "size": "390x844",
+          "screenshot": "shots/gex-mix-mobile.png",
+          "screenshotBytes": 78675,
+          "screenshotSha256": "3ffc3f89d7abf8e5d38e899269991d077d28195cf1dfa6ea174f2bdffbc0d923",
+          "externalRequests": [],
+          "report": {
+            "case": "gex-mix",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"Strike GEX coverage: 3 of 4\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 332,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            },
+            "charts": [
+              {
+                "w": 332,
+                "h": 224
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "case": "future-clock",
+      "fixtures": [
+        "feed_all_future_clock.json",
+        "feed_signals_success.json"
+      ],
+      "receiptClock": "2026-01-05T14:35:35+00:00",
+      "viewports": [
+        {
+          "viewport": "desktop",
+          "size": "1280x900",
+          "screenshot": "shots/future-clock-desktop.png",
+          "screenshotBytes": 40334,
+          "screenshotSha256": "e26bd31f4c14225499bfc6f3cca8b3123f104d788ef6f7053fad2382da501144",
+          "externalRequests": [],
+          "report": {
+            "case": "future-clock",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"LIVE\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"MARKET CLOSED\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 1280,
+              "h": 900
+            },
+            "charts": []
+          }
+        },
+        {
+          "viewport": "mobile",
+          "size": "390x844",
+          "screenshot": "shots/future-clock-mobile.png",
+          "screenshotBytes": 35039,
+          "screenshotSha256": "0be6f79869d8adc8519533e6844cae56223339efe4ebfe1d20735491fe5b6af9",
+          "externalRequests": [],
+          "report": {
+            "case": "future-clock",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"LIVE\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"MARKET CLOSED\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            },
+            "charts": []
+          }
+        }
+      ]
+    },
+    {
+      "case": "bad-clock",
+      "fixtures": [
+        "feed_all_bad_clock.json",
+        "feed_signals_success.json"
+      ],
+      "receiptClock": "",
+      "viewports": [
+        {
+          "viewport": "desktop",
+          "size": "1280x900",
+          "screenshot": "shots/bad-clock-desktop.png",
+          "screenshotBytes": 40418,
+          "screenshotSha256": "35b69f996e043edb2d35991d5574035438cdb8b1778b1b63a594871e8c3e07d4",
+          "externalRequests": [],
+          "report": {
+            "case": "bad-clock",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"LIVE\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"MARKET CLOSED\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 1280,
+              "h": 900
+            },
+            "charts": []
+          }
+        },
+        {
+          "viewport": "mobile",
+          "size": "390x844",
+          "screenshot": "shots/bad-clock-mobile.png",
+          "screenshotBytes": 34790,
+          "screenshotSha256": "978a13ece6014fcc36de752475c46d408d7d54bbb18bf882263af9941d8ebad7",
+          "externalRequests": [],
+          "report": {
+            "case": "bad-clock",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"LIVE\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"MARKET CLOSED\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (0/0)",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            },
+            "charts": []
+          }
+        }
+      ]
+    },
+    {
+      "case": "signals-only-error",
+      "fixtures": [
+        "feed_all_success.json",
+        "feed_signals_error.json"
+      ],
+      "receiptClock": "",
+      "viewports": [
+        {
+          "viewport": "desktop",
+          "size": "1280x900",
+          "screenshot": "shots/signals-only-error-desktop.png",
+          "screenshotBytes": 106427,
+          "screenshotSha256": "03415feb6822616aed10bfb259c10c0473631217ef94dd4136c5581873f5482a",
+          "externalRequests": [],
+          "report": {
+            "case": "signals-only-error",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"LIVE\"",
+                "pass": true
+              },
+              {
+                "name": "text includes \"Signals unavailable\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 452,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 1280,
+              "h": 900
+            },
+            "charts": [
+              {
+                "w": 452,
+                "h": 224
+              }
+            ]
+          }
+        },
+        {
+          "viewport": "mobile",
+          "size": "390x844",
+          "screenshot": "shots/signals-only-error-mobile.png",
+          "screenshotBytes": 60712,
+          "screenshotSha256": "0011383cc8e95b64201079bc8869275d6cf75c1175d82df041dd0d7acf60d8e6",
+          "externalRequests": [],
+          "report": {
+            "case": "signals-only-error",
+            "errors": [],
+            "consoleErrors": [],
+            "requests": [],
+            "assertions": [
+              {
+                "name": "text includes \"LIVE\"",
+                "pass": true
+              },
+              {
+                "name": "text includes \"Signals unavailable\"",
+                "pass": true
+              },
+              {
+                "name": "text excludes \"FEED DOWN\"",
+                "pass": true
+              },
+              {
+                "name": "charts mounted with nonzero finite geometry (1/1)",
+                "pass": true,
+                "observed": [
+                  {
+                    "w": 332,
+                    "h": 224
+                  }
+                ]
+              },
+              {
+                "name": "no uncaught errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no console errors",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "no outgoing requests",
+                "pass": true,
+                "observed": []
+              },
+              {
+                "name": "synthetic banner present",
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            },
+            "charts": [
+              {
+                "w": 332,
+                "h": 224
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "path": "bun.lock",
+      "bytes": 19190,
+      "sha256": "a577073250445bc115750db617ec76338db4b0409304d456ff3194e31d6b6937"
+    },
+    {
+      "path": "bunfig.toml",
+      "bytes": 497,
+      "sha256": "77c99038fe2cbbdb274e3b324fc20cd0a02a3d3c1db2674d8703e0d2c8b7145e"
+    },
+    {
+      "path": "client/build.mjs",
+      "bytes": 361,
+      "sha256": "e828666e5d505cbc481c7ddddd0d16000832fc26faf4177f3e312db2fdf1c4cc"
+    },
+    {
+      "path": "client/index.html",
+      "bytes": 666,
+      "sha256": "9dcbb078cafc494dc63e1f092827a3d68d992f8e882d6fb447cc62d0bad365e5"
+    },
+    {
+      "path": "client/src/App.tsx",
+      "bytes": 48337,
+      "sha256": "9a99091e635c4444d9b9fe172d83a18b06672d1fdc9769efc0f77a860d60328f"
+    },
+    {
+      "path": "client/src/api.ts",
+      "bytes": 935,
+      "sha256": "b37eff4d0ae161ae983d7fe49eab48f352dd64b832deb93d6298d7e689885f69"
+    },
+    {
+      "path": "client/src/globals.d.ts",
+      "bytes": 24,
+      "sha256": "35d26ea66c86da9701e4f4b467913481ffeae910761cea34c775c5dacb7f8eaa"
+    },
+    {
+      "path": "client/src/main.tsx",
+      "bytes": 1151,
+      "sha256": "300d8cb852036ce595743f0941fe91a34f16714730d40718ff6712e6d9253b2a"
+    },
+    {
+      "path": "client/src/theme.css",
+      "bytes": 1832,
+      "sha256": "9010d6975fb6aa975cb88f0d64f62033e03d4e035308030c0fa67f7753c7e905"
+    },
+    {
+      "path": "client/tsconfig.json",
+      "bytes": 430,
+      "sha256": "d9cc6609a832013b9cdb0d81c0c997a426e20b94c93fee3fa1472916bb42c971"
+    },
+    {
+      "path": "drizzle/0001_initial.sql",
+      "bytes": 118,
+      "sha256": "f80c5bf6f7a9bf54eda650a2ac2fcc4390051e8c56a52d5be51e5cbf641b7ba9"
+    },
+    {
+      "path": "drizzle/0002_snapshots_table.sql",
+      "bytes": 410,
+      "sha256": "c8cc1f77d28ab53a61b81ee354b3ccf0584c639ce4b9a6ad2060ad49f39a0791"
+    },
+    {
+      "path": "offline/adapter/build.ts",
+      "bytes": 1839,
+      "sha256": "9fa6a2076b3d0ec0caa3364bb286011246eb77b12cee3c041caabc0f8c5534cd"
+    },
+    {
+      "path": "offline/adapter/client.ts",
+      "bytes": 2722,
+      "sha256": "6f1ad811fa58969f640face52cc9cb8468079062d60de3a0b9cbd4f2a19fa528"
+    },
+    {
+      "path": "offline/adapter/index.ts",
+      "bytes": 2060,
+      "sha256": "19716806290aa2a658d7980d4d6be44fc3032a2ffb9563a8cc026b293b652030"
+    },
+    {
+      "path": "offline/adapter/package.json",
+      "bytes": 364,
+      "sha256": "817e930587c995e1c30d75cb4b4a2e42e75534c20dc9221456540b19b5094a96"
+    },
+    {
+      "path": "offline/browser-entry.tsx",
+      "bytes": 7091,
+      "sha256": "573909ef327002d96b8e9746f6a5f84c6080914d2000f11b665af18d3fb27e5c"
+    },
+    {
+      "path": "offline/browser-fixture.mjs",
+      "bytes": 18003,
+      "sha256": "74beefa8395e34cbda1d3441445aa6b8058ce66cedf77ff430144168ef3c37e6"
+    },
+    {
+      "path": "offline/build-browser.ts",
+      "bytes": 1038,
+      "sha256": "6e9bce8686ab9b134a5cd92b568013c08a56b8e5f5a7a57fa288394916b5aa9d"
+    },
+    {
+      "path": "offline/cdp-drive.mjs",
+      "bytes": 6247,
+      "sha256": "a2c53f1607119f260924c91442c4b2b66e15a7de88842310be159d21dd8d9fce"
+    },
+    {
+      "path": "offline/fixture-deps.json",
+      "bytes": 2801,
+      "sha256": "562d1f60847551507a22ae8ac67bbff5b5f81743107c364506cda1b4b5f9f047"
+    },
+    {
+      "path": "offline/offline-build.mjs",
+      "bytes": 12647,
+      "sha256": "1bdd7d08d4beb1732881b0e3e5fb21211168e750f0a99a479218630b80de94fb"
+    },
+    {
+      "path": "offline/prepare-deps.mjs",
+      "bytes": 3703,
+      "sha256": "383c5fec43dd14575ac46dc3264b74a161c268e3a696e4bd6eee096e99fd034d"
+    },
+    {
+      "path": "offline/preview.ts",
+      "bytes": 9247,
+      "sha256": "051e01a9c2b74e66243708302fcd7aa0cd1b3a9fcbf840f4798bb24f8baecf6a"
+    },
+    {
+      "path": "package.json",
+      "bytes": 958,
+      "sha256": "4d696901960acebaa5a0143365b6b1c32454243762c47428fbbb1cb6b470e10a"
+    },
+    {
+      "path": "server/src/actions.ts",
+      "bytes": 24318,
+      "sha256": "d6d8ccd134928e9b2e68219c1525105097f9a15d62696bd4df3eb6699a02e266"
+    },
+    {
+      "path": "server/src/schema.ts",
+      "bytes": 1231,
+      "sha256": "a6d397b4f9ed6651468a9535b3ba8cbba6cf687649d6cf717115c13d439802ca"
+    },
+    {
+      "path": "server/tsconfig.json",
+      "bytes": 343,
+      "sha256": "5698f6c130a85287640ab69e8ea859d49aba21266333a68494afc52e92c335a5"
+    },
+    {
+      "path": "space.json",
+      "bytes": 193,
+      "sha256": "42c437360506bc610caa1e8e1bf8bdb244f785055507740b7f262d7712ee120d"
+    },
+    {
+      "path": "tests/boundaries.test.mjs",
+      "bytes": 8207,
+      "sha256": "f595a2e68185448b0d4f4e03340572832ef0ce056e60f7b4a2e168dbd02c1d5e"
+    },
+    {
+      "path": "tsconfig.base.json",
+      "bytes": 635,
+      "sha256": "1000b5fb48cee172a53a1ad37c821330b3f48b227f4fc580070b393e1d80ba1f"
+    }
+  ],
+  "fixturesUsed": [
+    {
+      "path": "feed_all_bad_clock.json",
+      "bytes": 4842,
+      "sha256": "e596487485bc32aa5b8cd8b301b9aa94bc5f6afa986d463c35fd38fac2555c30"
+    },
+    {
+      "path": "feed_all_error.json",
+      "bytes": 225,
+      "sha256": "ad8d32e6cf919c01a892bb5b6c6d946300d512e7ea2fc984b3d8e49f8bcce985"
+    },
+    {
+      "path": "feed_all_future_clock.json",
+      "bytes": 4859,
+      "sha256": "f0cba0cc669b0941ffe4e0b6c89ef526210cf7390052c8db0f78ea62f819cdf4"
+    },
+    {
+      "path": "feed_all_gex_mix.json",
+      "bytes": 5145,
+      "sha256": "1a745197caa077a76737583b1b7b3c4fd8fa227a71ec3169869d7f09f084f94f"
+    },
+    {
+      "path": "feed_all_last_session.json",
+      "bytes": 4860,
+      "sha256": "24ae7c2b5b8edd03b226d06425d7ee8bc200edc4fb292f84cc88eb3be3b7847b"
+    },
+    {
+      "path": "feed_all_success.json",
+      "bytes": 4854,
+      "sha256": "5ea638c1af760a8f51ddd47801820b46ac4bd991cbbf69ac9046c0a54b6860ba"
+    },
+    {
+      "path": "feed_signals_cluster_true.json",
+      "bytes": 1006,
+      "sha256": "ed78a0c06f23ea737325666f33f9fab1a6a77adede998b72208e6e1a5bd0d6a4"
+    },
+    {
+      "path": "feed_signals_error.json",
+      "bytes": 201,
+      "sha256": "8f4adbe4ca401fc68af9c518027db8c7a7b028193c66a2d99bf9bb06a552e0c8"
+    },
+    {
+      "path": "feed_signals_legacy_tags.json",
+      "bytes": 1434,
+      "sha256": "c10216308c26631449a3045655e191b24efed568da413c5ef060d9f9925e482c"
+    },
+    {
+      "path": "feed_signals_success.json",
+      "bytes": 1780,
+      "sha256": "22caca247eb6995386d9d037a5b3eec0ba408a63a2c18915166353fcab73de56"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "README.md",
+      "bytes": 630,
+      "sha256": "a141cf2fa59368f0802fca1b310b2c4aebeb1b958c70b5f7a0bf284f37f8a383"
+    },
+    {
+      "path": "assets/app.css",
+      "bytes": 24652,
+      "sha256": "6425668f9f9eb8fcfa7afdcd3934fd4298da8eebfdf6cfd62dd34276dba43a64"
+    },
+    {
+      "path": "assets/app.js",
+      "bytes": 2030433,
+      "sha256": "5e3124fae951fa8a9192cddc5a5dea2e895fb80bf3829ecafd13cccaa98f109e"
+    },
+    {
+      "path": "bad-clock.html",
+      "bytes": 1797,
+      "sha256": "c8ee3ee7cf480bdf89ebfc3fa2684a9286dfdc53429f4d2f91a21d03fb2f502a"
+    },
+    {
+      "path": "clustering.html",
+      "bytes": 3116,
+      "sha256": "f7649ea37edb6ca6a5b867aead989871c5a87a851a63ab4b0392d97043b56718"
+    },
+    {
+      "path": "error.html",
+      "bytes": 757,
+      "sha256": "2831eb818777e649fa3915283161c04d7d01f65a1bafe7d1da5958c9925c4b0c"
+    },
+    {
+      "path": "future-clock.html",
+      "bytes": 1807,
+      "sha256": "3b6c78dc9b14ccf8d4641cda76e8f6874be0370ae57510b9e8de7b29b3b84ab5"
+    },
+    {
+      "path": "gex-mix.html",
+      "bytes": 3376,
+      "sha256": "58c8540ab8bdcbd1d9945494c13c1f19d4b57cbcac229f2a485ea0aa7a38c080"
+    },
+    {
+      "path": "last-session.html",
+      "bytes": 3238,
+      "sha256": "93561ad7b9c382b099d4e346a6fea31b0fa6be4d1c8f7702d7388b05a86070a2"
+    },
+    {
+      "path": "legacy.html",
+      "bytes": 3189,
+      "sha256": "169c010953b6aa9fd02ba2ac05f66cf4ae106a4317099c80b1ac05e8b2bc809b"
+    },
+    {
+      "path": "responses/bad-clock.json",
+      "bytes": 2288,
+      "sha256": "6f7ca353c9a060d1d2f1779cc5cbe3999721f8d1bddbd0545aa2b78d45ba0950"
+    },
+    {
+      "path": "responses/clustering.json",
+      "bytes": 4405,
+      "sha256": "0bbeee828be35bdd06b971a3fc77cb048466d90092ae1e4eb069d12f00042271"
+    },
+    {
+      "path": "responses/error.json",
+      "bytes": 488,
+      "sha256": "28cb846e72db02ea696c8139d3e7b0f288bdaa684b155b6d90176975d39b1f48"
+    },
+    {
+      "path": "responses/future-clock.json",
+      "bytes": 2298,
+      "sha256": "58d46991b8002c23efdfa7447c530316a247be1df1bfb06d1cec7b738fcd8d56"
+    },
+    {
+      "path": "responses/gex-mix.json",
+      "bytes": 4957,
+      "sha256": "a9182abcf3ef0ae633fac0679dc792187eb8590304365143f9c257ce4a7b461f"
+    },
+    {
+      "path": "responses/last-session.json",
+      "bytes": 4677,
+      "sha256": "5b4dd44659bfb6aa119e31029d759b55bcaf5dbe8f6dd0b834bb28bef2aa0114"
+    },
+    {
+      "path": "responses/legacy.json",
+      "bytes": 4564,
+      "sha256": "c24609fd7d1ee1b562783374353045900f5a7104d8fc6c13513f39614856a286"
+    },
+    {
+      "path": "responses/signals-only-error.json",
+      "bytes": 2902,
+      "sha256": "f1715e8281111c51d9ef2851795ec0cce95a4ff418812e4ec5bfc470cd920094"
+    },
+    {
+      "path": "responses/success.json",
+      "bytes": 4666,
+      "sha256": "ce500c8e31337352a80a1117071111b9eecf96af62e2f5dd8ead6a28673cee59"
+    },
+    {
+      "path": "shots/bad-clock-desktop.png",
+      "bytes": 40418,
+      "sha256": "35b69f996e043edb2d35991d5574035438cdb8b1778b1b63a594871e8c3e07d4"
+    },
+    {
+      "path": "shots/bad-clock-mobile.png",
+      "bytes": 34790,
+      "sha256": "978a13ece6014fcc36de752475c46d408d7d54bbb18bf882263af9941d8ebad7"
+    },
+    {
+      "path": "shots/clustering-desktop.png",
+      "bytes": 112547,
+      "sha256": "8046d6ddabc481f5638fefa7ef9f50186aa768d8f8cfb9c94c60968e65c04b33"
+    },
+    {
+      "path": "shots/clustering-mobile.png",
+      "bytes": 74392,
+      "sha256": "d36935040b8451d71f482a1c3fa868e38cb7735430fc4aec4c34684803d0f032"
+    },
+    {
+      "path": "shots/error-desktop.png",
+      "bytes": 38535,
+      "sha256": "9235830c1e47f6fbac4957cbe62260f93d9bd34603f272304e8e4127e39e7d01"
+    },
+    {
+      "path": "shots/error-mobile.png",
+      "bytes": 33021,
+      "sha256": "f2fa04b603bfdf2feccf908cf77f69b935f5ae0aebf58d9699b78b3ba14b47f3"
+    },
+    {
+      "path": "shots/future-clock-desktop.png",
+      "bytes": 40334,
+      "sha256": "e26bd31f4c14225499bfc6f3cca8b3123f104d788ef6f7053fad2382da501144"
+    },
+    {
+      "path": "shots/future-clock-mobile.png",
+      "bytes": 35039,
+      "sha256": "0be6f79869d8adc8519533e6844cae56223339efe4ebfe1d20735491fe5b6af9"
+    },
+    {
+      "path": "shots/gex-mix-desktop.png",
+      "bytes": 111372,
+      "sha256": "837b1721d585cec2da18c828cb6898925dc0f907762d762896f85151181140ce"
+    },
+    {
+      "path": "shots/gex-mix-mobile.png",
+      "bytes": 78675,
+      "sha256": "3ffc3f89d7abf8e5d38e899269991d077d28195cf1dfa6ea174f2bdffbc0d923"
+    },
+    {
+      "path": "shots/last-session-desktop.png",
+      "bytes": 113486,
+      "sha256": "1b95084e897bb51b6b40ccfc5bdc6b05ca963d86d513857a2ba01e625eae3c7c"
+    },
+    {
+      "path": "shots/last-session-mobile.png",
+      "bytes": 78063,
+      "sha256": "13dc82900085e915d61f26c98ebcad65742bdc42e44425e8cdae59e2a67d08db"
+    },
+    {
+      "path": "shots/legacy-desktop.png",
+      "bytes": 107213,
+      "sha256": "72c04e9c0a2427ee546337b5a754b8d0167ba702aaf92bc4e24ed8be8af30f9b"
+    },
+    {
+      "path": "shots/legacy-mobile.png",
+      "bytes": 73856,
+      "sha256": "b79e8a92cdf206cc03bb06a59f843501929fe184b0387c6bfb15c71d39dd2868"
+    },
+    {
+      "path": "shots/signals-only-error-desktop.png",
+      "bytes": 106427,
+      "sha256": "03415feb6822616aed10bfb259c10c0473631217ef94dd4136c5581873f5482a"
+    },
+    {
+      "path": "shots/signals-only-error-mobile.png",
+      "bytes": 60712,
+      "sha256": "0011383cc8e95b64201079bc8869275d6cf75c1175d82df041dd0d7acf60d8e6"
+    },
+    {
+      "path": "shots/success-desktop.png",
+      "bytes": 111043,
+      "sha256": "6d166fd603d63935f291a4ae03d15c3f3ddc1a2469cefd0ce347ddaea57e852e"
+    },
+    {
+      "path": "shots/success-mobile.png",
+      "bytes": 78593,
+      "sha256": "cdbef630d144da091ca97716a13cfd1c180f137b1fb038f6655bab42f1f0be06"
+    },
+    {
+      "path": "signals-only-error.html",
+      "bytes": 2269,
+      "sha256": "1e55f5488fd7030237aeac656acd548944a26275eb7bfd6449277563f8e4c5e5"
+    },
+    {
+      "path": "success.html",
+      "bytes": 3281,
+      "sha256": "12aff45e179c81b0a6bfc46f463c5d56b73a922375f0b890998b49e15f104556"
+    }
+  ]
+}
