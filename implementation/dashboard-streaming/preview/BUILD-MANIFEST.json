@@ -181,14 +181,19 @@
       "sha256": "817e930587c995e1c30d75cb4b4a2e42e75534c20dc9221456540b19b5094a96"
     },
     {
+      "path": "offline/browser-controls.mjs",
+      "bytes": 6660,
+      "sha256": "1a5d48f8c306c1404e4eb2ac7e4bb16949f15c97be847787d335ee9775d09e04"
+    },
+    {
       "path": "offline/browser-entry.tsx",
-      "bytes": 6467,
-      "sha256": "4b33aa8fb7e76f1329066b1acbd3e2482afbf79cd1f09ca7aa29065bdab044dc"
+      "bytes": 10236,
+      "sha256": "42002eb9573bfbd0b4dbdb4ec94aa45a9499dd65b4ca698e6e682cd8c3be38af"
     },
     {
       "path": "offline/browser-fixture.mjs",
-      "bytes": 17228,
-      "sha256": "997049961e9895265fad96b19da3f3265db021f24a8e06ff9a663193710a8093"
+      "bytes": 21424,
+      "sha256": "5156faa4ec819d662965f71988da5376f55f265c3b7e41cbf7678aecff33a38e"
     },
     {
       "path": "offline/build-browser.ts",
@@ -197,8 +202,8 @@
     },
     {
       "path": "offline/cdp-drive.mjs",
-      "bytes": 6247,
-      "sha256": "a2c53f1607119f260924c91442c4b2b66e15a7de88842310be159d21dd8d9fce"
+      "bytes": 6474,
+      "sha256": "0ede28d94869cb682a864770c4a0fea5f0f80a089c6696556e3b5da7432339d1"
     },
     {
       "path": "offline/fixture-deps.json",

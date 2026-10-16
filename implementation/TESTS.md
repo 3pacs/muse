@@ -93,9 +93,48 @@ inputs grew 27 → 31).
 Evidence committed under `dashboard-streaming/browser-preview/`
 (bundles hash-recorded in `BROWSER-MANIFEST.json`, not committed —
 same convention as B1); change note `ADOPT-B2.md`.
+
+## ADOPT-B2-R1 addition (bounded browser failure evidence)
+
+```
+node implementation/dashboard-streaming/offline/browser-fixture.mjs \
+  --deps <public-only tree> --out <dir>   (same headline command)
+→ checker fixes in offline/browser-entry.tsx only: settle budget on
+  performance.now (monotonic) instead of the frozen Date — a
+  never-mounted chart emits an explicit failed report within the
+  6000 ms budget (settle outcome recorded per report); chart
+  validation inspects the rendered SVG + plotted marks' finite
+  geometry (sized empty wrapper and degenerate-mark SVG fail;
+  genuine zero-height bars still count); XHR refused in-page
+  (open records, send throws a labeled refusal in xhrRefused,
+  natives never invoked). Bundle app.js 2,032,363 B, app.css
+  24,652 B; 18/18 case-viewports PASS (one valid chart 452x224 /
+  332x224, 7-9 valid marks, in the six data cases).
+  Controlled pages (offline/browser-controls.mjs; reviewer-identical
+  slice extraction from browser-entry.tsx) 5/5: sized-SVG control
+  passes (settled 603 ms); empty wrapper fails (invalid-chart,
+  2,414 ms); missing chart fails with report emitted
+  (budget-expired, 6,011 ms); malformed geometry fails
+  (invalid-chart, 2,408 ms); XHR sentinel recorded once, native
+  open/send never reached, refusal labeled.
+  Item 4: shots/gex-mix-mobile-chart.png added (390x2701
+  full-height capture, coverage label + plot in one frame); the
+  B2 18 screenshots retained byte-for-byte.
+Control run vs the production install (real @hatch scope): 18/18,
+controls 5/5, identical verdicts. SSR preview regenerated: all
+retained outputs byte-identical to the ADOPT-B2 pin (only
+BUILD-MANIFEST inputs grew 31 → 32).
+Erratum: ADOPT-B2's "two independent layers" wording overstated
+the in-page XHR hook, which observed but did not refuse; R1c makes
+it refuse. See ADOPT-B2-R1.md.
+```
+
+Evidence committed under `dashboard-streaming/browser-preview/`;
+change note `ADOPT-B2-R1.md`.
 Backend suites below were re-run unchanged at the ADOPT-B2 candidate
 as well: compile 12/12, watcher 0 failures, J1 50/50 + 27/27,
-boundary tests 51/51.
+boundary tests 51/51. Re-run unchanged again at the ADOPT-B2-R1
+candidate with identical results.
 Backend suites below were re-run unchanged at the ADOPT-F1 candidate:
 compile 12/12, watcher 12/12, J1 50/50, build_signals synthetic checks
 identical to the accepted intake pin. Change note: `ADOPT-F1.md`.
