@@ -1,0 +1,59 @@
+{
+  "lockVersion": 1,
+  "note": "Fixture-only dependency graph for the ADOPT-B1 offline build. Direct public dependencies at the exact versions and registry integrities recorded in the production bun.lock (which remains in this package as provenance). The proprietary @hatch/space-sdk file: tarball is deliberately absent; the local fixture adapter (offline/adapter) supplies that name. Transitive packages are carried by the prepared tree and are not individually attested; the build preflight attests every entry listed here against the tree it actually loads.",
+  "dependencies": {
+    "@tanstack/react-query": {
+      "version": "5.100.10",
+      "integrity": "sha512-FLaZf2RCrA/Zgp4aiu5tG3TyasTRO7aZ99skxQpr3Hg/zXOhu6yq5FZCYQ/tRaJtM9ylnoK8tFK7PolXQadv6Q=="
+    },
+    "drizzle-orm": {
+      "version": "0.45.2",
+      "integrity": "sha512-kY0BSaTNYWnoDMVoyY8uxmyHjpJW1geOmBMdSSicKo9CIIWkSxMIj2rkeSR51b8KAPB7m+qysjuHme5nKP+E5Q=="
+    },
+    "react": {
+      "version": "19.2.5",
+      "integrity": "sha512-llUJLzz1zTUBrskt2pwZgLq59AemifIftw4aB7JxOqf1HY2FDaGDxgwpAPVzHU1kdWabH7FauP4i1oEeer2WCA=="
+    },
+    "react-dom": {
+      "version": "19.2.5",
+      "integrity": "sha512-J5bAZz+DXMMwW/wV3xzKke59Af6CHY7G4uYLN1OvBcKEsWOs4pQExj86BBKamxl/Ik5bx9whOrvBlSDfWzgSag=="
+    },
+    "recharts": {
+      "version": "2.15.3",
+      "integrity": "sha512-EdOPzTwcFSuqtvkDoaM5ws/Km1+WTAO2eizL7rqiG0V2UVhTnz0m7J2i0CjVPUCdEkZImaWvXLbZDS2H5t6GFQ=="
+    },
+    "zod": {
+      "version": "4.4.3",
+      "integrity": "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="
+    },
+    "@types/bun": {
+      "version": "1.4.2",
+      "integrity": "sha512-GimotNn7+ZV0uVArItBbriZsR1oNf0+WTzPkdcFrzShI7k2norL0uzEaJT8T33dWr7O/c9ZDuAFQrctKCi72oQ=="
+    },
+    "@types/react": {
+      "version": "19.2.14",
+      "integrity": "sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w=="
+    },
+    "@types/react-dom": {
+      "version": "19.2.3",
+      "integrity": "sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ=="
+    },
+    "tailwindcss": {
+      "version": "4.1.13",
+      "integrity": "sha512-i+zidfmTqtwquj4hMEwdjshYYgMbOrPzb9a0M3ZgNa0JMoZeFC6bxZvO8yr8ozS6ix2SDz0+mvryPeBs2TFE+w=="
+    },
+    "tailwindcss-safe-area": {
+      "version": "1.3.0",
+      "integrity": "sha512-RoxnW1zAjBWC3XK+row7Qj5toRMRlKNN/p3FLXb6fTGKxDGWT6JP/mcNX1yf09xRficQ308hbwiedgniepSp1Q=="
+    },
+    "typescript": {
+      "version": "5.6.3",
+      "integrity": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw=="
+    }
+  },
+  "adapter": {
+    "name": "@hatch/space-sdk",
+    "version": "0.0.0-fixture-adapter",
+    "source": "offline/adapter (local, in-package)"
+  }
+}

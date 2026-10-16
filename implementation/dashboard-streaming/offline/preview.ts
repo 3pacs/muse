@@ -23,21 +23,42 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
-const [caseName, feedAllPath, signalsPath, outDir] = process.argv.slice(2);
+const [caseName, feedAllPath, signalsPath, outDir, receiptIso] =
+  process.argv.slice(2);
 if (!caseName || !feedAllPath || !signalsPath || !outDir) {
   throw new Error(
-    "usage: preview.ts <case> <feed_all.json> <signals.json> <outDir>",
+    "usage: preview.ts <case> <feed_all.json> <signals.json> <outDir> [receiptIso]",
   );
 }
 const feedAll = JSON.parse(readFileSync(feedAllPath, "utf8"));
 const signals = JSON.parse(readFileSync(signalsPath, "utf8"));
 
 // --- frozen clock ----------------------------------------------------------
-const anchor =
+// ADOPT-B1-R1: the receipt clock is INDEPENDENT of the fixture when one is
+// supplied (argv[5]); baseline cases keep the fixture-relative clock
+// (fixture updated_at + 30s). An unparseable fixture updated_at falls back
+// to the default anchor — the frozen instant is finite by construction, so
+// evidence generation can never throw RangeError on adversarial clocks
+// (red-team finding B1-R1b).
+const DEFAULT_ANCHOR = Date.parse("2026-01-05T14:35:05+00:00");
+const fixtureMs =
   typeof feedAll.updated_at === "string"
     ? Date.parse(feedAll.updated_at)
-    : Date.parse("2026-01-05T14:35:05+00:00");
-const frozen = anchor + 30_000;
+    : NaN;
+const receiptMs = receiptIso ? Date.parse(receiptIso) : NaN;
+if (receiptIso && !Number.isFinite(receiptMs)) {
+  throw new Error("harness: receipt clock is not a valid instant: " + receiptIso);
+}
+const clockSource = Number.isFinite(receiptMs)
+  ? "independent-receipt"
+  : Number.isFinite(fixtureMs)
+    ? "fixture+30s"
+    : "fallback-anchor";
+const frozen = Number.isFinite(receiptMs)
+  ? receiptMs
+  : Number.isFinite(fixtureMs)
+    ? fixtureMs + 30_000
+    : DEFAULT_ANCHOR + 30_000;
 const RealDate = Date;
 class FrozenDate extends RealDate {
   constructor(...args: unknown[]) {
@@ -157,6 +178,7 @@ writeFileSync(
       feedAllFixture: basename(feedAllPath),
       signalsFixture: basename(signalsPath),
       frozenClock: new RealDate(frozen).toISOString(),
+      clockSource,
       getLive: liveResp,
       getSignals: sigResp,
     },
@@ -183,6 +205,48 @@ const html =
   bodyHtml +
   "\n</body>\n</html>\n";
 writeFileSync(join(outDir, caseName + ".html"), html);
+
+// --- view-state assertions (ADOPT-B1-R1) -------------------------------------
+// Expectations arrive via OFFLINE_EXPECT_JSON from the entrypoint's case
+// table. A mismatch fails the whole build: the preview is evidence only if
+// the REAL handler payloads and the REAL rendered view-state match what the
+// case claims.
+const expect = JSON.parse(process.env.OFFLINE_EXPECT_JSON ?? "{}") as {
+  htmlIncludes?: string[];
+  htmlExcludes?: string[];
+  payloadEquals?: [string, unknown][];
+};
+const failures: string[] = [];
+// React SSR separates dynamic text nodes with <!-- --> markers; strip them
+// so assertions match the text a reader sees, not the wire encoding.
+const visibleHtml = html.replace(/<!-- -->/g, "");
+for (const s of expect.htmlIncludes ?? []) {
+  if (!visibleHtml.includes(s)) failures.push("html missing: " + JSON.stringify(s));
+}
+for (const s of expect.htmlExcludes ?? []) {
+  if (visibleHtml.includes(s)) failures.push("html must not contain: " + JSON.stringify(s));
+}
+const payloadRoot: Record<string, unknown> = {
+  getLive: liveResp,
+  getSignals: sigResp,
+};
+for (const [path, want] of expect.payloadEquals ?? []) {
+  let cur: unknown = payloadRoot;
+  for (const key of path.split(".")) {
+    cur = (cur as Record<string, unknown>)?.[key];
+  }
+  if (cur !== want) {
+    failures.push(
+      "payload " + path + ": want " + JSON.stringify(want) +
+        ", got " + JSON.stringify(cur),
+    );
+  }
+}
+if (failures.length) {
+  throw new Error(
+    "preview " + caseName + " assertions failed:\n  - " + failures.join("\n  - "),
+  );
+}
 console.log(
   "preview " +
     caseName +

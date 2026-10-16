@@ -38,6 +38,30 @@ node implementation/dashboard-streaming/offline/offline-build.mjs \
 Evidence committed under `dashboard-streaming/preview/`; change note
 `ADOPT-B1.md`. The platform build itself remains the SDK's (the
 adapter build proves offline compile/bundle integrity only).
+
+## ADOPT-B1-R1 addition (portable path + adversarial matrix)
+
+```
+node implementation/dashboard-streaming/offline/prepare-deps.mjs \
+  --from <production node_modules> --out <public-only tree>
+→ 57 package dirs linked, @hatch scope excluded, 12 locked versions
+  attested, receipt written
+node implementation/dashboard-streaming/offline/offline-build.mjs \
+  --deps <public-only tree> --out <dir>
+→ preflight 13/13 locked dependencies attested (12 public + adapter);
+  boundary tests 51/51; tsc --noEmit clean (client + server);
+  9/9 previews pass enforced view-state assertions (5 baseline +
+  gex-mix, future-clock vs an independent receipt clock, bad-clock,
+  signals-only-error); BUILD-MANIFEST 27 inputs / 22 outputs.
+Negative control: typescript replaced by 999.0.0-review-sentinel →
+  preflight rejects by name, exit 3, no build steps run.
+Control run vs the production install (real @hatch scope): identical.
+```
+
+Change note `ADOPT-B1-R1.md` (includes a correction: the ADOPT-B1
+note's claim that a platform-generated privileged contract was used
+for the typecheck was wrong — the file does not exist in the
+reference install and `environmentProvided: []` was truthful).
 Backend suites below were re-run unchanged at the ADOPT-F1 candidate:
 compile 12/12, watcher 12/12, J1 50/50, build_signals synthetic checks
 identical to the accepted intake pin. Change note: `ADOPT-F1.md`.

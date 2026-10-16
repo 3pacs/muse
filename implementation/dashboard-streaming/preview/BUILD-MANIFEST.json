@@ -27,6 +27,25 @@
     "tailwindcss-safe-area": "1.3.0",
     "typescript": "5.6.3"
   },
+  "fixtureLock": {
+    "path": "offline/fixture-deps.json",
+    "sha256": "562d1f60847551507a22ae8ac67bbff5b5f81743107c364506cda1b4b5f9f047"
+  },
+  "dependenciesObserved": {
+    "@tanstack/react-query": "5.100.10",
+    "drizzle-orm": "0.45.2",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "recharts": "2.15.3",
+    "zod": "4.4.3",
+    "@types/bun": "1.4.2",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "tailwindcss": "4.1.13",
+    "tailwindcss-safe-area": "1.3.0",
+    "typescript": "5.6.3",
+    "@hatch/space-sdk": "0.0.0-fixture-adapter"
+  },
   "fixturesUsed": [
     {
       "path": "implementation/fixtures/feed_all_success.json",
@@ -62,6 +81,21 @@
       "path": "implementation/fixtures/feed_signals_error.json",
       "bytes": 201,
       "sha256": "8f4adbe4ca401fc68af9c518027db8c7a7b028193c66a2d99bf9bb06a552e0c8"
+    },
+    {
+      "path": "implementation/fixtures/feed_all_gex_mix.json",
+      "bytes": 5145,
+      "sha256": "1a745197caa077a76737583b1b7b3c4fd8fa227a71ec3169869d7f09f084f94f"
+    },
+    {
+      "path": "implementation/fixtures/feed_all_future_clock.json",
+      "bytes": 4859,
+      "sha256": "f0cba0cc669b0941ffe4e0b6c89ef526210cf7390052c8db0f78ea62f819cdf4"
+    },
+    {
+      "path": "implementation/fixtures/feed_all_bad_clock.json",
+      "bytes": 4842,
+      "sha256": "e596487485bc32aa5b8cd8b301b9aa94bc5f6afa986d463c35fd38fac2555c30"
     }
   ],
   "environmentProvided": [],
@@ -147,14 +181,24 @@
       "sha256": "817e930587c995e1c30d75cb4b4a2e42e75534c20dc9221456540b19b5094a96"
     },
     {
+      "path": "offline/fixture-deps.json",
+      "bytes": 2801,
+      "sha256": "562d1f60847551507a22ae8ac67bbff5b5f81743107c364506cda1b4b5f9f047"
+    },
+    {
       "path": "offline/offline-build.mjs",
-      "bytes": 8230,
-      "sha256": "504ea2f0c98962247c750346c35a6e8bc06c547e7bf1fb7e70431e3f62be4a78"
+      "bytes": 12647,
+      "sha256": "1bdd7d08d4beb1732881b0e3e5fb21211168e750f0a99a479218630b80de94fb"
+    },
+    {
+      "path": "offline/prepare-deps.mjs",
+      "bytes": 3703,
+      "sha256": "383c5fec43dd14575ac46dc3264b74a161c268e3a696e4bd6eee096e99fd034d"
     },
     {
       "path": "offline/preview.ts",
-      "bytes": 6754,
-      "sha256": "5319401fabb556a0650cc29c9cec1b1e976a157632740ec693d685c8cc5defc2"
+      "bytes": 9247,
+      "sha256": "051e01a9c2b74e66243708302fcd7aa0cd1b3a9fcbf840f4798bb24f8baecf6a"
     },
     {
       "path": "package.json",
@@ -209,14 +253,24 @@
       "sha256": "7652e1837c935b02bd2186ca12c1efadf68c700e5b05b53ab4ffa65971f1a813"
     },
     {
+      "path": "preview/bad-clock.html",
+      "bytes": 2124,
+      "sha256": "9b755255b2ad8d71542d8479030ac740c757a369370e33b3e02b57e844ea79bb"
+    },
+    {
+      "path": "preview/bad-clock.payload.json",
+      "bytes": 2288,
+      "sha256": "6f7ca353c9a060d1d2f1779cc5cbe3999721f8d1bddbd0545aa2b78d45ba0950"
+    },
+    {
       "path": "preview/clustering.html",
       "bytes": 15245,
       "sha256": "e5f3cc2bc26eeb134cbb0a06b510dc638f19cc01d561b37f0b7c7f9a361adfe6"
     },
     {
       "path": "preview/clustering.payload.json",
-      "bytes": 4373,
-      "sha256": "c780d7b3e041dca9dfa432010fa033e5ac680eb31dd5636506b5fd0d35ee0cc7"
+      "bytes": 4405,
+      "sha256": "0bbeee828be35bdd06b971a3fc77cb048466d90092ae1e4eb069d12f00042271"
     },
     {
       "path": "preview/error.html",
@@ -225,8 +279,28 @@
     },
     {
       "path": "preview/error.payload.json",
-      "bytes": 456,
-      "sha256": "49e098303c4fda07683fc0889675d0f4f305c3dbfb8255292020a1a127c0a1ae"
+      "bytes": 488,
+      "sha256": "28cb846e72db02ea696c8139d3e7b0f288bdaa684b155b6d90176975d39b1f48"
+    },
+    {
+      "path": "preview/future-clock.html",
+      "bytes": 2133,
+      "sha256": "17566b4274ae89e7798b534ec96eeaf971f99e9e60020a61350343a5c8df4cfa"
+    },
+    {
+      "path": "preview/future-clock.payload.json",
+      "bytes": 2298,
+      "sha256": "58d46991b8002c23efdfa7447c530316a247be1df1bfb06d1cec7b738fcd8d56"
+    },
+    {
+      "path": "preview/gex-mix.html",
+      "bytes": 15844,
+      "sha256": "cc1b3de6e53e97ea3d8fe0caed75845cf0ee164da6a81e3b49130e64bfd5b6b9"
+    },
+    {
+      "path": "preview/gex-mix.payload.json",
+      "bytes": 4957,
+      "sha256": "a9182abcf3ef0ae633fac0679dc792187eb8590304365143f9c257ce4a7b461f"
     },
     {
       "path": "preview/last-session.html",
@@ -235,8 +309,8 @@
     },
     {
       "path": "preview/last-session.payload.json",
-      "bytes": 4645,
-      "sha256": "d125300933e99d62295102f4939b1211370c14a7dbfb224be2cc5da1cf71cb3b"
+      "bytes": 4677,
+      "sha256": "5b4dd44659bfb6aa119e31029d759b55bcaf5dbe8f6dd0b834bb28bef2aa0114"
     },
     {
       "path": "preview/legacy.html",
@@ -245,8 +319,18 @@
     },
     {
       "path": "preview/legacy.payload.json",
-      "bytes": 4532,
-      "sha256": "16f2591f7259779ecfa84a67913bb109445e47e712353c9bff4fb1ddad216c35"
+      "bytes": 4564,
+      "sha256": "c24609fd7d1ee1b562783374353045900f5a7104d8fc6c13513f39614856a286"
+    },
+    {
+      "path": "preview/signals-only-error.html",
+      "bytes": 12996,
+      "sha256": "2aefd87411adcfed8f6841ab651f45f0d74f1c2da15a35e75c635388b44532c3"
+    },
+    {
+      "path": "preview/signals-only-error.payload.json",
+      "bytes": 2902,
+      "sha256": "f1715e8281111c51d9ef2851795ec0cce95a4ff418812e4ec5bfc470cd920094"
     },
     {
       "path": "preview/success.html",
@@ -255,13 +339,13 @@
     },
     {
       "path": "preview/success.payload.json",
-      "bytes": 4634,
-      "sha256": "54d76c176c0a75421a035dc4ce52992d75a473a37568f5f9a6195c01a5dd4b9b"
+      "bytes": 4666,
+      "sha256": "ce500c8e31337352a80a1117071111b9eecf96af62e2f5dd8ead6a28673cee59"
     },
     {
       "path": "server/actions.js",
       "bytes": 181642,
-      "sha256": "58d79afc6f4558be7bcf15711a5dd680412f7265736e1e8d13d2a96833cd8e91"
+      "sha256": "8706d0feaf573a143b735dded086918d5f900f8d18c5f2750730a8244a28b86f"
     }
   ]
 }

@@ -11,8 +11,9 @@
  *      checks against the working copy,
  *   4. builds the server bundle (bun build) and the client bundle (via
  *      the adapter's buildClient),
- *   5. renders four synthetic-fixture previews (success, last-session,
- *      legacy-tags, error) through the REAL handlers + REAL App,
+ *   5. renders nine synthetic-fixture previews (five baseline cases plus
+ *      the ADOPT-B1-R1 adversarial matrix) through the REAL handlers +
+ *      REAL App, asserting each case's expected view-state,
  *   6. writes BUILD-MANIFEST.json mapping every source input to every
  *      output by SHA-256, with the exact toolchain versions recorded.
  *
@@ -72,7 +73,7 @@ function listFiles(root, exclude) {
   return found;
 }
 const EXCLUDE = (rel, name) =>
-  ["node_modules", ".bun-cache", ".space-build", "offline-out"].includes(name) ||
+  ["node_modules", ".bun-cache", ".space-build", "offline-out", "preview"].includes(name) ||
   rel.startsWith(join("client", "dist")) ||
   rel.startsWith(join("server", "dist"));
 
@@ -84,22 +85,71 @@ cpSync(space, work, {
 });
 
 // 2 — node_modules: real deps, SDK replaced by the fixture adapter ----------
+// ADOPT-B1-R1: the adapter is installed UNCONDITIONALLY. The previous
+// version nested its creation inside iteration over the deps directory's
+// "@hatch" scope, so a public-only dependency tree without that scope
+// silently never received the adapter (red-team finding B1-R1a).
 const nm = join(work, "node_modules");
 mkdirSync(nm, { recursive: true });
 for (const name of readdirSync(deps)) {
-  if (name === ".bin") continue;
-  if (name === "@hatch") {
-    const scopeDir = join(nm, "@hatch");
-    mkdirSync(scopeDir, { recursive: true });
-    for (const child of readdirSync(join(deps, "@hatch"))) {
-      if (child === "space-sdk") continue;
-      symlinkSync(join(deps, "@hatch", child), join(scopeDir, child), "dir");
-    }
-    symlinkSync(join(work, "offline", "adapter"), join(scopeDir, "space-sdk"), "dir");
-  } else {
-    symlinkSync(join(deps, name), join(nm, name), "dir");
+  if (name === ".bin" || name === "@hatch") continue;
+  if (!statSync(join(deps, name)).isDirectory()) continue;
+  symlinkSync(join(deps, name), join(nm, name), "dir");
+}
+const hatchDir = join(nm, "@hatch");
+mkdirSync(hatchDir, { recursive: true });
+const depsHatch = join(deps, "@hatch");
+if (existsSync(depsHatch)) {
+  for (const child of readdirSync(depsHatch)) {
+    if (child === "space-sdk") continue;
+    symlinkSync(join(depsHatch, child), join(hatchDir, child), "dir");
   }
 }
+symlinkSync(join(work, "offline", "adapter"), join(hatchDir, "space-sdk"), "dir");
+
+// 2b — dependency preflight (ADOPT-B1-R1c): attest the versions actually
+// present in the assembled tree against the fixture-only dependency lock
+// BEFORE any compiler/bundler child runs. A mismatched or missing locked
+// dependency is a hard rejection (exit 3), never a silent pass. Declared
+// versions (package.json) and observed versions (the tree) are recorded
+// separately in the manifest.
+const fixtureLockPath = join(space, "offline", "fixture-deps.json");
+const fixtureLock = JSON.parse(readFileSync(fixtureLockPath, "utf8"));
+const observedDeps = {};
+const mismatches = [];
+for (const [name, want] of Object.entries(fixtureLock.dependencies)) {
+  const pkgPath = join(nm, name, "package.json");
+  if (!existsSync(pkgPath)) {
+    mismatches.push(name + ": missing (locked " + want.version + ")");
+    continue;
+  }
+  const got = JSON.parse(readFileSync(pkgPath, "utf8")).version;
+  observedDeps[name] = got;
+  if (got !== want.version) {
+    mismatches.push(name + ": locked " + want.version + ", observed " + got);
+  }
+}
+{
+  const adapterPkg = JSON.parse(
+    readFileSync(join(hatchDir, "space-sdk", "package.json"), "utf8"),
+  );
+  observedDeps["@hatch/space-sdk"] = adapterPkg.version;
+  if (adapterPkg.version !== fixtureLock.adapter.version) {
+    mismatches.push(
+      "@hatch/space-sdk: locked " + fixtureLock.adapter.version +
+        ", observed " + adapterPkg.version,
+    );
+  }
+}
+if (mismatches.length) {
+  console.error("dependency preflight FAILED (no build steps run):");
+  for (const m of mismatches) console.error("  - " + m);
+  process.exit(3);
+}
+console.log(
+  "dependency preflight: " + Object.keys(observedDeps).length +
+    " locked dependencies attested at exact versions",
+);
 // The client tsconfig maps @space/privileged to a platform-generated
 // contract that lives only in a built space. Copy it from the reference
 // environment (the tree --deps came from) when present; it is recorded
@@ -129,18 +179,69 @@ run("client bundle (adapter buildClient)", "bun", ["./client/build.mjs"], {
 });
 
 // 5 — fixture previews -----------------------------------------------------------
+// Each case: [name, feedAll fixture, signals fixture, independent receipt
+// clock ("" = fixture-relative baseline), expectations]. preview.ts asserts
+// the expectations against the REAL handler payloads and rendered HTML and
+// fails the build on any mismatch (ADOPT-B1-R1: view-state evidence, not
+// just emitted HTML).
 const CASES = [
-  ["success", "feed_all_success.json", "feed_signals_success.json"],
-  ["last-session", "feed_all_last_session.json", "feed_signals_success.json"],
-  ["legacy", "feed_all_success.json", "feed_signals_legacy_tags.json"],
-  ["clustering", "feed_all_success.json", "feed_signals_cluster_true.json"],
-  ["error", "feed_all_error.json", "feed_signals_error.json"],
+  ["success", "feed_all_success.json", "feed_signals_success.json", "", {
+    htmlIncludes: ["LIVE", "isolated"],
+    payloadEquals: [["getLive.ok", true]],
+  }],
+  ["last-session", "feed_all_last_session.json", "feed_signals_success.json", "", {
+    htmlIncludes: ["MARKET CLOSED"],
+    payloadEquals: [["getLive.ok", true], ["getLive.live.marketOpen", false]],
+  }],
+  ["legacy", "feed_all_success.json", "feed_signals_legacy_tags.json", "", {
+    htmlIncludes: ["clustering unknown (legacy row)"],
+    htmlExcludes: ["CLUSTERING (", ">isolated<"],
+    payloadEquals: [["getLive.ok", true]],
+  }],
+  ["clustering", "feed_all_success.json", "feed_signals_cluster_true.json", "", {
+    htmlIncludes: ["CLUSTERING (3 in last hour)"],
+    payloadEquals: [["getLive.ok", true]],
+  }],
+  ["error", "feed_all_error.json", "feed_signals_error.json", "", {
+    htmlIncludes: ["FEED DOWN"],
+    payloadEquals: [["getLive.ok", false], ["getSignals.ok", false]],
+  }],
+  // Adversarial cases (ADOPT-B1-R1b).
+  ["gex-mix", "feed_all_gex_mix.json", "feed_signals_success.json", "", {
+    htmlIncludes: ["Strike GEX coverage: 3 of 4"],
+    payloadEquals: [
+      ["getLive.live.strikeCoverage.total", 4],
+      ["getLive.live.strikeCoverage.gexKnown", 3],
+      ["getLive.live.strikeCoverage.gexMissing", 1],
+      ["getLive.live.byStrike.2.netGexM", 0],
+      ["getLive.live.byStrike.3.netGexM", null],
+    ],
+  }],
+  ["future-clock", "feed_all_future_clock.json", "feed_signals_success.json",
+    "2026-01-05T14:35:35+00:00", {
+      htmlIncludes: ["FEED DOWN"],
+      htmlExcludes: ["LIVE"],
+      payloadEquals: [["getLive.ok", false]],
+    }],
+  ["bad-clock", "feed_all_bad_clock.json", "feed_signals_success.json", "", {
+    htmlIncludes: ["FEED DOWN"],
+    htmlExcludes: ["LIVE"],
+    payloadEquals: [["getLive.ok", false]],
+  }],
+  ["signals-only-error", "feed_all_success.json", "feed_signals_error.json", "", {
+    htmlIncludes: ["LIVE", "Signals unavailable"],
+    payloadEquals: [["getLive.ok", true], ["getSignals.ok", false]],
+  }],
 ];
-for (const [name, feedAll, signals] of CASES) {
+for (const [name, feedAll, signals, receipt, expect] of CASES) {
   run("preview " + name, "bun", [
     "run", join(work, "offline", "preview.ts"), name,
     join(fixtures, feedAll), join(fixtures, signals), join(out, "preview"),
-  ], { cwd: work });
+    receipt,
+  ], {
+    cwd: work,
+    env: { ...process.env, OFFLINE_EXPECT_JSON: JSON.stringify(expect ?? {}) },
+  });
 }
 
 // 6 — build manifest -------------------------------------------------------------
@@ -172,6 +273,11 @@ const manifest = {
     lockfileVersion: 2,
   },
   dependenciesExact: { ...pkg.dependencies, ...pkg.devDependencies },
+  fixtureLock: {
+    path: "offline/fixture-deps.json",
+    sha256: sha256(readFileSync(fixtureLockPath)),
+  },
+  dependenciesObserved: observedDeps,
   fixturesUsed: [...new Set(CASES.flatMap((c) => [c[1], c[2]]))].map((name) => {
     const data = readFileSync(join(fixtures, name));
     return { path: "implementation/fixtures/" + name, bytes: data.length, sha256: sha256(data) };
