@@ -4,6 +4,7 @@
   "feedAllFixture": "feed_all_error.json",
   "signalsFixture": "feed_signals_error.json",
   "frozenClock": "2026-01-04T23:05:30.000Z",
+  "clockSource": "fixture+30s",
   "getLive": {
     "ok": false,
     "feedError": "interpreter status: error",

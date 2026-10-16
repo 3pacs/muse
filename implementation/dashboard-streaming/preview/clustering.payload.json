@@ -4,6 +4,7 @@
   "feedAllFixture": "feed_all_success.json",
   "signalsFixture": "feed_signals_cluster_true.json",
   "frozenClock": "2026-01-05T14:35:35.000Z",
+  "clockSource": "fixture+30s",
   "getLive": {
     "ok": true,
     "feedError": null,

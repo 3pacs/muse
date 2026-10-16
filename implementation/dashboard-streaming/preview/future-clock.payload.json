@@ -1,0 +1,94 @@
+{
+  "case": "future-clock",
+  "synthetic": true,
+  "feedAllFixture": "feed_all_future_clock.json",
+  "signalsFixture": "feed_signals_success.json",
+  "frozenClock": "2026-01-05T14:35:35.000Z",
+  "clockSource": "independent-receipt",
+  "getLive": {
+    "ok": false,
+    "feedError": "interpreter payload missing updated_at",
+    "fetchedAt": "2026-01-05T14:35:35.000Z",
+    "live": null,
+    "staleSnapshot": null,
+    "staleSnapshotAt": null,
+    "trail": []
+  },
+  "getSignals": {
+    "ok": true,
+    "signals": {
+      "status": "ok",
+      "day": "2026-01-05",
+      "generatedAt": "2026-01-05T18:35:10+00:00",
+      "loadedGun": {
+        "active": true,
+        "sinceEt": "2026-01-05 09:31",
+        "spot": 497.9,
+        "budgetLeft": 0.83,
+        "pin": 31,
+        "netGexM": -981.8,
+        "flipDist": -1.72
+      },
+      "lastCharmTrigger": {
+        "tsEt": "2026-01-05 10:11",
+        "spot": 496.4,
+        "charmVel30": -12400
+      },
+      "stacks": [
+        {
+          "tsEt": "2026-01-05 10:45",
+          "symbol": "SPY",
+          "direction": "bear",
+          "spot": 499.36,
+          "members": [
+            "lower_high@10:31",
+            "stoch_cross@10:40",
+            "macd_flip@10:45"
+          ],
+          "path": "A"
+        },
+        {
+          "tsEt": "2026-01-05 11:35",
+          "symbol": "QQQ",
+          "direction": "bull",
+          "spot": 612.97,
+          "members": [
+            "rsi_divergence@11:20",
+            "higher_low@11:35"
+          ],
+          "path": "B"
+        }
+      ],
+      "extremes": [
+        {
+          "tsEt": "2026-01-05 10:35",
+          "symbol": "SPY",
+          "type": "vol_ignition",
+          "direction": "bull",
+          "spot": 498.53,
+          "vol": 1072955,
+          "mult": 12.2,
+          "mega": true,
+          "cluster": false,
+          "prints60m": 1,
+          "atLows": true,
+          "atHighs": false
+        },
+        {
+          "tsEt": "2026-01-05 10:05",
+          "symbol": "SPY",
+          "type": "vwap_stretch",
+          "direction": "bear",
+          "spot": 497.26,
+          "vol": null,
+          "mult": null,
+          "mega": null,
+          "cluster": null,
+          "prints60m": null,
+          "atLows": null,
+          "atHighs": null
+        }
+      ]
+    }
+  }
+}
