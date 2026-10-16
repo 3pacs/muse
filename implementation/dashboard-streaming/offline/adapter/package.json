@@ -1,0 +1,1 @@
+{"description":"FIXTURE-ONLY stand-in for the proprietary @hatch/space-sdk, used solely by the offline build/preview entrypoint (see ../../ADOPT-B1.md). Not the platform SDK; not for production.","exports":{".":"./index.ts","./build":"./build.ts","./client":"./client.ts"},"name":"@hatch/space-sdk","private":true,"type":"module","version":"0.0.0-fixture-adapter"}

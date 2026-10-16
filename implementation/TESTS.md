@@ -20,6 +20,24 @@ never LIVE); and the three print-clustering states (true/false/unknown).
 TypeScript compile integrity for the dashboard candidate: `tsc --noEmit`
 clean on the client and server projects (against the production
 install's dependency tree; the platform build itself remains UNRUN).
+
+## ADOPT-B1 addition (offline build + fixture preview)
+
+```
+node implementation/dashboard-streaming/offline/offline-build.mjs \
+  --deps <node_modules installed from bun.lock> --out <dir>
+→ boundary tests 51/51; tsc --noEmit clean (client + server, against
+  the fixture-adapter SDK surface); server bundle 181,642 bytes;
+  client bundle main.js 2,026,622 bytes + main.css 78,427 bytes;
+  five fixture previews rendered (success=LIVE, last-session=MARKET
+  CLOSED, legacy=LIVE with "clustering unknown (legacy row)",
+  clustering="⚠️ CLUSTERING (3 in last hour)", error=FEED DOWN);
+  BUILD-MANIFEST.json with 25 inputs / 14 outputs, SHA-256 throughout.
+```
+
+Evidence committed under `dashboard-streaming/preview/`; change note
+`ADOPT-B1.md`. The platform build itself remains the SDK's (the
+adapter build proves offline compile/bundle integrity only).
 Backend suites below were re-run unchanged at the ADOPT-F1 candidate:
 compile 12/12, watcher 12/12, J1 50/50, build_signals synthetic checks
 identical to the accepted intake pin. Change note: `ADOPT-F1.md`.
