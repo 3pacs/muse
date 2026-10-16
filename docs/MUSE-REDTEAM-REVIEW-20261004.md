@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: ADOPT-B1-R1 bounded source/tooling corrections accepted at fe843cfb. Package 89 files / 87 checksums; 27 input and 19 available output hashes match; 17 targeted source/receipt probes pass; F1/backend checks preserved. Full Bun/SSR/browser execution and complete transitive/content attestation remain unverified. Next task: ADOPT-B2 styled fixture-only browser preview. No production, data-rights or empirical promotion is implied.**
+**Current status: db14d4bd B2 styled fixture packet and owner screenshot/report evidence verified (132 files / 130 checksums; 31 inputs / 10 fixtures / 37 available outputs). F1/backend checks remain green. Controlled Chrome probes reproduce a frozen settle deadline and empty-wrapper chart false-pass; the XHR hook observes rather than refuses. Next task: ADOPT-B2-R1 bounded browser failure evidence. Full App browser reproduction remains UNRUN locally; no production/data-rights/empirical promotion.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,94 @@
 
 
 
+
+## 2026-10-16 — db14d4bd styled browser packet verified; B2-R1 checker failure evidence next
+
+Reviewed [Muse ADOPT-B2 response 6219627885](https://github.com/3pacs/muse/pull/2#issuecomment-6219627885), immutable **`db14d4bdf0f38b768a8de148caf5cbbf27d2152e`**, existing implementation lane, against docs `0bf84e7e249697cbd6f9cc5607152ba604399bca`. **Accept the styled fixture packet and matching owner screenshot/report evidence as a useful B2 demonstration. Browser-checker closure remains scoped to the three reproduced harness gaps below.** The supplied 18 positive case-viewport reports are not relabeled as application failures.
+
+### Verified delivery and preserved correctness
+
+- **132 pinned files / 130 matching package checksums.** Browser manifest: **31 input hashes**, **10 fixture hashes**, and **37 available output hashes** match. Of 39 listed outputs, only the two JS/CSS bundles are intentionally omitted under the existing B1 convention. All **18 PNG hashes, byte counts and viewport dimensions** match their report entries.
+- The owner reports all nine cases at **1280×900** and **390×844**, with **18/18** passing reports, no reported page requests/errors, and one measured Recharts wrapper in the six data cases (**452×224** desktop / **332×224** mobile). These remain **owner-executed reports**. The reviewer inspected the hash-matching desktop/mobile success, gex-mix mobile and signals-only-error mobile screenshots: compiled styling, synthetic identification, readable primary LIVE/status labels and the independently degraded signals panel are visible. Desktop screenshots show actual plotted bars; some mobile charts are below the captured viewport. No independent full App/browser rerun is implied by screenshot inspection.
+- Every App/client, server action, F1 test and pipeline byte is unchanged from accepted `fe843cfb`. All **20 retained SSR files** (excluding the updated build manifest) are byte-identical. Repeated independent checks pass at this pin: **51 owner checks via the qualified type-only adapter**, **12 original fixture regressions**, **17 supplemental F1 probes**, **12 modules compile**, watcher **12/12**, J1 **50/50**, older overlapping J1 **27/27**, and **four synthetic actual signals-reader cases**. Guarded Python run: **603.59 ms**, zero forbidden operations. Counts overlap.
+- Precision host confirmed before local work. The installed reviewer Chrome **155.0.8059.79** was used only for controlled DOM checker probes; owner screenshots were produced by Chromium **152.0.7977.82**. The App's generated browser bundles and Bun/tsc/prepared dependencies are unavailable locally, so full bundle/React/browser fixture reproduction remains **UNRUN**. This availability limit is not a product assertion failure.
+
+### Reproduced checker findings
+
+**B2-R1a — elapsed wait uses the frozen domain clock.** [browser-entry.tsx](https://github.com/3pacs/muse/blob/db14d4bdf0f38b768a8de148caf5cbbf27d2152e/implementation/dashboard-streaming/offline/browser-entry.tsx) replaces `Date.now()` with the fixture instant, then sets `settleDeadline = Date.now() + 6000` and retries while `Date.now() < settleDeadline`. That comparison stays true forever when a required chart never appears.
+
+Executing those exact clock/checker blocks (type syntax removed) in real Chrome with a chart-absent controlled page produced **no report after 7.204 real seconds**, with **34 callbacks queued** and unchanged fixture time. A genuine sized-SVG control reports normally. This is a broken page-level six-second budget, not an indefinitely hanging entire build: the separate CDP driver uses its own real-clock ~30-second limit and eventually returns **NO REPORT**, which the caller rejects. Preserve the distinction between a missing/blocked report and an observed failed chart assertion. Use a monotonic elapsed clock for the checker, while leaving the App's simulated data/receipt clock frozen.
+
+**B2-R1b — a sized empty wrapper can pass the chart assertion.** The exact checker measures only `.recharts-wrapper` bounding rectangles. A controlled real DOM containing a **332×224 div and no SVG at all** receives **`report.pass === true`**, including “charts mounted with nonzero finite geometry (1/1).” The matching sized-SVG control also passes. Thus the current automated assertion does not establish the plotted finite geometry claimed by the finite acceptance requirement. This does not prove any supplied screenshot has an empty chart; it proves the checker can falsely certify one. Inspect the actual chart SVG/expected plotted marks and their finite geometry, with zero/null treatment preserved; do not require a positive-height bar for genuine zero.
+
+**B2-R1c — XHR is observed in-page, not independently refused.** The hook records the URL and calls `origOpen.apply(...)`; `send()` is not blocked. Running that exact hook with inert transport sentinels records one URL but also calls **native-open once / native-send once**. No real XHR/network operation occurred in this test. Browser CDP still refuses non-file requests, and the owner reports none in positive cases; no network leak is asserted. Correct the claim of two independent refusal layers by implementing in-page XHR refusal as declared, or explicitly describe it as observation-only. For the next fixture packet keep the existing CDP guard and make the in-page refusal claim true with a negative control that needs no external endpoint.
+
+The reviewer has **one passing control / three unmet checker expectations** at this pin. These are controlled checker tests, not failures in three of the dashboard's nine business scenarios.
+
+### One next task — ADOPT-B2-R1 bounded browser failure evidence
+
+Keep this a small fixture-tooling correction on top of `db14d4bd`, preserving App/F1/server/backend semantics and the 18 positive controls:
+
+1. Separate the existing six-second settle budget from the frozen domain clock using monotonic elapsed time. A never-mounted chart must emit an explicit failed assertion report within the declared budget (allowing normal scheduling margin), rather than depending on the driver timeout. Keep a genuinely unavailable browser/driver/report distinguishable from an evaluated assertion failure; retain failure artifacts and elapsed timing.
+2. Make chart validation reject a sized empty wrapper and invalid/missing plotted geometry while passing a valid measured chart. Keep data cases' actual SVG/marks and genuine-zero/null semantics; error cases may correctly have no chart. Supply controlled negative cases for a missing chart, empty wrapper and malformed geometry, alongside the normal SVG control. Do not change the expected chart count just to pass a negative case.
+3. Refuse XHR in-page as documented and demonstrate that the exact hook prevents an inert underlying send from being reached. Keep fetch refusal/CDP interception and explicit request recording. Use synthetic/inert transport controls with no provider or loopback service call. Expected negative-test attempts should be labeled as such, rather than silently removed from the record.
+4. Retain the current screenshots and add a full-height or specifically scrolled **mobile gex-mix chart** capture from the same real App fixture path, so the coverage label/plot are visible. This is evidence capture, not a dashboard redesign. Publish exact changed-source/output hashes, positive/negative reports and versions; preserve the disclosed prior timing flake and correction history.
+
+**Finite acceptance:** the 18 positive case-viewports remain correct; controlled absent/empty/malformed charts produce explicit diagnostic failure reports and a valid chart passes; frozen receipt time stays deterministic while the wait budget expires; the XHR sentinel is recorded/refused without native send; the mobile chart and coverage evidence is visible. No numerical/calendar, new scoring, dependency-closure research, hosted publish, app merge/deploy, provider polling, credentials or trading. F1 and bounded B1-R1 acceptances remain closed.
+
+### Runnable verification and independent criticism
+
+Official Gemini **3.8 Flash High** text-only criticism succeeded in conversation **`adcae0c9-abf8-4c84-ba3f-4bd7aaabc1c6`**, no denied actions. Codex independently reproduced the checker flaws and verified artifacts. Model claims of independently established full App rendering/no network or of absent polling loops are not adopted: the App retains interval queries served by the fixture adapter, reports are single-capture evidence, and full App execution was not rerun here.
+
+The reviewer below extracts actual clock/checker/hook source and erases only TypeScript syntax. It runs controlled DOM pages in existing Chrome with page requests blocked; it never loads React, the App, generated bundles or providers. XHR uses inert sentinels only. It emits the separate positive/negative findings and exits **1** at this pin. It requires an existing Puppeteer-compatible module exporting `puppeteer` and Chrome, which can be provided via `MUSE_PUPPETEER_MODULE` / `MUSE_CHROME_BIN`; defaults identify the actual Precision environment used. No automatic package install occurs.
+
+```bash
+node review-browser-checker.mjs SOURCE_ROOT REVIEW_OUTPUT_DIR
+python3 offline-checks.py SOURCE_ROOT REVIEW_OUTPUT_DIR db14d4bdf0f38b768a8de148caf5cbbf27d2152e
+node review-boundaries.mjs SOURCE_ROOT REVIEW_OUTPUT_DIR db14d4bdf0f38b768a8de148caf5cbbf27d2152e
+```
+
+Prior F1 scripts remain published below; change only `review-boundaries.mjs` receipt source pin (tested source is unchanged); Python accepts the pin argument already. Browser reviewer SHA-256 **`de24fce76a8d6a3310516d2f8157d150093424e3d7a0bfa897b054d4a672c2d7`**. Direct-version/transitive/content attestation limits and hosted/source linkage remain as previously disclosed. The hosted artifact was not updated by this source packet.
+
+#### review-browser-checker.mjs
+
+<!-- MUSE-DB14-B2-CHECKER-MJS -->
+```javascript
+// Reviewer-only negative controls for the exact fixture checker. This does not run React/App bundles.
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import vm from 'node:vm';
+const {puppeteer}=await import(process.env.MUSE_PUPPETEER_MODULE??'/opt/antigravity-2.19.1/resources/app.asar.unpacked/node_modules/chrome-devtools-mcp/build/src/third_party/index.js');
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]);
+const entry=fs.readFileSync(path.join(root,'implementation/dashboard-streaming/offline/browser-entry.tsx'),'utf8');
+const clock=entry.slice(entry.indexOf('const frozenMs ='),entry.indexOf('// --- seed the adapter'))
+ .replace('...args: unknown[]','...args').replace(' as [number]','').replace('static now(): number','static now()').replace('(window as { Date: unknown })','window');
+const checker=entry.slice(entry.indexOf('function measureCharts()'))
+ .replace('querySelectorAll<HTMLElement>','querySelectorAll').replace('name: string, pass: boolean, observed?: unknown','name, pass, observed');
+const profile=fs.mkdtempSync('/tmp/muse-b2-checker-');
+const browser=await puppeteer.launch({executablePath:process.env.MUSE_CHROME_BIN??'/opt/google/chrome/chrome',headless:true,userDataDir:profile,args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND']});
+const browserVersion=await browser.version();
+const requests=[],results=[];
+async function pageFor(html){const p=await browser.newPage();await p.setRequestInterception(true);p.on('request',r=>{requests.push(r.url());r.abort()});await p.setViewport({width:390,height:844});await p.setContent(html);await p.evaluate(()=>{window.packet={case:'review-negative-control',frozenIso:'2026-01-05T14:35:35Z',expect:{minCharts:1,textIncludes:['LIVE']}};window.report={case:window.packet.case,errors:[],consoleErrors:[],requests:[],assertions:[]};window.__queued=0;const nativeSetTimeout=window.setTimeout.bind(window);window.setTimeout=(fn,delay,...args)=>{window.__queued++;return nativeSetTimeout(fn,delay,...args)}});await p.evaluate(s=>{(0,eval)(s)},clock+'\n'+checker);return p;}
+try{
+ const positive=await pageFor('<div id="fixture-banner">SYNTHETIC FIXTURE</div><p>LIVE</p><div class="recharts-wrapper" style="width:332px;height:224px"><svg width="332" height="224"><path d="M0 0 L10 10"/></svg></div>');
+ await positive.waitForSelector('#fixture-report',{timeout:3000});const pos=await positive.$eval('#fixture-report',e=>JSON.parse(e.textContent));results.push({name:'sized_svg_control',pass_contract:pos.pass===true,report:pos});await positive.close();
+ const empty=await pageFor('<div id="fixture-banner">SYNTHETIC FIXTURE</div><p>LIVE</p><div class="recharts-wrapper" style="width:332px;height:224px"></div>');
+ await empty.waitForSelector('#fixture-report',{timeout:3000});const noSvg=await empty.$eval('#fixture-report',e=>JSON.parse(e.textContent)),svgCount=await empty.$eval('svg',es=>es.length);results.push({name:'empty_sized_wrapper_must_fail_chart_assertion',pass_contract:noSvg.pass===false,observed:{reportPass:noSvg.pass,svgCount,report:noSvg}});await empty.close();
+ const missing=await pageFor('<div id="fixture-banner">SYNTHETIC FIXTURE</div><p>LIVE</p>');
+ const start=performance.now();await new Promise(r=>setTimeout(r,7200));
+ const absent=await missing.evaluate(()=>({hasReport:!!document.getElementById('fixture-report'),frozenNow:Date.now(),callbacksQueued:window.__queued}));
+ results.push({name:'missing_chart_emits_failure_within_declared_6s_budget',pass_contract:absent.hasReport,observed:{...absent,realElapsedMs:Math.round(performance.now()-start),qualification:'no report is not an observed application assertion failure; supplied driver separately times out at ~30 real seconds'}});await missing.close();
+}finally{await browser.close();fs.rmSync(profile,{recursive:true,force:true})}
+// Exact XHR hook with type syntax erased, delegating to inert transport sentinels only.
+const xhrHook=entry.slice(entry.indexOf('const origOpen ='),entry.indexOf('// --- deterministic receipt clock'))
+ .replace('this: XMLHttpRequest,','').replace('_method: string','_method').replace('url: string | URL','url').replace(' as never','').replace(' as typeof XMLHttpRequest.prototype.open','');
+let nativeOpen=0,nativeSend=0;class InertXHR{open(){nativeOpen++}send(){nativeSend++}}
+const ctx={XMLHttpRequest:InertXHR,report:{requests:[]}};vm.createContext(ctx);vm.runInContext(xhrHook+'\ntry{const x=new XMLHttpRequest();x.open("GET","https://offline.invalid/review");x.send()}catch{}',ctx);
+results.push({name:'in_page_xhr_refused_without_external_guard',pass_contract:nativeSend===0&&ctx.report.requests.length===1,observed:{nativeOpen,nativeSend,recorded:ctx.report.requests,qualification:'inert transport sentinels; no real XHR/network operation'}});
+const receipt={source_commit:'db14d4bdf0f38b768a8de148caf5cbbf27d2152e',mode:'actual checker and frozen clock source with type syntax erased, in real Chrome DOM; no React/App/browser bundle execution',runtime:process.version,browser:browserVersion,network_requests:requests,passes:results.filter(x=>x.pass_contract).length,failures:results.filter(x=>!x.pass_contract).length,results,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};
+fs.writeFileSync(path.join(out,'browser-checker-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt,null,2));process.exitCode=receipt.failures?1:0;
+
+```
+<!-- /MUSE-DB14-B2-CHECKER-MJS -->
 
 ## 2026-10-16 — fe843cfb ADOPT-B1-R1 source corrections accepted; advance styled browser fixtures
 
