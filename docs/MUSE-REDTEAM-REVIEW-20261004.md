@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: a0ee30be finite B2-R2 series/control source corrections verified and closed. Independent Chrome 9/9 intended control outcomes; F1/backend remain green. Package 136 files / 134 checksum rows match, but 12 retained-PNG output-map hashes/byte counts conflict with actual files and correct per-case references. Next single task: ADOPT-E1 packaged evidence manifest reconciliation. Full App browser rerun UNRUN locally; no deployment/data-rights/empirical promotion.**
+**Current status: 0e37a442 ADOPT-E1 verified and CLOSED. Package 137 files / 135 checksum rows; 32 input / 10 fixture hashes; all 38 available outputs and 19 screenshot references match. Twelve PNG output-map conflicts are repaired; all 19 PNGs and accepted application/checker/F1/backend bytes are unchanged. Next single task: ADOPT-C1 offline snapshot persistence/fallback audit, owned independently by Muse. Full App rerun UNRUN; no deployment/runtime/data-rights/empirical promotion.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -10,6 +10,95 @@
 
 
 
+
+
+## 2026-10-17 — 0e37a442 E1 evidence reconciliation accepted; next C1 snapshot audit
+
+Reviewed [Muse E1 delivery 6237911069](https://github.com/3pacs/muse/pull/2#issuecomment-6237911069), immutable **`0e37a442876048f8e08a796c10b669c99a88c87b`** (implementation branch), against accepted source `a0ee30be73e9a459c1ca46d08e73ec4fa380c455` and preceding docs `e6f733c2e59723f23211a756f1754bee308e7f9c`. Incoming issue-comment delivery `61f94090-ca52-11f1-945b-62bc69a290ff`. **ADOPT-E1 is verified and CLOSED.** The twelve contradictory PNG output-map entries are repaired; no additional E1 repair is requested. Next single task is **ADOPT-C1 offline snapshot persistence/fallback audit**, below.
+
+### Independent E1 result
+
+The reviewer fetched the exact public Git commit and extracted its immutable tree without checking out or editing existing worktrees. Installed Node **22.22.1** ran only a read-only metadata proof over that tree; no application/server/backend/interpreter/browser/provider was started.
+
+| Acceptance check | Independent result |
+| --- | --- |
+| Package membership and checksums | **137 files / 135 checksum rows; all match**. Rows cover all packaged files except the checksum file and package manifest themselves, as declared. |
+| Browser inputs / fixtures | **32 / 10 hashes match**; declared byte counts also match. |
+| Available output map | **38/38** SHA-256/byte pairs match; no duplicates or unexpected missing files. |
+| Screenshot references | **19/19** per-case/extra-capture references match actual files and the output map; **zero** cross-section conflicts. These reference the same nineteen PNGs already included among outputs. |
+| Retained image bytes | **19/19** byte-identical to a0ee30be/R1; all exact-Git bytes checked. |
+| Omitted bundles | `assets/app.css` and `assets/app.js` remain explicitly **UNAVAILABLE**, excluded from validated outputs. |
+| Browser-manifest scope | Exactly **24 field corrections**: `sha256` and `bytes` on twelve existing PNG `outputs` entries. All other manifest content, including owner reports, per-case references, control results and provenance, is unchanged. |
+| Source diff | Five paths only: browser manifest, new `ADOPT-E1.md`, `MANIFEST.md`, `SHA256SUMS.txt`, `TESTS.md`. No App/checker/driver/server/F1/pipeline/handler-response/SSR/PNG byte change. |
+| Existing integrity proof | Source receipt pin changed only to E1; **exit 0**, bad outputs **0**, bad cross-links **0**. |
+
+[Corrected browser manifest](https://github.com/3pacs/muse/blob/0e37a442876048f8e08a796c10b669c99a88c87b/implementation/dashboard-streaming/browser-preview/BROWSER-MANIFEST.json) SHA-256 is **`1b4b30034bb08187622c5fed7148818c2cc106270445bea66b0e5d4069a80b5d`**. The existing proof at a0ee30be remains the historical failing receipt: twelve incorrect output entries. Its oracle is unchanged; E1 receipt-helper SHA-256 is **`1fcda33b82eb73f69e4691b8b4263140bc4b7c87f57f9dc4cfeb15392f556ed0`**.
+
+The owner explains that the old output map described fresh R2 renders while the packaged screenshots were retained B2/R1 captures. This is consistent with the repaired twelve entries, but authenticity of an uncommitted alternate render is **owner-declared**, not independently established here. Historical retained-image/fresh-report provenance remains intact. No new screenshot, full App browser run or backend-suite rerun is needed for this metadata-only change. Earlier independently verified B2-R2/F1/backend results carry forward because their bytes are unchanged; they are not recounted as newly executed tests.
+
+### One next task — ADOPT-C1 offline snapshot persistence/fallback audit
+
+Make the next evidence useful for the tracker's **saved trail and honest stale fallback**, rather than extending the closed browser-checker program. **Muse owns and produces this evidence independently of Hermes.** Do not read, copy, depend on, bridge to or wait for Hermes sessions/artifacts/infrastructure. Use Muse's pinned source and explicit synthetic fixtures. This assignment is an **audit with runnable counterexamples**, not authorization for an application fix, merge, deployment or runtime activation.
+
+The bounded subject is the existing [snapshot schema](https://github.com/3pacs/muse/blob/0e37a442876048f8e08a796c10b669c99a88c87b/implementation/dashboard-streaming/server/src/schema.ts), [`maybePersistSnapshot` / `loadTrailAndLatest` / `getLive`](https://github.com/3pacs/muse/blob/0e37a442876048f8e08a796c10b669c99a88c87b/implementation/dashboard-streaming/server/src/actions.ts#L555), and the response fields consumed by the existing trail/fallback UI. Source currently declares a **45-second persistence gap**, **1500-row retention**, and **240-row trail**. These are source facts to exercise, not a claim of wall-clock collection, trading-day coverage or measured deployment behavior.
+
+Build **one finite offline audit** with the following eight grouped cases. Declare source timestamp, independent receipt time, input sequence, expected contract and observed output for every case:
+
+| Case | Controlled input and question | Required evidence |
+| --- | --- | --- |
+| C01 baseline | Two valid distinct source frames more than 45 seconds apart, containing real numeric zero and null/unavailable fields | Persisted rows, ordered trail and fallback agree with the accepted frames; zero stays numeric and null stays unavailable. |
+| C02 exact replay | Repeat an identical source timestamp/payload | Show row count and response identity; repeated reads must not invent extra observations. |
+| C03 equivalent instants | Same instant spelled with `Z` and an offset; include source clocks crossing a UTC date boundary | Report actual dedupe and chronological order. Distinguish timestamp-string behavior from instant identity; do not claim equivalence support if absent. |
+| C04 out-of-order/gap | Newer frame, older late arrival, and distinct frames just below/at/above the 45-second threshold | Show which frames persist and why; latest fallback and trail order must be assessed by source time, not assumed from insertion order. |
+| C05 conflicting replay | Same declared identity with changed payload values | Show the final stored row and response. Identify whether a conflict is explicit, ignored or silently accepted; no invented hybrid or unqualified dedupe claim. |
+| C06 storage failure | Inject one non-unique insert failure, then a valid recovery; distinguish it from a genuine uniqueness race | Show handler result/error and persisted state for each. A failed write must not be certified as a successful persisted observation. |
+| C07 malformed newest payload | Older valid row plus a newest stored row whose payload JSON cannot normalize/parse; also empty storage | Show trail and fallback availability/time/reason separately; no invented last-good payload or fresh/live claim from missing data. |
+| C08 retention boundary | 1501 disposable synthetic rows, including a late old arrival | Show exact retained count, source-time range, returned trail count/order and newest fallback. Compare claimed “newest” semantics with the actual pruning rule. |
+
+These are **audit questions, not newly reproduced defect claims**. Do not silently change the expected result to make the current code pass. Where the existing contract is ambiguous, state it as ambiguous and show the observation; where the desired chronology/identity/persistence property fails, provide the smallest exact-source counterexample and severity/impact, then stop before fixing application code.
+
+**Execution boundary:** use an existing supported offline runtime with disposable local storage and in-memory feed stubs, never a real feed URL. Exercise the actual action/persistence code and schema when supported. If a small adapter/type-erasure or extracted-function harness is needed, publish precisely what it substitutes; a modeled stub is not SQL/SDK integration evidence. Do not install or reconstruct a dependency environment merely to broaden this task. Mark unavailable integration paths **UNRUN**, preserve that limitation, and return the finite evidence. No provider polling, interpreter start, production/live DB read/write, mini24 access, credentials, daemon/schedule operation, live/GRID ingestion, or Hermes dependency is authorized.
+
+**Finite C1 delivery/acceptance:** one source-pinned runnable companion, the eight-case result table with exact raw observations and expected-versus-observed outcomes, fixture/helper hashes, and either a bounded pass with stated limits or the first reproducible persistence/fallback counterexample plus the remaining finite matrix. A valid delivery can report failed product properties; do not turn a negative observation into an application PASS. Preserve accepted F1 zero/null/aware-clock/clustering semantics, all existing browser controls and evidence history. Application changes, if needed, will be a separate follow-up after this audit. No generalized database/CI framework, broad concurrency/load campaign, alpha/backtest or trading recommendation is requested.
+
+### Runnable E1 acceptance proof
+
+This is the preceding integrity helper with **only its receipt source pin changed**. Save as `verify-evidence.mjs` with a final newline (SHA-256 **`1fcda33b82eb73f69e4691b8b4263140bc4b7c87f57f9dc4cfeb15392f556ed0`**), extract the immutable source, create an output directory, and run:
+
+```sh
+mkdir -p e1-source e1-results
+git archive 0e37a442876048f8e08a796c10b669c99a88c87b implementation | tar -x -C e1-source
+node verify-evidence.mjs e1-source e1-results
+# Expected exit 0; writes evidence-integrity-proof.json.
+```
+
+```javascript
+// Read-only pinned-package hash/byte/reference check; no compiler/browser/provider operation.
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),impl=path.join(root,'implementation'),base=path.join(impl,'dashboard-streaming/browser-preview');
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex'),read=p=>fs.readFileSync(p);
+const checksumRows=read(path.join(impl,'SHA256SUMS.txt')).toString('utf8').trim().split('\n').map(line=>{const match=/^([a-f0-9]{64})\s+(.+)$/.exec(line);if(!match)throw Error('invalid checksum row');const p=match[2].replace(/^\*/,'');return{path:p,pass:sha(read(path.join(impl,p)))===match[1]};});
+const manifest=JSON.parse(read(path.join(base,'BROWSER-MANIFEST.json'))),declaredMissing=new Set(['assets/app.js','assets/app.css']);
+const outputs=manifest.outputs.map(e=>{const p=path.join(base,e.path);if(!fs.existsSync(p))return{path:e.path,status:declaredMissing.has(e.path)?'UNAVAILABLE_DECLARED_BUNDLE':'FAIL_MISSING'};const bytes=read(p);return{path:e.path,status:sha(bytes)===e.sha256&&bytes.length===e.bytes?'MATCH':'FAIL_HASH_OR_BYTES',actualSha256:sha(bytes),declaredSha256:e.sha256,actualBytes:bytes.length,declaredBytes:e.bytes};});
+const byPath=new Map(manifest.outputs.map(e=>[e.path,e]));
+const refs=[...manifest.cases.flatMap(c=>c.viewports.map(v=>({...v,case:c.case}))),...manifest.extraCaptures];
+const references=refs.map(r=>{const p=path.join(base,r.screenshot),entry=byPath.get(r.screenshot);if(!fs.existsSync(p))return{path:r.screenshot,status:'FAIL_MISSING'};const bytes=read(p),actual=sha(bytes);return{path:r.screenshot,case:r.case??r.id,status:actual===r.screenshotSha256&&bytes.length===r.screenshotBytes?'MATCH':'FAIL_REFERENCE_BYTES',outputsEntryAgrees:!!entry&&entry.sha256===r.screenshotSha256&&entry.bytes===r.screenshotBytes,actualSha256:actual,referenceSha256:r.screenshotSha256,outputsSha256:entry?.sha256,actualBytes:bytes.length,referenceBytes:r.screenshotBytes,outputsBytes:entry?.bytes};});
+const badOutputs=outputs.filter(x=>x.status.startsWith('FAIL')),badRefs=references.filter(x=>x.status.startsWith('FAIL')||!x.outputsEntryAgrees),badPackage=checksumRows.filter(x=>!x.pass);
+const inputs=manifest.inputs.map(x=>({path:x.path,pass:sha(read(path.join(impl,'dashboard-streaming',x.path)))===x.sha256}));
+const fixtures=manifest.fixturesUsed.map(x=>({path:x.path,pass:sha(read(path.join(impl,'fixtures',x.path)))===x.sha256}));
+const duplicateOutputs=byPath.size!==manifest.outputs.length;
+const pass=!badOutputs.length&&!badRefs.length&&!badPackage.length&&!duplicateOutputs&&inputs.every(x=>x.pass)&&fixtures.every(x=>x.pass);
+const receipt={source_commit:'0e37a442876048f8e08a796c10b669c99a88c87b',scope:'package/evidence integrity only; no source-gate or product acceptance',runtime:process.version,pass,packageChecksums:{total:checksumRows.length,failures:badPackage},inputHashes:inputs,fixtureHashes:fixtures,outputs,references,duplicateOutputs,summary:{availableOutputs:outputs.filter(x=>!x.status.startsWith('UNAVAILABLE')).length,declaredUnavailable:outputs.filter(x=>x.status.startsWith('UNAVAILABLE')).map(x=>x.path),badOutputCount:badOutputs.length,badReferenceOrCrossLinkCount:badRefs.length},harnessSha256:sha(read(new URL(import.meta.url)))};
+fs.writeFileSync(path.join(out,'evidence-integrity-proof.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({source:receipt.source_commit,pass,packageChecksums:receipt.packageChecksums,...receipt.summary,examples:badOutputs.slice(0,3)},null,2));process.exitCode=pass?0:1;
+```
+
+The review's additional diff/retention check compared the complete a0ee30be..0e37a442 path list, all nineteen old/new PNG bytes, manifest object content excluding `outputs`, and the twelve existing output entries' changed field names. It observed only the five paths and twenty-four fields listed above. This is metadata and source-byte evidence, not application execution.
+
+### Pending handoff and limits
+
+Watch Muse's substantive **C1 audit delivery after `0e37a442876048f8e08a796c10b669c99a88c87b`** on `implementation/0dte-source-20261015`. Ignore this coordinator docs update as implementation progress; no parallel handoff or top-level PR comment is needed. The existing automation remains enabled and unchanged.
+
+Full App reconstruction, hosted deployment/source linkage, empirical GEX usefulness and GRID/data-rights claims remain unestablished by this review. The published frontend is not newly inspected or redeployed. No merge, provider call, interpreter start, mini24 access or Hermes operation occurred.
 
 
 ## 2026-10-17 — a0ee30be B2-R2 source fixes closed; reconcile retained evidence metadata
