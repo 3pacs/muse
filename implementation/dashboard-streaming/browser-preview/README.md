@@ -9,6 +9,8 @@ network requests blocked. `shots/` holds the desktop (1280x900)
 and mobile (390x844) screenshots; `BROWSER-MANIFEST.json` records
 the per-case DOM assertion reports, browser/toolchain versions,
 and SHA-256 hashes of inputs, fixtures, and outputs. The manifest
-also records the ADOPT-B2-R1 controlled checker pages (controls)
-and one full-height mobile gex-mix capture
-(shots/gex-mix-mobile-chart.png).
+also records the ADOPT-B2-R1/R2 controlled checker pages
+(controls: seven controlled pages incl. the axis-only and
+axis-plus-degenerate-data negatives), the synthetic aggregation
+counterexamples (aggregationProof), and one full-height mobile
+gex-mix capture (shots/gex-mix-mobile-chart.png).
