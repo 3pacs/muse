@@ -182,18 +182,18 @@
     },
     {
       "path": "offline/browser-controls.mjs",
-      "bytes": 6660,
-      "sha256": "1a5d48f8c306c1404e4eb2ac7e4bb16949f15c97be847787d335ee9775d09e04"
+      "bytes": 16550,
+      "sha256": "0efa56fdb9041ce9d5f85c1c4a546d6b0b633a115fc7015f19f0f11394099b21"
     },
     {
       "path": "offline/browser-entry.tsx",
-      "bytes": 10236,
-      "sha256": "42002eb9573bfbd0b4dbdb4ec94aa45a9499dd65b4ca698e6e682cd8c3be38af"
+      "bytes": 12407,
+      "sha256": "dbd248e6c4bee8a462b51b661eec49aff4bb4081ac8cdd89971bebbeaab24b2d"
     },
     {
       "path": "offline/browser-fixture.mjs",
-      "bytes": 21424,
-      "sha256": "5156faa4ec819d662965f71988da5376f55f265c3b7e41cbf7678aecff33a38e"
+      "bytes": 24158,
+      "sha256": "25f4632d4726e0a1e77b53b19b2100f6fe05d83eac64b7f4f7aacac5923f104f"
     },
     {
       "path": "offline/build-browser.ts",

@@ -131,10 +131,49 @@ it refuse. See ADOPT-B2-R1.md.
 
 Evidence committed under `dashboard-streaming/browser-preview/`;
 change note `ADOPT-B2-R1.md`.
+
+## ADOPT-B2-R2 addition (series-bound chart + intended-negative gate)
+
+```
+node implementation/dashboard-streaming/offline/browser-fixture.mjs \
+  --deps <public-only tree> --out <dir>   (same headline command)
+→ chart validation is series-bound (offline/browser-entry.tsx):
+  shapes under defs/axis/grid/legend/tooltip/reference ancestors are
+  decorations, a valid series mark needs finite geometry with
+  positive extent on both axes, and the settle gate binds the valid
+  count to the fixture's nonzero net-GEX rows
+  (expect.minSeriesMarks, 2 in every data case). Real App data
+  charts measure 10 marks = 8 decorations + 2 series, 2 valid.
+  Bundle app.js 2,033,436 B, app.css 24,652 B; 18/18 PASS.
+  Controls (offline/browser-controls.mjs) 7/7 MATCH under the
+  intended-negative gate (classifyControlReport): sized-SVG control
+  passes (settled 603 ms); empty wrapper (invalid-chart, 2,422 ms);
+  missing chart (budget-expired, 6,013 ms); malformed geometry
+  (invalid-chart, 2,408 ms); NEW axis-only (invalid-chart,
+  2,409 ms; 1 decoration, 0 series — passed under R1); NEW
+  axis+degenerate-data (invalid-chart, 2,414 ms; series candidates
+  2, valid 0 — passed under R1); XHR sentinel judged on evidence
+  (native send 0, one recorded attempt, one labeled refusal).
+  Synthetic aggregation counterexamples 14/14 (genuine reports
+  MATCH; unrelated-error-only, wrong-case, wrong-settle,
+  inconsistent-summary, malformed and missing reports all
+  rejected/BLOCKED).
+Control run vs the production install (real @hatch scope): 18/18,
+controls 7/7, identical verdicts. SSR preview regenerated: all 19
+retained outputs byte-identical to the ADOPT-B2-R1 pin
+(BUILD-MANIFEST inputs refreshed for the three offline files only;
+outputs untouched). The 18 B2 screenshots and the R1 full-height
+capture are retained byte-for-byte; the manifest pairs them with
+the fresh R2 reports.
+```
+
+Evidence committed under `dashboard-streaming/browser-preview/`;
+change note `ADOPT-B2-R2.md`.
 Backend suites below were re-run unchanged at the ADOPT-B2 candidate
 as well: compile 12/12, watcher 0 failures, J1 50/50 + 27/27,
 boundary tests 51/51. Re-run unchanged again at the ADOPT-B2-R1
-candidate with identical results.
+candidate with identical results. Re-run unchanged again at the
+ADOPT-B2-R2 candidate with identical results.
 Backend suites below were re-run unchanged at the ADOPT-F1 candidate:
 compile 12/12, watcher 12/12, J1 50/50, build_signals synthetic checks
 identical to the accepted intake pin. Change note: `ADOPT-F1.md`.
