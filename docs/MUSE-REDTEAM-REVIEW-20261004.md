@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: 7addef72 monotonic wait, explicit negative-report recovery, XHR refusal and mobile chart capture verified. Package 135 files / 133 checksums; 32 input / 10 fixture / 38 available output hashes match. Five exact browser controls match, but axis-only/invalid-series-plus-axis still falsely pass and arbitrary failures can satisfy negative-control aggregation. Next: ADOPT-B2-R2 series-bound chart and intended-negative gate. F1/backend remain green; full App rerun UNRUN locally. No production/data-rights/empirical promotion.**
+**Current status: a0ee30be finite B2-R2 series/control source corrections verified and closed. Independent Chrome 9/9 intended control outcomes; F1/backend remain green. Package 136 files / 134 checksum rows match, but 12 retained-PNG output-map hashes/byte counts conflict with actual files and correct per-case references. Next single task: ADOPT-E1 packaged evidence manifest reconciliation. Full App browser rerun UNRUN locally; no deployment/data-rights/empirical promotion.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -10,6 +10,140 @@
 
 
 
+
+
+## 2026-10-17 — a0ee30be B2-R2 source fixes closed; reconcile retained evidence metadata
+
+Reviewed [Muse B2-R2 delivery 6229091679](https://github.com/3pacs/muse/pull/2#issuecomment-6229091679), immutable **`a0ee30be73e9a459c1ca46d08e73ec4fa380c455`**, against accepted R1 source `7addef72d76cb8a0e2f028b0fa04a218ae3d3dfb` and preceding docs `69554fb1866933d7b8fa00664c2bbb5bda83de58`. **Accept and close the finite B2-R2 series/control source corrections.** The packaged evidence manifest has a separate, reproduced integrity defect: twelve PNG output-map entries disagree with the committed retained files. **Next single task: ADOPT-E1 packaged evidence manifest reconciliation.** This is a metadata repair, with no further geometry/parser research gate or application feature work.
+
+### What is independently verified
+
+- Exact remote Git source contains **136 files / 134 checksum rows**, all package checksums matching. The browser's **32 input hashes and 10 fixture hashes** match. A correct outer checksum authenticates the manifest bytes; it does not establish that the manifest's inner file mappings are correct.
+- Reviewer Chrome **155.0.8059.79**, Node **22.22.1**, on confirmed Precision5520 executes the candidate's seven generated controls plus the two prior independent axis mutations: **9/9 expected outcomes match**, zero non-file requests, page errors or console errors. These are controlled checker pages, not App/React/generated-bundle execution.
+- Sized-series positive settles in **602 ms**. Empty, malformed, axis-only and axis-plus-degenerate controls emit the intended chart-only **FAIL / invalid-chart** around **2405–2406 ms**. Missing chart emits **FAIL / budget-expired at 6008 ms**. Both prior independent axis witnesses now emit chart-only FAIL around **2405–2408 ms**. The frozen fixture clock remains frozen while the elapsed budget advances.
+- Exact inert XHR hook execution records one attempt, one labeled refusal and thrown send, with **nativeSend=0**. Accepted monotonic wait, missing-report recovery and XHR refusal remain closed.
+- Exact classifier export rejects all **10/10 prior reviewer counterexamples** as expected; supplied **14/14** aggregation cases replay and equal the recorded manifest; **7/7** owner-captured control classifications reproduce. These sets overlap. A negative assertion **FAIL / control MATCH** stays distinct from application PASS. Missing report remains **BLOCKED / NO_REPORT**, with assertion evaluation unknown.
+- Exact-function serialized source tests match **6/6** geometry/count cases; **9/9** fixture-to-embedded-packet count comparisons agree. The six chart cases require two nonzero marks. A genuine zero can have an absent/collapsed mark; missing/null is not counted. The implementation excludes recognized decoration ancestors and checks an aggregate **minimum** nonzero-series count. It does not prove each mark's datum identity, value, uniqueness or pixel scale. No broader all-zero chart contract or SVG fuzz program is added.
+- The three reviewed source hashes are: browser-entry **`dbd248e6c4bee8a462b51b661eec49aff4bb4081ac8cdd89971bebbeaab24b2d`**, controls **`0efa56fdb9041ce9d5f85c1c4a546d6b0b633a115fc7015f19f0f11394099b21`**, fixture driver **`25f4632d4726e0a1e77b53b19b2100f6fe05d83eac64b7f4f7aacac5923f104f`**.
+- App/client, server, F1 tests and pipeline bytes are unchanged from R1; retained SSR files (excluding the manifest) and all nine handler responses are unchanged. Fresh independent checks pass: qualified owner **51**, original **12**, supplemental **17**, compile **12**, watcher **12/12**, J1 **50/50**, overlapping older J1 **27/27**, and four synthetic actual signals-reader cases. Counts overlap; guarded Python took **735.54 ms**, with zero forbidden operations.
+
+Two scoped fresh-agent slices supplied classifier and serialized geometry/transport proofs; this coordinator independently reran them, ran Chrome and verified Git bytes. Official **Gemini 3.8 Flash High** criticism (conversation `d6436797-12a4-4af3-91ff-64c11136979e`) supported finite source closure and its count/runtime limits. The prompt preceded discovery of the manifest defect; it did **not** validate screenshot metadata or overall package acceptance.
+
+### Reproduced E1 evidence defect
+
+[The exact browser manifest](https://github.com/3pacs/muse/blob/a0ee30be73e9a459c1ca46d08e73ec4fa380c455/implementation/dashboard-streaming/browser-preview/BROWSER-MANIFEST.json) lists **40 outputs**: two known omitted bundles (`assets/app.js`, `assets/app.css`) remain explicitly **UNAVAILABLE**; **38 are present**, of which **12 PNG output-map SHA-256/byte entries mismatch**. All **19** per-case/extra-capture screenshot references match the actual retained PNGs. The same twelve paths therefore also conflict across the two manifest sections; these are twelve defects, not twenty-four independent defects.
+
+For example, [retained clustering desktop PNG](https://github.com/3pacs/muse/blob/a0ee30be73e9a459c1ca46d08e73ec4fa380c455/implementation/dashboard-streaming/browser-preview/shots/clustering-desktop.png) is **112547 bytes**, SHA-256 **`8046d6ddabc481f5638fefa7ef9f50186aa768d8f8cfb9c94c60968e65c04b33`** (Git blob `134e7a53a5a35eea4daba567cf303f464f370ec1`). Its per-case entry agrees, but `outputs` claims **112500 bytes**, **`cf13b428f3e3937b5a881b05924ac5b89c3da6b65d842f40704582c05ba18f2c`**. Clustering mobile is **74392** bytes versus **74394** declared; gex-mix desktop is **111372** versus **111358**. Independent local files, exact `git show` bytes and Git blob IDs agree.
+
+The twelve affected paths under `browser-preview/shots/` are:
+
+```text
+clustering-desktop.png
+clustering-mobile.png
+gex-mix-desktop.png
+gex-mix-mobile-chart.png
+gex-mix-mobile.png
+last-session-desktop.png
+legacy-desktop.png
+legacy-mobile.png
+signals-only-error-desktop.png
+signals-only-error-mobile.png
+success-desktop.png
+success-mobile.png
+```
+
+All nineteen images are byte-identical to R1: eighteen historical B2 screenshots plus its added **390×2701** mobile chart capture. They are expressly paired with fresh **owner-executed R2 reports**, not attested same-run image/report pairs. This review does not invalidate the owner's eighteen positive scenario meanings or demand replacement screenshots. It rejects the conflicting output metadata. No reason for the conflicting hashes is asserted without evidence.
+
+### One next task — ADOPT-E1 packaged evidence manifest reconciliation
+
+1. Recompute each available `BROWSER-MANIFEST.outputs` SHA-256 and byte count from the **final packaged file bytes, after any retention/copy decisions**. Reconcile all nineteen screenshot output-map entries with their already-correct per-case/extra-capture references. Keep the nineteen PNG bytes unchanged.
+2. Refresh package checksum/manifest metadata and a concise E1 change note/tests as needed. If the packaging order caused the mismatch, fix that narrowly; do not introduce a general build framework or reopen accepted source gates. Keep accepted R2 checker/driver/classifier, App, F1, server, pipeline, handler responses and retained SSR bytes unchanged.
+3. Preserve historical image origin/retention disclosures, fresh-report distinction, originals and previous failure history. Do not invent a new capture time or same-run identity for retained files. The two omitted bundles remain declared unavailable, never counted as validated outputs.
+4. Run the read-only integrity proof below on the completed package. Publish the exact new source pin, package count/checksum results, all present-output/reference results and narrow diff. If reusing this review helper on a new revision, change only its receipt's source pin to that verified revision and publish the helper hash; retain the original proof here.
+
+**Finite E1 acceptance:** all package checksum rows match; all input/fixture hashes match; all available output SHA-256/byte pairs match; all nineteen screenshot references agree with both bytes and output-map entries; no unexpected missing/duplicate output entries; the two intentionally absent bundles remain UNAVAILABLE. Current a0ee30be proof exits **1**, with **12** bad output entries and **12** corresponding cross-links, while all package checksum rows pass. Corrected E1 must exit **0**. A metadata-only E1 does not require a new full App browser run or another classifier/geometry review cycle.
+
+After that finite repair, a useful observational snapshot audit can be staged separately. It is **not a parallel assignment** now. No deployment, live provider, GRID ingestion, empirical alpha, recommendation or runtime-adoption gate is promoted here.
+
+### Runnable independent proofs
+
+Extract the immutable Git tree into a source root containing `implementation/`, save the following helpers with their indicated names, and create a writable result directory. The integrity helper uses installed Node built-ins only; no build, browser, provider, network or application execution.
+
+```sh
+mkdir -p r2-source r2-results
+git archive a0ee30be73e9a459c1ca46d08e73ec4fa380c455 implementation | tar -x -C r2-source
+node verify-evidence.mjs r2-source r2-results
+# Expected exit 1 at this pin; writes evidence-integrity-proof.json.
+node review-r2-browser.mjs r2-source r2-results
+# Expected exit 0, 9 matching controlled outcomes; App is not loaded.
+```
+
+Browser helper requires an existing Puppeteer module exposing `puppeteer` and an existing Chrome binary. Set `MUSE_PUPPETEER_MODULE` and `MUSE_CHROME_BIN` for other local installations; no installation or dependency reconstruction is part of this proof. Integrity helper SHA-256 **`6d726739ce3e9396a6feaa517d8a935ee76d7d2ca60569e9969170afc9ecf0ec`**; browser helper SHA-256 **`b15fef060e904c8ebc3fb4b403c0fddd8d34d3782483581daa505f9cdc1924bf`**. Save each fence's content with its final newline.
+
+`verify-evidence.mjs`:
+
+```javascript
+// Read-only pinned-package hash/byte/reference check; no compiler/browser/provider operation.
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),impl=path.join(root,'implementation'),base=path.join(impl,'dashboard-streaming/browser-preview');
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex'),read=p=>fs.readFileSync(p);
+const checksumRows=read(path.join(impl,'SHA256SUMS.txt')).toString('utf8').trim().split('\n').map(line=>{const match=/^([a-f0-9]{64})\s+(.+)$/.exec(line);if(!match)throw Error('invalid checksum row');const p=match[2].replace(/^\*/,'');return{path:p,pass:sha(read(path.join(impl,p)))===match[1]};});
+const manifest=JSON.parse(read(path.join(base,'BROWSER-MANIFEST.json'))),declaredMissing=new Set(['assets/app.js','assets/app.css']);
+const outputs=manifest.outputs.map(e=>{const p=path.join(base,e.path);if(!fs.existsSync(p))return{path:e.path,status:declaredMissing.has(e.path)?'UNAVAILABLE_DECLARED_BUNDLE':'FAIL_MISSING'};const bytes=read(p);return{path:e.path,status:sha(bytes)===e.sha256&&bytes.length===e.bytes?'MATCH':'FAIL_HASH_OR_BYTES',actualSha256:sha(bytes),declaredSha256:e.sha256,actualBytes:bytes.length,declaredBytes:e.bytes};});
+const byPath=new Map(manifest.outputs.map(e=>[e.path,e]));
+const refs=[...manifest.cases.flatMap(c=>c.viewports.map(v=>({...v,case:c.case}))),...manifest.extraCaptures];
+const references=refs.map(r=>{const p=path.join(base,r.screenshot),entry=byPath.get(r.screenshot);if(!fs.existsSync(p))return{path:r.screenshot,status:'FAIL_MISSING'};const bytes=read(p),actual=sha(bytes);return{path:r.screenshot,case:r.case??r.id,status:actual===r.screenshotSha256&&bytes.length===r.screenshotBytes?'MATCH':'FAIL_REFERENCE_BYTES',outputsEntryAgrees:!!entry&&entry.sha256===r.screenshotSha256&&entry.bytes===r.screenshotBytes,actualSha256:actual,referenceSha256:r.screenshotSha256,outputsSha256:entry?.sha256,actualBytes:bytes.length,referenceBytes:r.screenshotBytes,outputsBytes:entry?.bytes};});
+const badOutputs=outputs.filter(x=>x.status.startsWith('FAIL')),badRefs=references.filter(x=>x.status.startsWith('FAIL')||!x.outputsEntryAgrees),badPackage=checksumRows.filter(x=>!x.pass);
+const inputs=manifest.inputs.map(x=>({path:x.path,pass:sha(read(path.join(impl,'dashboard-streaming',x.path)))===x.sha256}));
+const fixtures=manifest.fixturesUsed.map(x=>({path:x.path,pass:sha(read(path.join(impl,'fixtures',x.path)))===x.sha256}));
+const duplicateOutputs=byPath.size!==manifest.outputs.length;
+const pass=!badOutputs.length&&!badRefs.length&&!badPackage.length&&!duplicateOutputs&&inputs.every(x=>x.pass)&&fixtures.every(x=>x.pass);
+const receipt={source_commit:'a0ee30be73e9a459c1ca46d08e73ec4fa380c455',scope:'package/evidence integrity only; no source-gate or product acceptance',runtime:process.version,pass,packageChecksums:{total:checksumRows.length,failures:badPackage},inputHashes:inputs,fixtureHashes:fixtures,outputs,references,duplicateOutputs,summary:{availableOutputs:outputs.filter(x=>!x.status.startsWith('UNAVAILABLE')).length,declaredUnavailable:outputs.filter(x=>x.status.startsWith('UNAVAILABLE')).map(x=>x.path),badOutputCount:badOutputs.length,badReferenceOrCrossLinkCount:badRefs.length},harnessSha256:sha(read(new URL(import.meta.url)))};
+fs.writeFileSync(path.join(out,'evidence-integrity-proof.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({source:receipt.source_commit,pass,packageChecksums:receipt.packageChecksums,...receipt.summary,examples:badOutputs.slice(0,3)},null,2));process.exitCode=pass?0:1;
+```
+
+`review-r2-browser.mjs`:
+
+```javascript
+// Controlled exact-source browser-checker review; does not load App/React/generated bundles.
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {pathToFileURL} from 'node:url';
+const {puppeteer}=await import(process.env.MUSE_PUPPETEER_MODULE??'/opt/antigravity-2.19.1/resources/app.asar.unpacked/node_modules/chrome-devtools-mcp/build/src/third_party/index.js');
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),space=path.join(root,'implementation/dashboard-streaming');
+const {buildControls}=await import(pathToFileURL(path.join(space,'offline/browser-controls.mjs')).href);
+const controlsDir=fs.mkdtempSync(path.join(out,'controlled-pages-'));
+const entry=fs.readFileSync(path.join(space,'offline/browser-entry.tsx'),'utf8');
+const defs=buildControls(controlsDir,entry);
+const template=fs.readFileSync(defs[0].page,'utf8');
+const variants=[
+ {id:'review-axis-only',replacement:'<g class="recharts-cartesian-axis"><line x1="10" y1="210" x2="310" y2="210" stroke="black"/></g>'},
+ {id:'review-axis-with-degenerate-data',replacement:'<g class="recharts-cartesian-axis"><line x1="10" y1="210" x2="310" y2="210" stroke="black"/></g><g class="recharts-bar-rectangles"><path class="recharts-rectangle" d="M0 0"/><rect class="recharts-rectangle" width="0" height="0"/></g>'},
+];
+for(const v of variants){const page=path.join(controlsDir,v.id+'.html');const html=template.replace(/control-svg/g,v.id).replace('<path d="M0 0 L10 10"/>',v.replacement);if(!html.includes(v.replacement))throw Error('control template mismatch');fs.writeFileSync(page,html);defs.push({id:v.id,kind:'checker',expectReportPass:false,page});}
+const fixture=JSON.parse(fs.readFileSync(path.join(root,'implementation/fixtures/feed_all_success.json'),'utf8'));
+const expectedNonzeroRows=fixture.gamma.by_strike.filter(x=>typeof x.net_gex_m==='number'&&x.net_gex_m!==0).map(x=>({strike:x.strike,gex:x.net_gex_m}));
+const profile=fs.mkdtempSync('/tmp/muse-b2r1-checker-');
+const browser=await puppeteer.launch({executablePath:process.env.MUSE_CHROME_BIN??'/opt/google/chrome/chrome',headless:true,userDataDir:profile,args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND']});
+const browserVersion=await browser.version(),requests=[],results=[];
+try{for(const d of defs){const page=await browser.newPage(),consoleErrors=[],errors=[];await page.setViewport({width:390,height:844});await page.setRequestInterception(true);page.on('request',r=>{if(r.url().startsWith('file:')||r.url().startsWith('data:'))r.continue();else{requests.push(r.url());r.abort()}});page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});const start=performance.now();await page.goto(pathToFileURL(d.page).href,{waitUntil:'load'});let report=null;try{await page.waitForSelector('#fixture-report',{timeout:10000});report=await page.$eval('#fixture-report',e=>JSON.parse(e.textContent))}catch{}const geometry=await page.evaluate(()=>({svgCount:document.querySelectorAll('.recharts-wrapper svg').length,axisCount:document.querySelectorAll('.recharts-cartesian-axis line').length,dataShapeCount:document.querySelectorAll('.recharts-bar-rectangles .recharts-rectangle').length,dataShapeBounds:[...document.querySelectorAll('.recharts-bar-rectangles .recharts-rectangle')].map(x=>{const r=x.getBoundingClientRect();return{w:r.width,h:r.height}}),frozenNow:Date.now()}));
+ const fails=report?.assertions?.filter(x=>!x.pass)??[];
+ const expectedNegative=d.kind==='checker'&&!d.expectReportPass;
+ const intendedChartFailure=fails.length===1&&fails[0].name.startsWith('charts mounted with finite SVG plotted geometry');
+ const result={id:d.id,expectedReportPass:d.expectReportPass,report,realElapsedMs:Math.round(performance.now()-start),geometry,errors,consoleErrors,pass_contract:!!report&&report.pass===d.expectReportPass&&(!expectedNegative||intendedChartFailure)};
+ if(d.id==='control-missing')result.pass_contract=result.pass_contract&&report.settle?.outcome==='budget-expired'&&report.settle?.elapsedMs<10000;
+ if(d.id==='control-xhr')result.pass_contract=result.pass_contract&&report.nativeSend===0&&report.recordedRequests?.length===1&&report.refusedSends?.length===1;
+ if(d.id.startsWith('review-axis'))result.independentExpectedNonzeroRows=expectedNonzeroRows;
+ results.push(result);await page.close();}}
+finally{await browser.close();fs.rmSync(profile,{recursive:true,force:true})}
+const receipt={source_commit:'a0ee30be73e9a459c1ca46d08e73ec4fa380c455',runtime:process.version,browser:browserVersion,mode:'exact candidate-generated checker/control pages plus axis-only mutations; no App/generated bundle execution',non_file_requests:requests,passes:results.filter(x=>x.pass_contract).length,failures:results.filter(x=>!x.pass_contract).length,results,harness_sha256:crypto.createHash('sha256').update(fs.readFileSync(new URL(import.meta.url))).digest('hex')};fs.writeFileSync(path.join(out,'browser-review-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({source:receipt.source_commit,browser:browserVersion,passes:receipt.passes,failures:receipt.failures,non_file_requests:requests,results:results.map(r=>({id:r.id,pass_contract:r.pass_contract,reportedPass:r.report?.pass,settle:r.report?.settle,geometry:r.geometry,errors:r.errors,consoleErrors:r.consoleErrors}))},null,2));process.exitCode=receipt.failures?1:0;
+```
+
+For the candidate's supplied classification cases alone, importing `aggregationCounterexamples()` from the pinned `offline/browser-controls.mjs` reproduces its fourteen checks; the separate prior-reviewer ten-case replay is additional source evidence, not an App test count. Reviewer replay helper hash **`f6de2656f44b5d8855c51b1edb11e07a47a5794a76608f0a0ed2a516a75c7119`**. The earlier F1/backend helpers remain in this index; current receipts change their source pin only.
+
+### Review boundary and next response
+
+Full supported Bun/React/App reconstruction is **UNRUN locally**; generated bundles/toolchain remain unavailable. Owner Chromium152 positive runs, retained images, reviewer Chrome155 controls and serialized Node proofs are distinct evidence. This review establishes no new deployment/source linkage for the [published Muse frontend](https://muse.ai/s/0dte-dashboard-xlk6gxicxxxtxwxnxp), and does not claim a fresh hosted visual inspection.
+
+This is the single existing draft-PR/folder handoff. Watch a substantive E1 revision **after `a0ee30be73e9a459c1ca46d08e73ec4fa380c455`** on `implementation/0dte-source-20261015`, with Muse's source/evidence response. Ignore this docs update as implementation progress. Mini24 was not accessed; the existing webhook is unchanged. No app merge/deploy, provider polling, credentials, production DB/service/schedule or trading action occurred.
 
 
 ## 2026-10-16 — 7addef72 clock/XHR/mobile corrections verified; finish the series/control gate
