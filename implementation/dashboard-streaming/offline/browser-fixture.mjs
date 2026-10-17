@@ -43,7 +43,11 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildControls } from "./browser-controls.mjs";
+import {
+  buildControls,
+  classifyControlReport,
+  aggregationCounterexamples,
+} from "./browser-controls.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const spaceRoot = path.resolve(here, "..");
@@ -248,13 +252,34 @@ for (const c of CASES) {
     path.join(respDir, c.name + ".payload.json"),
     path.join(outAbs, "responses", c.name + ".json"),
   );
+  // ADOPT-B2-R2 series binding: when a chart is expected, bind the
+  // checker's valid-series count to the fixture's nonzero net-GEX
+  // rows (a zero row's bar may be collapsed or absent; axes/grid can
+  // never substitute for a data mark).
+  let minSeriesMarks = 0;
+  if ((c.expect.minCharts ?? 0) > 0) {
+    try {
+      const fx = JSON.parse(
+        fs.readFileSync(path.join(fixturesDir, c.fixtures[0]), "utf8"),
+      );
+      const byStrike = fx?.gamma?.by_strike ?? [];
+      minSeriesMarks = byStrike.filter(
+        (x) => typeof x?.net_gex_m === "number" && x.net_gex_m !== 0,
+      ).length;
+    } catch {
+      minSeriesMarks = 0;
+    }
+  }
   const packet = {
     case: c.name,
     frozenIso: payload.frozenClock,
     clockSource: payload.clockSource,
     getLive: payload.getLive,
     getSignals: payload.getSignals,
-    expect: c.expect,
+    expect: {
+      ...c.expect,
+      ...(minSeriesMarks > 0 ? { minSeriesMarks } : {}),
+    },
   };
   const inline = JSON.stringify(packet).replace(/</g, "\\u003c");
   const html =
@@ -354,26 +379,43 @@ for (const c of CASES) {
   caseResults.push({ case: c.name, fixtures: c.fixtures, receiptClock: c.receipt, viewports });
 }
 
-// --- ADOPT-B2-R1 controls + extra capture -------------------------------------
+// --- ADOPT-B2-R1/R2 controls + extra capture ----------------------------------
+// ADOPT-B2-R2: controls are judged by the intended-negative gate
+// (classifyControlReport in offline/browser-controls.mjs), not by the
+// report's top-level pass boolean alone — an expected-negative
+// control MATCHes only when exactly the chart assertion fails, every
+// unrelated assertion passes, the summary is consistent, the case
+// matches, and the settle outcome is the declared one. Malformed or
+// missing reports are BLOCKED/NOT_EVALUABLE and fail the run.
 const controlResults = controls.map((c) => {
   const res = byId.get(c.id);
   const report = res?.report ?? null;
-  const controlPass =
-    !!report &&
-    (c.kind === "xhr" ? report.pass === true : report.pass === c.expectReportPass);
-  if (!controlPass) anyFail = true;
+  const cls = classifyControlReport(c, report);
+  if (!cls.controlPass) anyFail = true;
   console.log(
-    c.id + ": " + (controlPass ? "CONTROL PASS" : "CONTROL FAIL") +
+    c.id + ": " + (cls.controlPass ? "CONTROL PASS" : "CONTROL FAIL") +
+      " [" + cls.classification + "/" + cls.reason + "/" +
+      cls.controlExpectation + "]" +
       (report ? " report.pass=" + report.pass : " (no report in DOM)"),
   );
   return {
     name: c.id,
     kind: c.kind,
     expectedReportPass: c.expectReportPass,
-    controlPass,
+    expectedOutcome: c.expectedOutcome,
+    controlPass: cls.controlPass,
+    classification: cls.classification,
+    reason: cls.reason,
+    controlExpectation: cls.controlExpectation,
     report,
   };
 });
+const aggregationProof = aggregationCounterexamples();
+if (aggregationProof.failed > 0) anyFail = true;
+console.log(
+  "aggregation counterexamples: " + aggregationProof.passed + "/" +
+    (aggregationProof.passed + aggregationProof.failed) + " rejected-or-matched as intended",
+);
 const extraShotPath = path.join(outAbs, "shots", "gex-mix-mobile-chart.png");
 const extraShot = fs.existsSync(extraShotPath)
   ? fs.readFileSync(extraShotPath)
@@ -407,9 +449,11 @@ const readme =
   "and mobile (390x844) screenshots; `BROWSER-MANIFEST.json` records\n" +
   "the per-case DOM assertion reports, browser/toolchain versions,\n" +
   "and SHA-256 hashes of inputs, fixtures, and outputs. The manifest\n" +
-  "also records the ADOPT-B2-R1 controlled checker pages (controls)\n" +
-  "and one full-height mobile gex-mix capture\n" +
-  "(shots/gex-mix-mobile-chart.png).\n";
+  "also records the ADOPT-B2-R1/R2 controlled checker pages\n" +
+  "(controls: seven controlled pages incl. the axis-only and\n" +
+  "axis-plus-degenerate-data negatives), the synthetic aggregation\n" +
+  "counterexamples (aggregationProof), and one full-height mobile\n" +
+  "gex-mix capture (shots/gex-mix-mobile-chart.png).\n";
 fs.writeFileSync(path.join(outAbs, "README.md"), readme);
 function hashTree(root, files) {
   return files.map((rel) => {
@@ -435,10 +479,11 @@ const manifest = {
   network:
     "fixture pages load from file:// URLs — no HTTP server and no IP networking are involved. Chromium's Fetch interception (offline/cdp-drive.mjs) refuses every non-file request (recorded per viewport as externalRequests, asserted zero), and the in-page bootstrap independently refuses requests: fetch is rejected, and XHR open() records the attempt while send() is refused in-page with the refusal labeled in the report's xhrRefused list — the native open/send are never invoked (ADOPT-B2-R1; proven by the control-xhr controlled page in controls). Zero attempts are asserted per case. (A loopback HTTP origin was tried first; Chrome 152's Local Network Access checks refuse even the navigation to it in this environment, net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS, so the evidence uses file://.)",
   clock:
-    "each page freezes Date at the case's independent receipt instant (see responses/*.json: frozenClock + clockSource from the handler run). The checker's settle budget is measured on performance.now (monotonic elapsed time), so the wait expires and emits its report even though Date is frozen (ADOPT-B2-R1); each report records settle.budgetMs / settle.elapsedMs / settle.outcome.",
+    "each page freezes Date at the case's independent receipt instant (see responses/*.json: frozenClock + clockSource from the handler run). The checker's settle budget is measured on performance.now (monotonic elapsed time), so the wait expires and emits its report even though Date is frozen (ADOPT-B2-R1); each report records settle.budgetMs / settle.elapsedMs / settle.outcome. Chart validation is series-bound (ADOPT-B2-R2): shapes under defs/axis/grid/legend/tooltip/reference ancestors are decorations, a valid series mark needs finite geometry with positive extent on both axes, and the valid count is bound to the fixture's nonzero net-GEX rows (packet expect.minSeriesMarks) — zero rows may render collapsed and are never required to have pixels. Controls are judged by the intended-negative gate in offline/browser-controls.mjs (classifyControlReport): an expected-negative MATCH requires exactly the chart assertion to fail, all unrelated assertions to pass, a consistent summary, the matching case, and the declared settle outcome; malformed/missing reports are BLOCKED and fail the run; aggregationProof records the synthetic counterexamples the gate was proven against.",
   viewports: VIEWPORTS.map((v) => v.name + " " + v.w + "x" + v.h),
   cases: caseResults,
   controls: controlResults,
+  aggregationProof,
   extraCaptures,
   inputs: hashTree(spaceRoot, inputFiles),
   fixturesUsed: fixtureFiles.map((f) => {

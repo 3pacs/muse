@@ -31,6 +31,7 @@ type FixturePacket = {
     textIncludes?: string[];
     textExcludes?: string[];
     minCharts?: number;
+    minSeriesMarks?: number;
   };
 };
 
@@ -146,14 +147,50 @@ createRoot(rootEl).render(
 // the budget instead of looping forever against a deadline that cannot
 // move. (The App's receipt/data clock stays frozen; only the wait is
 // monotonic.) Chart validity inspects the rendered SVG and its plotted
-// marks, not just the wrapper box: a sized but empty wrapper does not
-// count, and neither does a wrapper whose marks are all degenerate
-// (zero-extent or non-finite). A genuine zero-valued bar still counts:
-// its mark's bounding box is finite with positive extent on one axis.
-// A wrapper that exists but stays invalid for a sustained grace period
-// fails fast with outcome "invalid-chart"; no wrapper at all waits out
-// the full budget ("budget-expired"); a valid chart settles at once.
+// DATA SERIES, not just the wrapper box: a sized but empty wrapper
+// does not count, and neither does a wrapper whose shapes are all
+// degenerate (zero-extent or non-finite) or all chart structure
+// (axes/grid/defs/decorations — ADOPT-B2-R2: the valid-series count is
+// bound to the fixture's nonzero data rows via expect.minSeriesMarks;
+// a genuine zero-valued bar may stay collapsed and is never required
+// to have positive pixels). A wrapper that exists but stays invalid
+// for a sustained grace period fails fast with outcome
+// "invalid-chart"; no wrapper at all waits out the full budget
+// ("budget-expired"); a valid chart settles at once.
 function measureCharts() {
+  // ADOPT-B2-R2: series-bound validation. R1 counted ANY SVG shape
+  // with finite extent as plotted data, so an axis line alone could
+  // pass a chart. Shapes that are chart STRUCTURE — anything inside
+  // <defs>, or under an axis / grid / legend / tooltip / reference
+  // ancestor — are decorations, not data. A series mark must be a
+  // non-structure shape with finite geometry and positive extent on
+  // BOTH axes; a genuine zero-valued bar (finite width, collapsed
+  // height) is a series mark but not a VALID one, and the settle gate
+  // binds the valid count to the fixture's nonzero rows
+  // (expect.minSeriesMarks), so zeros are never forced to render
+  // pixels they do not have.
+  const nonSeries = (el, root) => {
+    let node = el;
+    while (node) {
+      const tag = (node.tagName || "").toLowerCase();
+      if (tag === "defs") return true;
+      const cls = node.getAttribute ? node.getAttribute("class") || "" : "";
+      if (
+        cls.indexOf("cartesian-axis") >= 0 ||
+        cls.indexOf("cartesian-grid") >= 0 ||
+        cls.indexOf("recharts-legend") >= 0 ||
+        cls.indexOf("recharts-tooltip") >= 0 ||
+        cls.indexOf("recharts-reference") >= 0 ||
+        cls.indexOf("xAxis") >= 0 ||
+        cls.indexOf("yAxis") >= 0
+      ) {
+        return true;
+      }
+      if (node === root) break;
+      node = node.parentElement;
+    }
+    return false;
+  };
   return Array.from(
     document.querySelectorAll<HTMLElement>(".recharts-wrapper"),
   ).map((el) => {
@@ -162,7 +199,9 @@ function measureCharts() {
     let svgW = 0;
     let svgH = 0;
     let marks = 0;
-    let validMarks = 0;
+    let decorations = 0;
+    let seriesMarks = 0;
+    let validSeriesMarks = 0;
     if (svg) {
       const sr = svg.getBoundingClientRect();
       svgW = sr.width;
@@ -172,13 +211,19 @@ function measureCharts() {
       );
       marks = markEls.length;
       markEls.forEach((m) => {
+        if (nonSeries(m, svg)) {
+          decorations++;
+          return;
+        }
+        seriesMarks++;
         const b = m.getBoundingClientRect();
         if (
           Number.isFinite(b.width) &&
           Number.isFinite(b.height) &&
-          (b.width > 0 || b.height > 0)
+          b.width > 0 &&
+          b.height > 0
         ) {
-          validMarks++;
+          validSeriesMarks++;
         }
       });
     }
@@ -192,7 +237,7 @@ function measureCharts() {
       Number.isFinite(svgH) &&
       svgW > 0 &&
       svgH > 0 &&
-      validMarks > 0;
+      validSeriesMarks > 0;
     return {
       w: Math.round(r.width),
       h: Math.round(r.height),
@@ -200,7 +245,9 @@ function measureCharts() {
       svgW: Math.round(svgW),
       svgH: Math.round(svgH),
       marks,
-      validMarks,
+      decorations,
+      seriesMarks,
+      validSeriesMarks,
       valid,
     };
   });
@@ -215,11 +262,18 @@ const invalidGraceMs = 1800;
 let invalidSinceMs = -1;
 function settle() {
   const minCharts = packet.expect.minCharts ?? 0;
+  const minSeriesMarks = packet.expect.minSeriesMarks ?? 0;
   const nowMs = performance.now();
   const charts = measureCharts();
   const validCount = charts.filter((c) => c.valid).length;
+  const totalValidSeries = charts.reduce((a, c) => a + c.validSeriesMarks, 0);
+  // The series binding applies only when charts are expected; error
+  // cases (minCharts 0) settle on the other assertions as before.
+  const gateOk =
+    validCount >= minCharts &&
+    (minCharts === 0 || totalValidSeries >= minSeriesMarks);
   let outcome = null;
-  if (validCount >= minCharts) {
+  if (gateOk) {
     outcome = "settled";
   } else if (charts.length > 0) {
     if (invalidSinceMs < 0) invalidSinceMs = nowMs;
@@ -245,7 +299,7 @@ function settle() {
       "/" +
       charts.length +
       ")",
-    validCount >= minCharts,
+    gateOk,
     charts,
   );
   check("no uncaught errors", report.errors.length === 0, report.errors);
