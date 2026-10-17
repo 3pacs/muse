@@ -169,6 +169,27 @@ the fresh R2 reports.
 
 Evidence committed under `dashboard-streaming/browser-preview/`;
 change note `ADOPT-B2-R2.md`.
+
+## ADOPT-E1 addition (packaged evidence manifest reconciliation)
+
+```
+# metadata-only: recompute BROWSER-MANIFEST.json `outputs` bytes /
+# sha256 from the final packaged PNG bytes; no browser run, no PNG
+# bytes changed, no source changed.
+→ At the B2-R2 pin, 12 of 19 `outputs` PNG entries disagreed with
+  the retained files (they carried the fresh R2 renders' values)
+  while all 19 per-case/extra-capture references matched — the
+  reviewer's integrity proof exited 1 with 12 mismatches.
+  After reconciliation: 38/38 PNG references (19 outputs + 18 case
+  viewports + 1 extra capture, 19 distinct paths) match the
+  packaged bytes, 0 cross-section conflicts; the same check
+  against the pre-fix manifest reproduces exactly 12 mismatches,
+  all in `outputs`. Bundles stay hash-recorded / UNAVAILABLE.
+  Package sha256sum -c clean after manifest regeneration.
+```
+
+Change note `ADOPT-E1.md`. Backend suites not re-run (no source
+changed); the B2-R2 results below stand.
 Backend suites below were re-run unchanged at the ADOPT-B2 candidate
 as well: compile 12/12, watcher 0 failures, J1 50/50 + 27/27,
 boundary tests 51/51. Re-run unchanged again at the ADOPT-B2-R1
