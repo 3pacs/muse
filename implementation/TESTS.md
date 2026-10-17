@@ -190,6 +190,51 @@ change note `ADOPT-B2-R2.md`.
 
 Change note `ADOPT-E1.md`. Backend suites not re-run (no source
 changed); the B2-R2 results below stand.
+
+## ADOPT-C1 addition (offline snapshot persistence/fallback audit)
+
+```
+node implementation/dashboard-streaming/offline/snapshot-audit.mjs \
+  --deps <node_modules from this package's bun.lock> --out <dir>
+→ REAL getLive handler + REAL schema + verbatim 0002 DDL on
+  drizzle-orm/libsql (in-memory, disposable); only substitutions:
+  the lane's SDK adapter, an in-memory fetch stub (no real feed),
+  and a one-shot insert-fault Proxy for C06. Eight grouped cases,
+  verdicts identical across two runs:
+  C01 PASS — zero stays numeric / null stays unavailable through
+    insert, trail and fallback normalize.
+  C02 PASS — exact replay dedupes (string identity); 1 row.
+  C03 COUNTEREXAMPLE — identity/ordering are the timestamp STRING:
+    the same instant spelled Z and +02:00 across a UTC date
+    boundary dedupes only via the gap rule while it is the
+    string-max row; once a newer frame exists it inserts as a
+    duplicate-instant row, sorts as newest, and the stale
+    fallback reports the OLDER frame (spot 700.1) instead of the
+    chronologically newest (700.2).
+  C04 PASS — 44s throttled / 45s persisted (gap from latest
+    persisted frame); late older arrival inserts (negative gap
+    bypasses the throttle); uniform-Z trail/fallback correct.
+  C05 OBSERVED — conflicting replay silently ignored: original
+    payload kept, no conflict signal; live responses meanwhile
+    report the feed's changed values for the same instant.
+  C06 COUNTEREXAMPLE — insert catch-all swallows a non-unique
+    storage failure identically to the UNIQUE race: response
+    ok:true, 0 rows persisted, no marker anywhere; the frame
+    persists only on redelivery after recovery.
+  C07 OBSERVED — no invented last-good (payload null, ok false,
+    empty storage honestly empty), but one corrupt newest row
+    disables payload fallback entirely (no step-back to the
+    older valid payload), staleSnapshotAt still advertises the
+    corrupt row's time, and no field gives a reason.
+  C08 COUNTEREXAMPLE — retention after 1501 inserts is 1499,
+    not 1500 (prune deletes id <= ids[len-1500], two rows at the
+    first crossing), and pruning is keyed by insertion id, not
+    source time: a late arrival older than all retained rows is
+    retained while newer frames were pruned.
+Audit only — no application source changed. Change note
+`ADOPT-C1.md`. Preserved suites re-run unchanged at this
+candidate: boundary 51/51, compile 12/12, watcher 0 failures,
+J1 50/50 + 27/27.
 Backend suites below were re-run unchanged at the ADOPT-B2 candidate
 as well: compile 12/12, watcher 0 failures, J1 50/50 + 27/27,
 boundary tests 51/51. Re-run unchanged again at the ADOPT-B2-R1
