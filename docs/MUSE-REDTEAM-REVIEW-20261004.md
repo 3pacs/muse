@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: 0e37a442 ADOPT-E1 verified and CLOSED. Package 137 files / 135 checksum rows; 32 input / 10 fixture hashes; all 38 available outputs and 19 screenshot references match. Twelve PNG output-map conflicts are repaired; all 19 PNGs and accepted application/checker/F1/backend bytes are unchanged. Next single task: ADOPT-C1 offline snapshot persistence/fallback audit, owned independently by Muse. Full App rerun UNRUN; no deployment/runtime/data-rights/empirical promotion.**
+**Current status: 2eb8159d C1 audit delivery verified and accepted as evidence; product C03/C06/C08 counterexamples remain OPEN. Independent exact-source/SQLite proof matches eight audit groups plus newest-first retention consequence (9 expected outcomes, not 9 product passes). Package 140 files / 138 checksums; B2-R2/E1 packet remains clean. Next single task: ADOPT-C1-R1 chronological snapshot identity/order/retention fix. Owner Bun/libSQL replay and full App/hosted integration UNRUN locally; no runtime/deployment/empirical promotion.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -10,6 +10,153 @@
 
 
 
+
+
+## 2026-10-17 — 2eb8159d C1 audit verified; fix snapshot instant identity, ordering and retention
+
+Reviewed [Muse C1 delivery 6240948009](https://github.com/3pacs/muse/pull/2#issuecomment-6240948009), immutable **`2eb8159deac1061da12af58540c14757be11bbf5`**, against E1 source `0e37a442876048f8e08a796c10b669c99a88c87b` and preceding docs `fc66dc15823d3fd2ad41b475d79a56500e100e82`. Incoming issue-comment delivery `76159d10-ca6d-11f1-9c4c-499782cbdf9d`. **ADOPT-C1 is accepted as a completed audit delivery. Its product counterexamples remain OPEN.** Next single task: **ADOPT-C1-R1 chronological snapshot identity/order/retention fix**.
+
+Connection and hostname were checked before local source work: **Precision5520**, unchanged host. This coordinator is the sole active Muse review owner. No application source is edited by this review; no Hermes evidence or runtime is used.
+
+### Source, package and evidence binding
+
+- **140 pinned files / 138 checksum rows, all matching**. Browser evidence remains clean: **32 input hashes / 10 fixture hashes / 38 available output SHA-256/byte pairs / 19 screenshot references** match; no cross-section conflicts. The two omitted generated bundles remain **UNAVAILABLE**.
+- Exactly six paths change from E1: new `ADOPT-C1.md`, `offline/snapshot-audit.mjs`, `offline/snapshot-audit-entry.ts`, plus `TESTS.md`, `MANIFEST.md`, `SHA256SUMS.txt`. App/server/schema/F1/pipeline/SSR/handler-response/browser-packet bytes are unchanged. Prior B2-R2/E1 acceptance is preserved.
+- Production `actions.ts` SHA-256 **`d6d8ccd134928e9b2e68219c1525105097f9a15d62696bd4df3eb6699a02e266`**, `schema.ts` **`a6d397b4f9ed6651468a9535b3ba8cbba6cf687649d6cf717115c13d439802ca`**, migration DDL **`c8cc1f77d28ab53a61b81ee354b3ccf0584c639ce4b9a6ad2060ad49f39a0791`**.
+- Owner companions: [entry](https://github.com/3pacs/muse/blob/2eb8159deac1061da12af58540c14757be11bbf5/implementation/dashboard-streaming/offline/snapshot-audit-entry.ts) **`9b72d4fe7b37e34d8d86ca6d3f16dc4fada00889111722f25d5cbd009ce5b5eb`**, [assembly](https://github.com/3pacs/muse/blob/2eb8159deac1061da12af58540c14757be11bbf5/implementation/dashboard-streaming/offline/snapshot-audit.mjs) **`9773e6670bf4841578e4cd30e9b2bcdb293f40f04ed4d46b588c9fd84a97fd53`**. Their source and method were inspected. The owner reports real drizzle/libSQL in-memory execution under Bun with an identity SDK adapter and fetch stub; these remain **owner-executed** integration results.
+- Full owner Bun/libSQL replay is **UNRUN locally**: Bun and its installed dependency tree are unavailable; no dependency environment was installed or reconstructed. The package provides a receipt generator, not a committed owner raw receipt. The independent proof below supplies its own deterministic raw observations.
+- Reviewer Node **22.22.1 / SQLite 3.46.1** executes the exact production `getLive`, normalization, persistence and load bodies after the disclosed type-only erasure, over the exact DDL in disposable SQLite. A small query/insert facade substitutes for Drizzle and its `createdAt` default; SDK/platform schema validation is unrun. Fetch is an in-memory stub with zero native requests. A fixed independent reviewer receipt clock is explicit. This is source-slice + SQLite evidence, not full Bun/libSQL/hosted integration.
+- Owner says fixture clocks are receipt-relative; **C03 actually uses explicit fixed October 16/17 timestamps**, as its code shows. They are past timestamps at this review. The review proof intentionally fixes its own source/receipt clocks for reproducibility. No wall-clock collection or live feed claim follows.
+
+### Independent finite outcomes
+
+The reviewer proof matches **9/9 expected observations**: the eight C1 groups and one retention consequence. This means the proof reproduced the recorded behavior, including product failures; it does **not** mean nine product properties passed.
+
+| Case | Independently observed | Classification |
+| --- | --- | --- |
+| C01 baseline | Two frames 60s apart; numeric GEX zero and null survive persisted columns, ordered trail and normalized fallback, including strike fields. | Product property PASS |
+| C02 exact replay | Three identical deliveries retain one row. | Product property PASS, for exact timestamp strings |
+| C03 equivalent instants | Z / +02:00 sequence has row counts **1,1,2,3**; equal instants duplicate after a newer Z frame exists. Feed-down fallback selects the older offset-spelled frame. | Product COUNTEREXAMPLE reproduced |
+| C04 gap / late arrival | Counts **1,1,2,3,4** for offsets 0,+44,+45,+91,-30 seconds. Uniform-Z order/fallback stays chronological; negative gaps allow old arrivals. | Bounded property PASS; late acceptance explicitly observed |
+| C05 conflicting replay | Original stored spot remains 500; live responses for the same timestamp report 501 then 503, without a dedicated conflict diagnostic. | OBSERVED, silent first stored payload wins |
+| C06 storage failure | Asynchronous non-unique insert rejection leaves **0** rows, response `ok:true/feedError:null`, then the same frame persists on recovery (**1** row). | Hidden storage-error COUNTEREXAMPLE reproduced |
+| C07 corrupt / empty fallback | Corrupt newest JSON yields null payload with its timestamp still set, despite an older valid row; naive inner timestamp also yields null; empty storage is honestly empty. | OBSERVED, no fabrication; availability/diagnostics limited |
+| C08 retention crossing | **1501 inserts -> 1499 rows**, ids **3..1501**; one late-old insert then makes 1500 and is retained; trail returns 240. | Product COUNTEREXAMPLE reproduced |
+| C08 newest-first consequence | Deliver the same 1501 source times in descending order. Retained count is 1499 and fallback is **19:08:28**, although input contained newer **19:10:00**. | Insertion-order pruning can delete the chronologically newest observations |
+
+The root's C03 synthetic values are **500.1 / 500.2**, versus the owner's 700.1 / 700.2; the same timestamp identities and failure sequence are exercised. The exact source accepts both aware spellings under the preserved F1 gate.
+
+**C03 mechanism:** [schema](https://github.com/3pacs/muse/blob/2eb8159deac1061da12af58540c14757be11bbf5/implementation/dashboard-streaming/server/src/schema.ts#L17) uses unique TEXT `updated_at`; [persistence/load](https://github.com/3pacs/muse/blob/2eb8159deac1061da12af58540c14757be11bbf5/implementation/dashboard-streaming/server/src/actions.ts#L555) orders by that string. `2026-10-16T23:30:00.000Z` and `2026-10-17T01:30:00+02:00` are the same instant. After a +60s frame exists, the older offset spelling has a negative parsed gap, bypasses throttling, differs from the unique stored string and sorts lexicographically newest. Result: duplicate observation and a stale fallback pointing backward in source time.
+
+**C08 mechanism:** prune obtains ids in ascending insertion order, chooses `ids[length - 1500]`, then deletes **through** that id. At length1501 this removes two rows, leaving1499. Arrival id also does not represent source chronology. The newest-first reviewer control proves actual loss of the newest source frames, beyond merely retaining a late-old row. Both failures are moderate for the saved trail/fallback contract; off-by-one count alone is low impact.
+
+**C06 calibration:** `ok:true` describes a successful **live feed read**; it is not an explicit persisted-ack field. The demonstrated defect is that all insert errors are swallowed as presumed uniqueness races, with no persistence diagnostic and a missing saved observation. Do not relabel a valid live feed as down solely to describe storage health. This diagnostic issue remains recorded for a later separate completion.
+
+C05 does not create a hybrid stored row, but live and saved views disagree about one declared identity with no marker. C07 fabricates no last-good data; a corrupt newest row suppresses an older valid fallback and no snapshot-specific reason is returned. These are retained observations, not proof that a deployed database contains such rows.
+
+### One next task — ADOPT-C1-R1 chronological snapshot identity/order/retention fix
+
+Fix the shared source-time contract demonstrated by **C03 and C08**, in Muse's dashboard persistence/schema/migration and their synthetic tests. Muse owns this implementation and evidence independently of Hermes.
+
+1. Define storage observation identity using the validated **UTC instant**, not its textual spelling. Preserve original source timestamp/raw payload separately; do not globally rewrite quote/source clocks or change accepted F1 admission/zero/null semantics. Identical observations in Z and equivalent offset spellings must dedupe even after a newer frame exists.
+2. Use that same chronological key for latest selection, throttle comparison, trail ordering and retention. Retain exactly the newest **1500 accepted observations** when more exist, and return the newest at most **240** in ascending instant order. Equal-time tie behavior must be deterministic. A late-old arrival cannot displace a chronologically newer accepted observation or become the newest fallback.
+3. Handle already-stored aware offset spellings and same-instant rows under an explicit additive compatibility/migration policy in **disposable tests only**. Preserve original timestamps/payload provenance; do not silently combine conflicting values into a hybrid or delete ambiguous history as an unreported dedupe. State the policy for same-instant differing payloads. A broad new conflict/UI protocol is not required in this completion; the existing C05 observation stays documented.
+4. Correct the retention cutoff/off-by-one and add exact regressions for ascending, descending and late-arrival sequences. Keep the declared 45s gap and240-point trail behavior, and preserve last-good/no-fabrication/F1 tests. Do not fold C06 storage diagnostics or C07 corrupt-payload recovery into an unrelated redesign.
+5. Publish the source pin, narrow diff, runnable tests and a **committed synthetic receipt** (or compact equivalent raw case observations with fixture/helper hashes) for the cases below. Mark SDK/SQL/hosted layers honestly; existing supported offline dependencies only. No install/reconstruction is needed solely for a stronger claim.
+
+**Finite C1-R1 acceptance:**
+
+| Regression | Must hold on the corrected revision |
+| --- | --- |
+| Equivalent instant replay, interleaved with newer frame | Two distinct source instants retain **2 observations**, not3; equivalent old spelling cannot become latest. |
+| Mixed offsets crossing UTC date boundary | Trail/latest/fallback order follows parsed instants; original raw source timestamps remain inspectable. |
+| Same-instant differing payload / legacy rows | Deterministic stated compatibility/conflict policy; no hybrid and no unreported destructive history rewrite. |
+| Ascending1501 frames | Exactly **1500 accepted observations**, newest source frame retained; trail240. |
+| Newest-first1501 frames | Same newest1500 source instants as ascending order; fallback **19:10:00**, not19:08:28 for the published reviewer fixture. |
+| Older arrival at retention capacity | Older row cannot evict a newer accepted row or regress fallback. |
+| Gap/values/replay controls | Exact replay still dedupes; +44 skipped / +45 accepted relative to latest persisted source time; genuine0/null remain distinct; no fabricated fallback. |
+
+Do not claim the owner audit's exit0 indicates these product properties pass: its exit code indicates completion, and the receipt contains the verdicts. Preserve the historical failing proof below and add corrected regression expectations; do not change old expectations to erase the counterexamples.
+
+**Deferred, not parallel tasks:** storage-error visibility (C06), conflict presentation beyond the necessary storage compatibility policy (C05), and corrupt-newest fallback diagnostics/recovery (C07). After this focused fix is verified, stage the next one explicitly.
+
+### Runnable independent source/SQLite proof
+
+Save this fence as `prove-snapshot.mjs` with a final newline. SHA-256 **`ff1e134c6a922529d42efe9f8a1ee56cc1aa449e5dcd40b6a35c367f97919ad9`**. It needs an installed Node exposing `node:sqlite`; it installs nothing, creates only in-memory databases, and writes review artifacts under the supplied output directory.
+
+```sh
+mkdir -p c1-source c1-results
+git archive 2eb8159deac1061da12af58540c14757be11bbf5 implementation | tar -x -C c1-source
+node prove-snapshot.mjs c1-source c1-results
+# Expected exit0, matchingOutcomes9, unexpectedOutcomes0.
+# Read each meaning: product counterexamples are reproduced, not passed.
+```
+
+The proof writes the exact type-erased slices and `source-sqlite-proof.json`, containing source/helper hashes, raw response/row observations, case meanings and execution qualifications. No production provider request is made: the source's fetch call goes to a VM-local in-memory stub, and SQL goes only to disposable in-memory storage. The query facade is deliberately disclosed; this is not independent Drizzle or SDK integration verification.
+
+```javascript
+// Source-slice proof, Node built-ins + disposable SQLite. No Bun/Drizzle/platform integration claim.
+import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';import crypto from 'node:crypto';import{DatabaseSync}from'node:sqlite';
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),base=path.join(root,'implementation/dashboard-streaming');
+fs.mkdirSync(out,{recursive:true});const read=p=>fs.readFileSync(path.join(base,p),'utf8'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const source=read('server/src/actions.ts'),schemaText=read('server/src/schema.ts'),ddl=read('drizzle/0002_snapshots_table.sql');
+function takeFunction(name){const m=new RegExp('^(?:async )?function '+name+'\\(','m').exec(source);if(!m)throw Error(name);const begin=m.index,open=name==='fetchFeed'?source.indexOf('> {',begin)+2:source.indexOf('{',begin);return takeBody(begin,open);}
+function takeBody(begin,open){let depth=0,q=null,escape=false;for(let i=open;i<source.length;i++){const c=source[i];if(q){if(escape)escape=false;else if(c==='\\')escape=true;else if(c===q)q=null;continue;}if(c==='"'||c==="'"||c==='\x60'){q=c;continue;}if(c==='{')depth++;if(c==='}'&&--depth===0)return source.slice(begin,i+1);}throw Error('unclosed source');}
+const pure=source.slice(source.indexOf('// === ADOPT-F1 PURE HELPERS'),source.indexOf('// === END ADOPT-F1 PURE HELPERS ==='));
+const extra=['mapActivity','normalize','fetchFeed'].map(takeFunction).join('\n');
+const persistence=source.slice(source.indexOf('const MIN_SNAPSHOT_GAP_MS'),source.indexOf('// Actions\n')-81);
+const persistBegin=source.indexOf('async function maybePersistSnapshot'),persistOpen=source.indexOf('): Promise<void> {',persistBegin)+'): Promise<void> '.length;
+const loadBegin=source.indexOf('async function loadTrailAndLatest'),loadOpen=source.indexOf('}> {',loadBegin)+3;
+const pieces=source.slice(source.indexOf('const MIN_SNAPSHOT_GAP_MS'),persistBegin)+takeBody(persistBegin,persistOpen)+'\n'+takeBody(loadBegin,loadOpen);
+const handlerBegin=source.indexOf('async handler(ctx): Promise<GetLiveResponse> {'),handlerOpen=source.indexOf('{',handlerBegin);
+const handler=takeBody(handlerBegin,handlerOpen).replace('async handler(ctx): Promise<GetLiveResponse>', 'async function getLive(ctx)');
+function erase(s){return s
+.replace(/async function maybePersistSnapshot\([\s\S]*?\): Promise<void> \{/,'async function maybePersistSnapshot(ctx,payload,rawJson) {')
+.replace(/async function loadTrailAndLatest\([\s\S]*?\}> \{/,'async function loadTrailAndLatest(ctx) {')
+.replace(/ctx\.db<typeof schema>\(\)/g,'ctx.db()')
+.replace(/ as Record<\s*string,\s*unknown\s*>/g,'')
+.replace(/async function fetchFeed\(\): Promise<[\s\S]*?> \{/,'async function fetchFeed() {')
+.replace(/: LivePayload\["hedgeBuckets"\]/g,'').replace(/: LivePayload \| null/g,'')
+.replace(/function strikeCoverage\([\s\S]*?\n\): \{[^\n]*\} \{/,'function strikeCoverage(rows) {')
+.replace(/: Record<string, unknown>/g,'').replace(/ as Record<string, unknown>/g,'')
+.replace(/: z\.infer<typeof (?:strikeGex|activityRow)>\[\]/g,'')
+.replace(/: [mc] is string/g,'')
+.replace(/: unknown/g,'').replace(/: number \| null/g,'').replace(/: string \| null/g,'').replace(/: (?:boolean|number|string)\b/g,'');}
+const NOW=Date.parse('2026-10-17T20:55:00Z');class FixedDate extends Date{constructor(...a){super(...(a.length?a:[NOW]));}static now(){return NOW;}}
+const columns=Object.fromEntries([...schemaText.slice(schemaText.indexOf('export const snapshots')).matchAll(/(\w+): (?:integer|real|text)\("([^"]+)"/g)].map(m=>[m[1],m[2]]));
+const schema={snapshots:columns},dbs=[];let fetchPlan=null,stubCalls=0;
+function makeDb(){const sql=new DatabaseSync(':memory:');sql.exec(ddl);dbs.push(sql);
+class Query{constructor(selected){this.selected=selected;this.order=null;this.n=null;}from(t){if(t!==columns)throw Error('table mismatch');return this;}orderBy(o){this.order=o;return this;}limit(n){this.n=n;return this;}then(resolve,reject){try{const select=this.selected?Object.entries(this.selected).map(([k,v])=>v+' AS "'+k+'"').join(','):Object.entries(columns).map(([k,v])=>v+' AS "'+k+'"').join(',');const q='SELECT '+select+' FROM snapshots'+(this.order?' ORDER BY '+this.order.column+' '+this.order.dir:'')+(this.n!==null?' LIMIT '+this.n:'');return Promise.resolve(sql.prepare(q).all().map(r=>({...r}))).then(resolve,reject);}catch(e){return Promise.reject(e).then(resolve,reject);}}}
+const api={sql,fault:null,select:s=>new Query(s),insert:t=>({values:async v=>{if(api.fault){const e=api.fault;api.fault=null;throw e;}const row={...v,createdAt:NOW},keys=Object.keys(row);return sql.prepare('INSERT INTO snapshots ('+keys.map(k=>columns[k]).join(',')+') VALUES ('+keys.map(()=>'?').join(',')+')').run(...keys.map(k=>row[k]??null));}}),delete:t=>({where:async c=>sql.prepare('DELETE FROM snapshots WHERE '+c.column+' <= ?').run(c.value)})};
+return api;}
+const sandbox={Date:FixedDate,Number,Array,Object,Math,JSON,Error,AbortSignal,schema,asc:column=>({column,dir:'ASC'}),desc:column=>({column,dir:'DESC'}),lte:(column,value)=>({column,value}),FEED_URLS:['https://offline.invalid/a','https://offline.invalid/b'],fetch:async()=>{stubCalls++;return fetchPlan===null?{ok:false,status:503}:{ok:true,status:200,json:async()=>structuredClone(fetchPlan)};}};
+vm.createContext(sandbox);const transformed=erase(pure+'\n'+extra+'\n'+pieces+'\n'+handler);fs.writeFileSync(path.join(out,'type-erased-slices.js'),transformed+'\n');vm.runInContext(transformed+'\nthis.api={normalize,maybePersistSnapshot,loadTrailAndLatest,getLive};',sandbox);
+const A=sandbox.api,ctx=db=>({db:()=>db}),rows=db=>db.sql.prepare('SELECT id,updated_at,spot,payload_json FROM snapshots ORDER BY id').all().map(r=>({...r})),time=n=>new Date(Date.parse('2026-10-16T23:30:00Z')+n*1000).toISOString();
+const original=JSON.parse(fs.readFileSync(path.join(root,'implementation/fixtures/feed_all_success.json'),'utf8'));
+function frame(t,spot=500){const f=structuredClone(original);f.updated_at=t;f.quote_as_of=t;f.spot=spot;f.market_open=true;f.gamma.net_gex_m=0;f.gamma.gamma_flip=null;f.gamma.by_strike=[{strike:500,net_gex_m:0},{strike:505,net_gex_m:null}];return f;}
+async function live(db,f){fetchPlan=f;return A.getLive(ctx(db));}
+const checks=[];function record(id,match,observed,meaning){checks.push({id,match:!!match,observed,meaning});}
+try{
+{const d=makeDb();await live(d,frame(time(0),500));const l=await live(d,frame(time(60),501)),f=await live(d,null);record('C01',rows(d).length===2&&l.trail.length===2&&f.staleSnapshot.netGexM===0&&f.staleSnapshot.gammaFlip===null&&f.staleSnapshot.byStrike[0].netGexM===0&&f.staleSnapshot.byStrike[1].netGexM===null,{rowCount:rows(d).length,trail:l.trail,stale:f.staleSnapshot},'baseline property PASS');}
+{const d=makeDb(),f=frame(time(0));await live(d,f);await live(d,f);await live(d,f);record('C02',rows(d).length===1,{rowCount:rows(d).length},'exact replay property PASS');}
+{const d=makeDb(),offset='2026-10-17T01:30:00+02:00',counts=[];for(const f of[frame(time(0),500.1),frame(offset,500.1),frame(time(60),500.2),frame(offset,500.1)]){await live(d,f);counts.push(rows(d).length);}const r=await live(d,null);record('C03',JSON.stringify(counts)==='[1,1,2,3]'&&r.staleSnapshotAt===offset&&r.staleSnapshot.spot===500.1,{counts,equalInstants:Date.parse(time(0))===Date.parse(offset),trail:r.trail,staleSnapshotAt:r.staleSnapshotAt,staleSpot:r.staleSnapshot.spot},'product COUNTEREXAMPLE reproduced: duplicate instant and older fallback');}
+{const d=makeDb(),counts=[];for(const t of[0,44,45,91,-30]){await live(d,frame(time(t)));counts.push(rows(d).length);}const r=await live(d,null);record('C04',JSON.stringify(counts)==='[1,1,2,3,4]'&&r.staleSnapshotAt===time(91),{counts,staleSnapshotAt:r.staleSnapshotAt,trail:r.trail},'uniform-Z gap/order property PASS; late older arrival is accepted');}
+{const d=makeDb();await live(d,frame(time(0),500));const a=await live(d,frame(time(0),501));await live(d,frame(time(60),502));const b=await live(d,frame(time(0),503));const r=rows(d);record('C05',r.length===2&&r[0].spot===500&&a.live.spot===501&&b.live.spot===503,{rows:r,conflictLiveSpots:[a.live.spot,b.live.spot],responseFields:Object.keys(b)},'OBSERVED original retained, live/trail conflict has no dedicated diagnostic');}
+{const d=makeDb();d.fault=new Error('REVIEW_NONUNIQUE_STORAGE_FAILURE');const r=await live(d,frame(time(0))),before=rows(d).length;await live(d,frame(time(0)));record('C06',r.ok===true&&r.feedError===null&&before===0&&rows(d).length===1,{failureResponse:r,rowsAfterFailure:before,rowsAfterRecovery:rows(d).length},'hidden storage failure reproduced; ok describes live feed, not a persistence acknowledgment');}
+{const d=makeDb();await live(d,frame(time(0)));d.sql.prepare('INSERT INTO snapshots(updated_at,spot,payload_json,created_at) VALUES(?,?,?,?)').run(time(60),999,'{bad',NOW);const r=await live(d,null);const e=makeDb(),empty=await live(e,null);const n=makeDb();n.sql.prepare('INSERT INTO snapshots(updated_at,spot,payload_json,created_at) VALUES(?,?,?,?)').run(time(0),500,JSON.stringify(frame('2026-10-16T23:30:00')),NOW);const naive=await live(n,null);record('C07',r.staleSnapshot===null&&r.staleSnapshotAt===time(60)&&r.ok===false&&empty.staleSnapshot===null&&empty.staleSnapshotAt===null&&naive.staleSnapshot===null,{corrupt:r,naive,empty},'OBSERVED no fabrication; corrupt newest payload suppresses older valid fallback');}
+{const d=makeDb(),t0=Date.parse('2026-10-16T00:00:00Z'),ts=i=>new Date(t0+i*46000).toISOString();for(let i=0;i<1501;i++)await live(d,frame(ts(i)));const mid=rows(d);await live(d,frame(ts(-1)));const r=rows(d),fallback=await live(d,null);record('C08',mid.length===1499&&r.length===1500&&r.some(x=>x.updated_at===ts(-1))&&fallback.trail.length===240,{after1501:mid.length,idsAfter1501:[mid[0].id,mid.at(-1).id],afterLate:r.length,lateOldRetained:r.some(x=>x.updated_at===ts(-1)),trailCount:fallback.trail.length,staleSnapshotAt:fallback.staleSnapshotAt},'retention product COUNTEREXAMPLE reproduced: off-by-one and arrival-order retention');}
+{const d=makeDb(),t0=Date.parse('2026-10-16T00:00:00Z'),ts=i=>new Date(t0+i*46000).toISOString();for(let i=1500;i>=0;i--)await live(d,frame(ts(i)));const r=await live(d,null);record('C08-newest-first',rows(d).length===1499&&r.staleSnapshotAt===ts(1498),{count:rows(d).length,newestInput:ts(1500),staleSnapshotAt:r.staleSnapshotAt},'insertion-id pruning can discard the chronologically newest frames');}
+}finally{for(const db of dbs)db.close();}
+const receipt={source:'2eb8159deac1061da12af58540c14757be11bbf5',runtime:process.version,sqlite:'3.46.1',sourceSha256:sha(source),schemaSha256:sha(schemaText),ddlSha256:sha(ddl),typeErasedSlicesSha256:sha(transformed+'\n'),helperSha256:sha(fs.readFileSync(new URL(import.meta.url))),mode:'exact production functions and getLive handler, qualified type erasure, real SQLite3 DDL via Node builtin; query/insert facade substitutes Drizzle and schema default; fetch stub; independent fixed receipt clock',fullOwnerBunLibsqlHarness:'UNRUN: no Bun or required dependency tree installed',platformSchemaValidation:'UNRUN',requestsToNativeFetch:0,stubCalls,checks,matchingOutcomes:checks.filter(x=>x.match).length,unexpectedOutcomes:checks.filter(x=>!x.match).length};
+fs.writeFileSync(path.join(out,'source-sqlite-proof.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({...receipt,checks:checks.map(c=>({id:c.id,match:c.match,meaning:c.meaning,observed:c.id.startsWith('C08')?c.observed:undefined}))},null,2));process.exitCode=receipt.unexpectedOutcomes?1:0;
+
+```
+
+### Remaining review boundary and next response
+
+The owner reports unchanged F1/backend suites passing; the reviewer does **not** recount those as newly executed here because their bytes are unchanged and the finite audit concerns persistence. Prior independent results remain in this index. Full owner Bun/libSQL replay, platform schema validation, hosted persistence, full App browser reconstruction and hosted frontend/source linkage remain **UNRUN/unestablished** by this review.
+
+Watch Muse's substantive **C1-R1 source/evidence delivery after `2eb8159deac1061da12af58540c14757be11bbf5`** on `implementation/0dte-source-20261015`. Ignore this coordinator docs update. Existing draft PR/folder remains the single handoff; no top-level PR comment or parallel owner is created. Persistent webhook remains enabled/unchanged. No application merge/deploy, provider polling, live trading, credentials, interpreter/production runtime start, mini24 access, host switch or Hermes operation occurred.
 
 
 ## 2026-10-17 — 0e37a442 E1 evidence reconciliation accepted; next C1 snapshot audit
