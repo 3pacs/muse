@@ -1,7 +1,8 @@
 {
-  "assignment": "ADOPT-C06",
+  "assignment": "ADOPT-C06 + ADOPT-C06-R1",
   "base": "ADOPT-C1-R1 closed pin 3ed17869ee20019a51a7c93655992d6348e01545",
-  "mode": "real getLive handler + real schema + verbatim 0002/0003 DDL on drizzle-orm/libsql in-memory storage; SDK adapter + fetch stub substitutions as disclosed in the entry header",
+  "revisionBase": "ADOPT-C06 pin a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2",
+  "mode": "real getLive handler + real schema + verbatim 0002/0003 DDL on drizzle-orm/libsql in-memory storage; SDK adapter + fetch stub substitutions as disclosed in the entry header; S06's one-shot prune-SELECT failure is injected at the db facade (counted select rejection, SQLITE_BUSY) as disclosed in the entry header",
   "runtime": {
     "bun": "1.4.2",
     "node": "v24.20.0"
@@ -15,15 +16,15 @@
   "fileHashes": {
     "server/src/actions.ts": "674bc29699302ad9881301d08f6036d69e318ebdde49f7e6171795e3330c574c",
     "server/src/schema.ts": "35088a869346468b91f18e0edb6726bec2f870fefdd5f8e2fc1c47a546cb71c8",
-    "client/src/App.tsx": "e5dfc336f14d4501f9ce1a46a2fc982f6c66dac64d257a89222d5c1a96a96ba4",
+    "client/src/App.tsx": "e26fc9ddc26ddc06dc343ec72f66d1eaddea63ef2b4a27c851734e066233ece5",
     "drizzle/0002_snapshots_table.sql": "c8cc1f77d28ab53a61b81ee354b3ccf0584c639ce4b9a6ad2060ad49f39a0791",
     "drizzle/0003_snapshot_instant.sql": "6ef107536f88fe061b99bcfcad56b1abf5b50924b81580e003a0ce699821e2d2",
-    "offline/snapshot-audit-c06-entry.ts": "fb751f50d97d131fc3da89f1fc7fa2792f24da27d2e90ac0c15524fdb5ed4d0f",
-    "offline/snapshot-audit-c06.mjs": "33bb492281feb153766f711022f448661e3c2a2145c56d6a38933d3407b70f4b"
+    "offline/snapshot-audit-c06-entry.ts": "d570521839786fb43fe69c8310513ab46d0431995ed2c077943ef1ca6e66323c",
+    "offline/snapshot-audit-c06.mjs": "864db4941f83c2d4bdf481788bfd10a34dbf4be2e4fa38d6374e1535ae929f28"
   },
   "summary": {
-    "cases": 5,
-    "pass": 5,
+    "cases": 6,
+    "pass": 6,
     "fail": 0
   },
   "cases": [
@@ -110,6 +111,30 @@
           "outcome": "no-attempt",
           "reason": null
         }
+      }
+    },
+    {
+      "id": "S06",
+      "expectation": "post-insert prune failure: insert commits (2 rows incl. current frame), trail includes the current frame, ok:true + live frame, persistence failed/storage-busy, and the App warning is the corrected whole-step text (no not-being-stored / trail-unavailable claim)",
+      "verdict": "PASS",
+      "observed": {
+        "first": {
+          "outcome": "saved",
+          "reason": null
+        },
+        "resp": {
+          "outcome": "failed",
+          "reason": "storage-busy"
+        },
+        "rows": [
+          "2026-10-16T23:30:00.000Z",
+          "2026-10-16T23:31:00.000Z"
+        ],
+        "trail": [
+          "2026-10-16T23:30:00.000Z",
+          "2026-10-16T23:31:00.000Z"
+        ],
+        "warningAccurate": true
       }
     }
   ]

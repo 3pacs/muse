@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
  * ADOPT-C06 — storage-error visibility regression entrypoint.
+ * (ADOPT-C06-R1 adds case S06: the post-insert prune-failure /
+ * maintenance-warning accuracy case.)
  *
  * One command that, with NO network, NO platform SDK, NO real feed and
  * NO production database:
@@ -120,9 +122,10 @@ execFileSync("bun", ["run", join(work, "offline", "snapshot-audit-c06-entry.ts")
 const casesDoc = JSON.parse(readFileSync(join(out, "c06-cases.json"), "utf8"));
 const failed = casesDoc.cases.filter((c) => c.verdict !== "PASS");
 const receipt = {
-  assignment: "ADOPT-C06",
+  assignment: "ADOPT-C06 + ADOPT-C06-R1",
   base: "ADOPT-C1-R1 closed pin 3ed17869ee20019a51a7c93655992d6348e01545",
-  mode: "real getLive handler + real schema + verbatim 0002/0003 DDL on drizzle-orm/libsql in-memory storage; SDK adapter + fetch stub substitutions as disclosed in the entry header",
+  revisionBase: "ADOPT-C06 pin a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2",
+  mode: "real getLive handler + real schema + verbatim 0002/0003 DDL on drizzle-orm/libsql in-memory storage; SDK adapter + fetch stub substitutions as disclosed in the entry header; S06's one-shot prune-SELECT failure is injected at the db facade (counted select rejection, SQLITE_BUSY) as disclosed in the entry header",
   runtime: { bun: bunVersion, node: process.version },
   dependencyVersions: versions,
   fileHashes,

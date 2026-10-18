@@ -187,21 +187,40 @@ run("client bundle (adapter buildClient)", "bun", ["./client/build.mjs"], {
 const CASES = [
   ["success", "feed_all_success.json", "feed_signals_success.json", "", {
     htmlIncludes: ["LIVE", "isolated"],
-    htmlExcludes: ["Saved trail unavailable"],
+    htmlExcludes: ["Snapshot saving problem", "Saved trail unavailable"],
     payloadEquals: [["getLive.ok", true], ["getLive.persistence.outcome", "saved"]],
   }],
   // ADOPT-C06: the insert fails (injected SQLITE_FULL) while the feed
-  // is healthy — the render must stay LIVE and show the saved-trail
+  // is healthy — the render must stay LIVE and show the saving-health
   // warning with its safe category; the success case above proves
-  // the warning is absent on a healthy save.
+  // the warning is absent on a healthy save. ADOPT-C06-R1: the
+  // warning text is the corrected whole-step wording (it must never
+  // claim snapshots are not being stored — see the next case).
   ["storage-warning", "feed_all_success.json", "feed_signals_success.json", "", {
-    htmlIncludes: ["LIVE", "Saved trail unavailable", "storage full"],
+    htmlIncludes: ["LIVE", "Snapshot saving problem", "storage full"],
+    htmlExcludes: ["being stored right now", "Saved trail unavailable"],
     payloadEquals: [
       ["getLive.ok", true],
       ["getLive.persistence.outcome", "failed"],
       ["getLive.persistence.reason", "storage-full"],
     ],
   }, { OFFLINE_INSERT_FAIL: "1" }],
+  // ADOPT-C06-R1: the insert COMMITS and the post-insert prune query
+  // fails once (injected SQLITE_BUSY) — persistence reports
+  // failed/storage-busy for the step as a whole, the frame is in the
+  // returned trail, and the rendered warning is the accurate
+  // whole-step text beside a still-LIVE feed.
+  ["storage-maintenance", "feed_all_success.json", "feed_signals_success.json", "", {
+    htmlIncludes: ["LIVE", "Snapshot saving problem", "storage busy"],
+    htmlExcludes: ["being stored right now", "Saved trail unavailable"],
+    payloadEquals: [
+      ["getLive.ok", true],
+      ["getLive.persistence.outcome", "failed"],
+      ["getLive.persistence.reason", "storage-busy"],
+      ["getLive.trail.length", 1],
+      ["getLive.trail.0.spot", 500.25],
+    ],
+  }, { OFFLINE_PRUNE_FAIL: "1" }],
   ["last-session", "feed_all_last_session.json", "feed_signals_success.json", "", {
     htmlIncludes: ["MARKET CLOSED"],
     payloadEquals: [["getLive.ok", true], ["getLive.live.marketOpen", false]],

@@ -13,6 +13,19 @@
 // Verdicts are computed from observations; the receipt is written by
 // the driver.
 //
+// ADOPT-C06-R1 adds ONE post-insert fault (case S06): a one-shot
+// failure of the prune-enumeration SELECT that runs AFTER a
+// successful insert. A SQL trigger cannot fail a later SELECT, so
+// this single fault is injected at the db facade instead: the
+// wrapped db counts select calls, and when armed, the third select
+// of the next getLive call (same-instant check, latest check, then
+// the prune enumeration) rejects once with a SQLITE_BUSY-coded
+// error. Every other statement runs against the real drizzle/libsql
+// stack and real storage, and the stored rows / returned trail are
+// read back from that storage — the substitution is this one
+// rejected query, disclosed here and in the receipt mode line of
+// snapshot-audit-c06.mjs.
+//
 // @ts-nocheck — offline harness entry, bundled by snapshot-audit-c06.mjs.
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
@@ -97,7 +110,49 @@ async function createDb() {
   await applyDdl(client, DDL_0002);
   await applyDdl(client, DDL_0003);
   const db = drizzle(client, { schema });
-  return { client, ctx: { db: () => db, user: null, requestId: "c06-audit" } };
+  // ADOPT-C06-R1 one-shot prune fault (see header): armPruneFault()
+  // makes the THIRD select of the next getLive call — the post-insert
+  // prune enumeration — reject once with a SQLITE_BUSY-coded error.
+  // All other calls pass through to the real drizzle db untouched.
+  let selectSeq = 0;
+  let failSelectAt = -1;
+  const rejectingBuilder = () => {
+    const err = Object.assign(
+      new Error("c06-r1 injected prune-query failure"),
+      { code: "SQLITE_BUSY" },
+    );
+    const builder: Record<string, unknown> = {};
+    for (const m of ["from", "where", "orderBy", "limit"]) {
+      builder[m] = () => builder;
+    }
+    builder.then = (
+      onFulfilled?: ((value: unknown) => unknown) | null,
+      onRejected?: ((reason: unknown) => unknown) | null,
+    ) => Promise.reject(err).then(onFulfilled, onRejected);
+    return builder;
+  };
+  const wrapped = new Proxy(db, {
+    get(target, prop) {
+      if (prop === "select") {
+        return (...a: unknown[]) => {
+          selectSeq += 1;
+          if (selectSeq === failSelectAt) return rejectingBuilder();
+          return (target as Record<string, (...x: unknown[]) => unknown>)[
+            "select"
+          ](...a);
+        };
+      }
+      const v = (target as Record<string | symbol, unknown>)[prop];
+      return typeof v === "function" ? v.bind(target) : v;
+    },
+  });
+  return {
+    client,
+    ctx: { db: () => wrapped, user: null, requestId: "c06-audit" },
+    armPruneFault: () => {
+      failSelectAt = selectSeq + 3;
+    },
+  };
 }
 async function storedRows(client) {
   const r = await client.execute(
@@ -265,6 +320,55 @@ function record(id, expectation, pass, observed) {
       down.persistence.outcome === "no-attempt" &&
       down.persistence.reason === null,
     { ok: down.ok, persistence: down.persistence },
+  );
+}
+
+// S06 — ADOPT-C06-R1: post-insert maintenance failure. The insert
+// COMMITS; the one-shot prune-enumeration SELECT then fails, so the
+// persistence step as a whole reports failed/storage-busy — while
+// the current frame is present in storage AND in the returned
+// trail. The App's failed-outcome warning must therefore be the
+// corrected whole-step text: it must not claim snapshots are not
+// being stored or that the trail is unavailable. The warning text
+// is asserted from the real App source (the render layer for this
+// text is the SSR preview's storage-maintenance case; this harness
+// binds the handler result and the exact source text together).
+{
+  const { client, ctx, armPruneFault } = await createDb();
+  const first = await live(ctx, frameAt(iso(0), 500));
+  armPruneFault();
+  const resp = await live(ctx, frameAt(iso(60), 501));
+  const rows = await storedRows(client);
+  const appSource = readFileSync(
+    new URL("../client/src/App.tsx", import.meta.url),
+    "utf8",
+  );
+  const warningAccurate =
+    appSource.includes("Snapshot saving problem") &&
+    appSource.includes("latest saving step") &&
+    !appSource.includes("being stored right now") &&
+    !appSource.includes("Saved trail unavailable");
+  record(
+    "S06",
+    "post-insert prune failure: insert commits (2 rows incl. current frame), trail includes the current frame, ok:true + live frame, persistence failed/storage-busy, and the App warning is the corrected whole-step text (no not-being-stored / trail-unavailable claim)",
+    first.persistence.outcome === "saved" &&
+      resp.ok === true &&
+      resp.live !== null &&
+      resp.live.spot === 501 &&
+      resp.persistence.outcome === "failed" &&
+      resp.persistence.reason === "storage-busy" &&
+      rows.length === 2 &&
+      rows.some((r) => r.updated_at === iso(60)) &&
+      resp.trail.length === 2 &&
+      resp.trail.some((t) => t.updatedAt === iso(60)) &&
+      warningAccurate,
+    {
+      first: first.persistence,
+      resp: resp.persistence,
+      rows: rows.map((r) => r.updated_at),
+      trail: resp.trail.map((t) => t.updatedAt),
+      warningAccurate,
+    },
   );
 }
 

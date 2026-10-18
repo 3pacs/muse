@@ -92,7 +92,10 @@ globalThis.fetch = (async (input: unknown) => {
 
 // --- in-memory fake ctx.db (drizzle-shaped, thenable chain) ----------------
 class FakeQuery implements PromiseLike<unknown[]> {
-  constructor(private rows: () => unknown[]) {}
+  constructor(
+    private rows: () => unknown[],
+    private error: unknown = null,
+  ) {}
   from(): this {
     return this;
   }
@@ -113,16 +116,38 @@ class FakeQuery implements PromiseLike<unknown[]> {
       | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
       | null,
   ): Promise<TResult1 | TResult2> {
-    return Promise.resolve(this.rows()).then(onFulfilled, onRejected);
+    const p: Promise<unknown[]> = this.error
+      ? Promise.reject(this.error)
+      : Promise.resolve().then(() => this.rows());
+    return p.then(onFulfilled, onRejected);
   }
 }
 const store: Record<string, unknown>[] = [];
 // ADOPT-C06 preview support: OFFLINE_INSERT_FAIL=1 makes the fake
 // insert reject with a coded storage error, so a preview case can
 // render the saved-trail warning beside a healthy LIVE feed.
+// ADOPT-C06-R1 preview support: OFFLINE_PRUNE_FAIL=1 lets the insert
+// commit and makes the THIRD select of the getLive call — the
+// post-insert prune enumeration (after the same-instant and latest
+// checks) — reject once with a SQLITE_BUSY-coded error, so a preview
+// case can render the maintenance-failure state: the frame IS in
+// the trail and the corrected warning shows beside it.
 const insertFail = process.env.OFFLINE_INSERT_FAIL === "1";
+const pruneFail = process.env.OFFLINE_PRUNE_FAIL === "1";
+let selectSeq = 0;
 const fakeDb = {
-  select: () => new FakeQuery(() => store.slice()),
+  select: () => {
+    selectSeq += 1;
+    if (pruneFail && selectSeq === 3) {
+      return new FakeQuery(
+        () => [],
+        Object.assign(new Error("preview injected prune-query failure"), {
+          code: "SQLITE_BUSY",
+        }),
+      );
+    }
+    return new FakeQuery(() => store.slice());
+  },
   insert: () => ({
     values: async (v: Record<string, unknown>) => {
       if (insertFail) {
