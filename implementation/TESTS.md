@@ -287,7 +287,11 @@ R12 unkeyed-only storage advertises no fallback identity,
 R13 two overlapping equivalent-spelling writes admit exactly
 one observation (0003 BEFORE INSERT trigger makes admission
 atomic). loadTrailAndLatest now filters unkeyed rows out of
-selection. Receipt regenerated and committed.
+selection. Receipt regenerated and committed. Parity round
+(2026-10-18): R09 battery 35 → 53 spellings — whole-string
+shape guards in 0003 (junk suffixes stay unkeyed) and the
+admitted 24:00:00 midnight rollover keys exactly; still
+14/14 PASS, receipt regenerated.
 Backend suites below were re-run unchanged at the ADOPT-B2 candidate
 as well: compile 12/12, watcher 0 failures, J1 50/50 + 27/27,
 boundary tests 51/51. Re-run unchanged again at the ADOPT-B2-R1

@@ -162,8 +162,8 @@
     },
     {
       "path": "drizzle/0003_snapshot_instant.sql",
-      "bytes": 4550,
-      "sha256": "f0f73744e7cc074a83dfcb9a1513d0e20d6ac19ad88be24d34eff090ae526b2f"
+      "bytes": 6033,
+      "sha256": "6ef107536f88fe061b99bcfcad56b1abf5b50924b81580e003a0ce699821e2d2"
     },
     {
       "path": "offline/adapter/build.ts",
@@ -455,7 +455,7 @@
     {
       "path": "server/actions.js",
       "bytes": 183244,
-      "sha256": "50a244b8e9cd613728cbb25f728c81630ce068280cd76d51ec8f6c6689b33f00"
+      "sha256": "6de1b1445818533bd528a848d52c5935d2e3d70dac167567e89ec35e62a1a6fa"
     },
     {
       "path": "signals-only-error.html",

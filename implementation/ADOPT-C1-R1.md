@@ -223,6 +223,48 @@ backend compile 12/12, J1 50/50 + 27/27 + 27/27, watcher 0
 failures. The reviewer's five passed fresh-data groups are
 re-covered by R01/R05/R06/R08 and remain PASS.
 
+### 6.1 Parity round (2026-10-18) — whole-string guards + midnight rollover
+
+The verification of §6 (PR #2 docs head `aa03898`) closed all ten
+prior properties (10 PASS / 0 FAIL) and left one narrower finding:
+the amended backfill's guards checked positions but not the WHOLE
+spelling, and rejected the one rollover the application parser
+admits. Four witnesses: `...00.5junkZ`, `...00junkZ`, `...00.1xZ`
+were keyed though the parser rejects them; `2026-10-16T24:00:00Z`
+was unkeyed though the parser admits it (1792195200000). This round
+corrects only the 0003 guards (the migration is still undeployed;
+`actions.ts` and F1 admission are byte-unchanged):
+
+- The date/time prefix must match the admitted digit shape over its
+  full length (16 or 19 chars, GLOB-anchored), and the string must
+  be exactly datetime + zone, or datetime + '.' + an ALL-DIGIT
+  fraction + zone (fraction digit check is now `NOT GLOB
+  '*[^0-9]*'` — every character, not just the first). Zone digit
+  and range guards are as before.
+- Midnight parity: hour `24` keys only as exact midnight — minute
+  and second `00`, fraction absent or all-zero digits — which is
+  precisely what Date.parse admits (measured identical on Bun and
+  Node: `24:00:00.5Z`, `24:00:00.0005Z`, `24:00:01Z`, `24:01:00Z`
+  are all rejected; `24:00Z`, `24:00:00.000Z`, and offset forms
+  `24:00:00+02:00` / `+0200` are admitted and now keyed).
+
+R09's battery grows from 35 to **53 spellings** (the four reviewer
+witnesses plus the midnight family, seconds-less fraction, empty
+fraction, lowercase separators, trailing junk, and year-boundary
+rollover); every key equals the application parser's key or both
+reject. Amended migration hash: `6ef107536f88…`; receipt
+regenerated (`394bd04d107f…`), still **14/14 PASS**. Preserved
+lanes re-run: SSR previews byte-identical, boundary 51/51,
+BUILD-MANIFEST refreshed (0003 input; the server bundle output
+changes to `6de1b1445818…` because the bundle embeds the
+migration); browser cases byte-identical HTML/responses with fresh
+passing reports, screenshot entries bound to the retained PNGs,
+outputs verify; backend compile 12/12, J1 50/50 + 27/27 + 27/27,
+watcher 0 failures. (One browser-lane run in this round reported a
+transient failure summary; two immediate re-runs were clean —
+failures: none — and the clean run's manifest is the committed
+one.)
+
 ## 7. Scope limits (unchanged honesty labels)
 
 Hosted platform DB behavior and platform schema validation remain
