@@ -19,7 +19,7 @@ z,
 type ActionsModule,
 type Ctx,
 } from "@hatch/space-sdk";
-import { asc, desc, lte } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, lt, or } from "drizzle-orm";
 import * as schema from "./schema";
 
 // ---------------------------------------------------------------------------
@@ -558,29 +558,52 @@ async function fetchFeed(): Promise<
 const MIN_SNAPSHOT_GAP_MS = 45_000;
 const MAX_SNAPSHOTS = 1500;
 
+// ADOPT-C1-R1: observation identity is the validated UTC instant
+// (snapshots.instant_ms), never the timestamp's textual spelling. The
+// same instant spelled with Z or an equivalent numeric offset is ONE
+// observation; the first stored row for an instant wins and later
+// deliveries of that instant — in any spelling, with any payload — do
+// not insert, merge or overwrite (the C05 first-stored-wins behavior,
+// generalized from string identity to instant identity). The stored
+// `updated_at` string and payload keep the original spelling/bytes.
+// Ties between stored rows (legacy same-instant rows only) resolve
+// deterministically by row id: the highest id is "newest", trail
+// order is (instant, id) ascending. Legacy rows with instant_ms NULL
+// (unparseable timestamp) are never the newest and prune first.
 async function maybePersistSnapshot(
   ctx: Ctx,
   payload: LivePayload,
   rawJson: string,
 ): Promise<void> {
   const db = ctx.db<typeof schema>();
+  const instant = parseAwareInstant(payload.updatedAt);
+  if (instant === null) return; // unreachable post-normalize; never persist unkeyed
+  // Identity: any stored row for this instant dedupes, whatever spelling
+  // it was stored under (including pre-migration rows backfilled by 0003).
+  const same = await db
+    .select({ id: schema.snapshots.id })
+    .from(schema.snapshots)
+    .where(eq(schema.snapshots.instantMs, instant))
+    .limit(1);
+  if (same.length > 0) return;
+  // Throttle against the latest persisted instant (chronological key).
   const latest = await db
     .select({
-      updatedAt: schema.snapshots.updatedAt,
+      instantMs: schema.snapshots.instantMs,
     })
     .from(schema.snapshots)
-    .orderBy(desc(schema.snapshots.updatedAt))
+    .where(isNotNull(schema.snapshots.instantMs))
+    .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id))
     .limit(1);
-  const latestAt = latest[0]?.updatedAt ?? null;
-  if (latestAt === payload.updatedAt) return;
-  if (latestAt !== null) {
-    const gap =
-      new Date(payload.updatedAt).getTime() - new Date(latestAt).getTime();
+  const latestInstant = latest[0]?.instantMs ?? null;
+  if (latestInstant !== null) {
+    const gap = instant - latestInstant;
     if (gap >= 0 && gap < MIN_SNAPSHOT_GAP_MS) return;
   }
   try {
     await db.insert(schema.snapshots).values({
       updatedAt: payload.updatedAt,
+      instantMs: instant,
       spot: payload.spot,
       maxPain: payload.maxPain,
       callWall: payload.callWall,
@@ -596,17 +619,39 @@ async function maybePersistSnapshot(
     // Unique-constraint race with a concurrent poll — the row exists, fine.
     return;
   }
-  // Prune to the newest MAX_SNAPSHOTS rows.
-  const ids = await db
-    .select({ id: schema.snapshots.id })
+  // Prune to exactly the newest MAX_SNAPSHOTS observations by
+  // (instant, id); arrival order no longer decides what survives, so a
+  // late-arriving old frame can never evict a newer accepted one — at
+  // capacity it is the row pruned.
+  const ordered = await db
+    .select({
+      id: schema.snapshots.id,
+      instantMs: schema.snapshots.instantMs,
+    })
     .from(schema.snapshots)
-    .orderBy(asc(schema.snapshots.id));
-  if (ids.length > MAX_SNAPSHOTS) {
-    const cutoff = ids[ids.length - MAX_SNAPSHOTS];
-    if (cutoff) {
-      await db
-        .delete(schema.snapshots)
-        .where(lte(schema.snapshots.id, cutoff.id));
+    .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id));
+  if (ordered.length > MAX_SNAPSHOTS) {
+    const boundary = ordered[MAX_SNAPSHOTS - 1];
+    if (boundary) {
+      // Delete exactly the rows ordered below the boundary row. NULL
+      // instants sort below every real instant, so against a real
+      // boundary they all go; against a NULL boundary (more legacy
+      // NULL rows than the excess) only the lower-id NULL tail goes.
+      const below =
+        boundary.instantMs === null
+          ? and(
+              isNull(schema.snapshots.instantMs),
+              lt(schema.snapshots.id, boundary.id),
+            )
+          : or(
+              isNull(schema.snapshots.instantMs),
+              lt(schema.snapshots.instantMs, boundary.instantMs),
+              and(
+                eq(schema.snapshots.instantMs, boundary.instantMs),
+                lt(schema.snapshots.id, boundary.id),
+              ),
+            );
+      await db.delete(schema.snapshots).where(below);
     }
   }
 }
@@ -631,7 +676,9 @@ async function loadTrailAndLatest(
       netGexM: schema.snapshots.netGexM,
     })
     .from(schema.snapshots)
-    .orderBy(desc(schema.snapshots.updatedAt))
+    // Chronological key (ADOPT-C1-R1): newest 240 by (instant, id),
+    // reversed below into ascending instant order for the trail.
+    .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id))
     .limit(240);
   const trail = rows
     .map((r) => ({
@@ -652,7 +699,9 @@ async function loadTrailAndLatest(
       payloadJson: schema.snapshots.payloadJson,
     })
     .from(schema.snapshots)
-    .orderBy(desc(schema.snapshots.updatedAt))
+    // Newest = greatest validated instant; ties (legacy same-instant
+    // rows) resolve to the highest id, deterministically.
+    .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id))
     .limit(1);
   let staleSnapshot: LivePayload | null = null;
   let staleSnapshotAt: string | null = null;

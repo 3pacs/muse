@@ -10,13 +10,22 @@ export const entries = sqliteTable("entries", {
 
 /**
  * One row per interpreter snapshot persisted while the dashboard is open.
- * Keyed by the payload's own `updated_at` (UTC instant from the interpreter),
- * deduped on that value. Full payload kept so the trail and detail views
- * share one source. Pruned to the most recent ~3 trading days of rows.
+ * The payload's own `updated_at` string is preserved verbatim (provenance)
+ * and stays unique per stored spelling, but observation IDENTITY is the
+ * validated UTC instant: `instant_ms` (added by migration 0003, backfilled
+ * from `updated_at`) is the single chronological key for dedupe, latest
+ * selection, the persistence-gap comparison, trail ordering and retention
+ * (ADOPT-C1-R1). Two spellings of one instant (Z vs an equivalent numeric
+ * offset) are one observation. `instant_ms` is null only on legacy rows
+ * whose stored timestamp does not parse as a timezone-aware instant; such
+ * rows are never selected as the newest and prune first. Full payload kept
+ * so the trail and detail views share one source. Pruned to the newest
+ * 1500 observations by instant.
  */
 export const snapshots = sqliteTable("snapshots", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   updatedAt: text("updated_at").notNull().unique(),
+  instantMs: integer("instant_ms"),
   spot: real("spot"),
   maxPain: real("max_pain"),
   callWall: real("call_wall"),
