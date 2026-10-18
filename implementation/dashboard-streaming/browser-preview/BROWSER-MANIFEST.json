@@ -123,7 +123,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 811,
+              "elapsedMs": 604,
               "outcome": "settled"
             }
           }
@@ -225,7 +225,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 602,
+              "elapsedMs": 605,
               "outcome": "settled"
             }
           }
@@ -321,7 +321,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 602,
+              "elapsedMs": 604,
               "outcome": "settled"
             }
           }
@@ -407,7 +407,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 602,
+              "elapsedMs": 603,
               "outcome": "settled"
             }
           }
@@ -507,7 +507,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 606,
+              "elapsedMs": 602,
               "outcome": "settled"
             }
           }
@@ -597,7 +597,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 602,
+              "elapsedMs": 603,
               "outcome": "settled"
             }
           }
@@ -853,7 +853,7 @@
             "charts": [],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 602,
+              "elapsedMs": 601,
               "outcome": "settled"
             }
           }
@@ -909,7 +909,7 @@
             "charts": [],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 601,
+              "elapsedMs": 602,
               "outcome": "settled"
             }
           }
@@ -1091,7 +1091,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 603,
+              "elapsedMs": 602,
               "outcome": "settled"
             }
           }
@@ -1303,7 +1303,7 @@
             "charts": [],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 601,
+              "elapsedMs": 602,
               "outcome": "settled"
             }
           }
@@ -1727,7 +1727,7 @@
         ],
         "settle": {
           "budgetMs": 6000,
-          "elapsedMs": 2407,
+          "elapsedMs": 2409,
           "outcome": "invalid-chart"
         }
       }
@@ -1784,7 +1784,7 @@
         "charts": [],
         "settle": {
           "budgetMs": 6000,
-          "elapsedMs": 6017,
+          "elapsedMs": 6030,
           "outcome": "budget-expired"
         }
       }
@@ -1867,7 +1867,7 @@
         ],
         "settle": {
           "budgetMs": 6000,
-          "elapsedMs": 2408,
+          "elapsedMs": 2429,
           "outcome": "invalid-chart"
         }
       }
@@ -1950,7 +1950,7 @@
         ],
         "settle": {
           "budgetMs": 6000,
-          "elapsedMs": 2408,
+          "elapsedMs": 2409,
           "outcome": "invalid-chart"
         }
       }
@@ -2033,7 +2033,7 @@
         ],
         "settle": {
           "budgetMs": 6000,
-          "elapsedMs": 2408,
+          "elapsedMs": 2409,
           "outcome": "invalid-chart"
         }
       }
@@ -2200,8 +2200,8 @@
     },
     {
       "path": "client/src/App.tsx",
-      "bytes": 49395,
-      "sha256": "e5dfc336f14d4501f9ce1a46a2fc982f6c66dac64d257a89222d5c1a96a96ba4"
+      "bytes": 49792,
+      "sha256": "e26fc9ddc26ddc06dc343ec72f66d1eaddea63ef2b4a27c851734e066233ece5"
     },
     {
       "path": "client/src/api.ts",
@@ -2295,8 +2295,8 @@
     },
     {
       "path": "offline/offline-build.mjs",
-      "bytes": 13393,
-      "sha256": "f71a88ee06382a8b09d79438b1a09af0cc12f23d5b16bbc76287532f06d5e54c"
+      "bytes": 14459,
+      "sha256": "016c0919f319ed2f9148f0835ac5ae363825d1bbffb8de76f016389012b20e64"
     },
     {
       "path": "offline/prepare-deps.mjs",
@@ -2305,23 +2305,23 @@
     },
     {
       "path": "offline/preview.ts",
-      "bytes": 9655,
-      "sha256": "90b615715d76b7ba9f3c1fd7e01e03c4a7e3b87ac8475cc86398fc9f411141c6"
+      "bytes": 10534,
+      "sha256": "7002540fe7b3a083a1f7a2e5e8e2bfbbad28c446ab0271cf8ee4a2bb47e1a985"
     },
     {
       "path": "offline/snapshot-audit-c06-entry.ts",
-      "bytes": 10149,
-      "sha256": "fb751f50d97d131fc3da89f1fc7fa2792f24da27d2e90ac0c15524fdb5ed4d0f"
+      "bytes": 14491,
+      "sha256": "d570521839786fb43fe69c8310513ab46d0431995ed2c077943ef1ca6e66323c"
     },
     {
       "path": "offline/snapshot-audit-c06-receipt.json",
-      "bytes": 3673,
-      "sha256": "71a7eaee6c736ae25284102c76fecb20e79b7c76602f5f43e19d9b9939ed34b4"
+      "bytes": 4695,
+      "sha256": "d905b8515dcf5ddfcf2ca5fc9418168502deda0e1c4abf06c9dbc463e8cf65b9"
     },
     {
       "path": "offline/snapshot-audit-c06.mjs",
-      "bytes": 5865,
-      "sha256": "33bb492281feb153766f711022f448661e3c2a2145c56d6a38933d3407b70f4b"
+      "bytes": 6196,
+      "sha256": "864db4941f83c2d4bdf481788bfd10a34dbf4be2e4fa38d6374e1535ae929f28"
     },
     {
       "path": "offline/snapshot-audit-entry.ts",
@@ -2449,8 +2449,8 @@
     },
     {
       "path": "assets/app.js",
-      "bytes": 2034212,
-      "sha256": "2ddf0a9a2ea087af564aa4ce6ada2fd24830159629fa5f9cc7496be6f18d874d"
+      "bytes": 2034231,
+      "sha256": "7ab2004d374112cf67d863252fcf51dcc13fe62794892ffad7266bf0b9954171"
     },
     {
       "path": "bad-clock.html",
