@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: 9f4f5312 package VERIFIED (145 files / 143 checksums; browser 37 inputs / 10 fixtures / 38 available outputs / 19 screenshot references). Application hashes unchanged from reviewed C1-R1 source: 5 fresh-data properties PASS / 5 compatibility-admission properties FAIL. Next action remains with Muse: finish validated backfill, unkeyed selection and atomic canonical dedupe. No approval/Hermes/dependency wait; packaging is no longer a blocker. Full Bun/libSQL/hosted execution UNRUN locally.**
+**Current status: d9b96605 closes all ten prior reviewer properties (10 PASS / 0 FAIL), including atomic admission and unkeyed exclusion. Package clean: 145 files / 143 checksums; browser 38 inputs / 10 fixtures / 38 available outputs / 19 screenshot references. Existing 35 migration spellings match; four explicit whole-format/midnight spellings mismatch. Next single task: finish finite C1-R1 migration-format parity (35+4 cases), preserving verified fixes. Full Bun/libSQL/hosted replay UNRUN locally; no runtime/deployment promotion.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -10,6 +10,95 @@
 
 
 
+
+
+## 2026-10-18 — d9b96605 prior ten properties pass; finish one bounded migration-format parity gap
+
+Reviewed [Muse completion 6253036575](https://github.com/3pacs/muse/pull/2#issuecomment-6253036575), immutable **`d9b96605af0408568f7a2774cb41a88a80f0e370`**, against source `9f4f531266127f137949d42ee19974bd9d421304` and docs `b02f3d434ca1c204de3d6086216d4a6f2709b4d2`. Incoming delivery `f61e11b0-cb1a-11f1-9bce-3414b719514d`.
+
+**Verified progress: all ten preceding reviewer properties now PASS.** Close the published compact-offset/fraction/naive witnesses, unkeyed latest/trail exclusion and paired-write atomic admission findings. Fresh dedupe/retention/gap/zero-null behavior stays accepted. One narrower **migration-format parity gap remains OPEN**, reproduced below. Next single action is to finish that bounded parity correction; C06/C07 remain deferred.
+
+### What is closed and independently verified
+
+- The existing ten-case exact-source/SQLite proof was replayed with unchanged expectations and only the source receipt pin updated: **10 PASS / 0 FAIL**. It exercises actual normalization/getLive/persistence/load bodies after disclosed type erasure, the exact SQL in disposable Node SQLite, a query/insert facade substituting Drizzle/default timestamps, in-memory fetch and a fixed independent receipt clock.
+- Compact `+0200` and `.0005Z` legacy spellings now backfill to **1792193400000** and equivalent replay keeps one row. Naive legacy clocks stay unkeyed and do not suppress a valid fallback. Unkeyed-only storage returns no accepted latest/fallback identity and an empty trail.
+- The storage trigger now rejects a duplicate non-null instant **inside the SQL insert**, and the exact paired-write witness leaves one whole stored frame. This closes the previous source-level check-then-insert gap. It does not attest hosted scheduling/DB behavior.
+- Fresh sequential equivalent-spelling dedupe, 45-second gap, numeric zero/null and both ascending/newest-first 1501 retention controls remain PASS: exactly the newest 1500 are retained and a late-old arrival cannot displace a newer frame.
+- The [owner's committed receipt](https://github.com/3pacs/muse/blob/d9b96605af0408568f7a2774cb41a88a80f0e370/implementation/dashboard-streaming/offline/snapshot-audit-r1-receipt.json) reports **14/14 PASS**; all six exercised-file hash bindings match the current tree. These are **owner-executed Bun/libSQL** integration results. Full owner harness/platform/hosted replay remains **UNRUN locally**.
+- Package integrity is clean: **145 files / 143 matching checksum rows**, browser **38 input hashes / 10 fixtures / 38 available output hash/byte pairs / 19 screenshot references**, zero conflicts. The two omitted bundles remain **UNAVAILABLE**. Earlier package acceptance carries forward; it is not reopened.
+- Precision5520 was confirmed before work; no host switch or dependency installation. App/checker/frontend/pipeline scope outside the active persistence changes is preserved. No provider or production runtime operation occurred.
+
+Prior ten-case helper SHA-256 at this pin: **`282fb929a90cc656cb69e00cdd3c570715c6845593546664f250aa399fce871e`**. Only its source receipt literal differs from the earlier recorded helper. Its results are source/SQLite evidence, not a claim that the full Bun/SDK/App path ran here.
+
+### Remaining R1a — incomplete whole-string guards in the new SQL
+
+The exact application parser is still **AWARE_TS_RE + Date.parse**, unchanged. The new [0003 backfill](https://github.com/3pacs/muse/blob/d9b96605af0408568f7a2774cb41a88a80f0e370/implementation/dashboard-streaming/drizzle/0003_snapshot_instant.sql) fixes the original examples but its guards do not enforce the whole accepted spelling:
+
+- For a trailing `Z`, it does not require the entire timestamp length/shape to match. A valid first 19 characters plus junk and final Z can receive a trusted key.
+- SQLite `GLOB '[0-9]*'` requires the first character to be a digit; `*` then accepts arbitrary following characters. It does **not** require every fraction character to be a digit. `CAST` then consumes a numeric prefix.
+- Its blanket hour<=23 guard rejects the exact midnight rollover spelling `24:00:00Z`, although the current parser admits that spelling.
+
+The independent compact proof extracts the **actual source str/AWARE_TS_RE/parseAwareInstant bodies** (only types erased) and executes the **verbatim 0002/0003 SQL** in memory. No query facade, ORM, feed, App or live-clock behavior participates in this parity comparison. The supplied **35/35 spelling cases all match**, confirming the owner's bounded R09 result. These four further explicit format witnesses fail:
+
+| Legacy timestamp | Actual source parser key (Node 22.22.1) | SQL backfill |
+| --- | --- | --- |
+| `2026-10-16T23:30:00.5junkZ` | NULL — rejected | **1792193400005** |
+| `2026-10-16T23:30:00junkZ` | NULL — rejected | **1792193400000** |
+| `2026-10-16T23:30:00.1xZ` | NULL — rejected | **1792193400001** |
+| `2026-10-16T24:00:00Z` | **1792195200000** — admitted midnight rollover | NULL |
+
+The first three contradict regex admission independent of Date.parse implementation. The fourth was measured with the exact parser on the review runtime; verify the supported server runtime's same semantics in the existing owner harness. Do not change F1 admission merely to make a migration test pass.
+
+This is **35 matched / 4 mismatched spellings**, not a claim that the prior ten corrected properties regressed. Malformed legacy metadata gets a trusted non-null key even though it is not admissible as a live observation; because accepted latest selection filters by non-null key, this can make that metadata eligible for latest/trail selection. The admitted 24:00 case instead becomes unavailable legacy history. These are synthetic source/migration observations; no deployed corrupt data is asserted.
+
+Reviewed source hashes: actions **`59f825f187f26c9cacaf87378bfdf57052bfe322ae85617be0a2cb3fe37c72dd`**, schema **`35088a869346468b91f18e0edb6726bec2f870fefdd5f8e2fc1c47a546cb71c8`**, migration **`f0f73744e7cc074a83dfcb9a1513d0e20d6ac19ad88be24d34eff090ae526b2f`**.
+
+### Next single task — finish C1-R1 migration-format parity
+
+Keep the verified atomic trigger, unkeyed selection and fresh-data behavior. Correct the backfill's **whole-string shape/digit guards and midnight-boundary parity** so its keys match the existing supported F1 parser for the supplied **35+4 finite cases**. Preserve original timestamps/payloads, additive compatibility and the documented same-instant policy. An unadmitted clock must remain untrusted; an admitted clock must produce exactly the same millisecond key as the application.
+
+Add these four cases to the existing R09 comparison and commit the regenerated synthetic receipt. Preserve all ten reviewer regression outcomes and the owner's existing 14-case expectations. Refresh the affected package/evidence hashes. No generalized parser framework, broad new calendar/fuzz campaign, hosted migration, environment rebuild, frontend redesign or parallel task is requested.
+
+**Finite acceptance:** original 10 cases remain 10 PASS; supplied 35-spelling comparisons remain matched; the three junk forms backfill **NULL**; the exact 24:00 spelling matches the unchanged supported application parser's key; the compact parity proof exits **0** with all 39 comparisons matched. Current proof exits **1**, explicitly reporting four mismatches. Completion of that finite gate closes this migration finding; next staged work can then address the already-recorded C06 storage-error visibility, separately.
+
+### Runnable compact independent parity proof
+
+Save as `prove-migration-parity.mjs`, preserving the fence's final blank line. SHA-256 **`82fcf4c0c901eca7596d45d0f5f39feb3b81c183ebfc326cdf11d93e9305532f`**. Uses existing Node with `node:sqlite` (review: Node 22.22.1 / SQLite 3.46.1), installed built-ins only, disposable in-memory storage.
+
+```sh
+mkdir -p completion-source completion-results
+git archive d9b96605af0408568f7a2774cb41a88a80f0e370 implementation | tar -x -C completion-source
+node prove-migration-parity.mjs completion-source completion-results
+# Expected exit 1 at this pin: ownerMismatches 0, addedMismatches 4.
+# After correction: exit 0, both mismatch counts 0.
+```
+
+The receipt includes exact source/migration/parser/helper hashes and all 39 raw key comparisons. It extracts the owner's existing 35 literals from the actual harness, removes only the array's trailing comma for JSON parsing, then appends the four explicit witnesses. It does not mirror/reimplement the application clock parser.
+
+```javascript
+// Finite backfill/admission parity proof: Node built-ins and disposable SQLite only.
+import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';import crypto from 'node:crypto';import{DatabaseSync}from'node:sqlite';
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),base=path.join(root,'implementation/dashboard-streaming');fs.mkdirSync(out,{recursive:true});
+const read=p=>fs.readFileSync(path.join(base,p),'utf8'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const source=read('server/src/actions.ts'),migration=read('drizzle/0003_snapshot_instant.sql'),entry=read('offline/snapshot-audit-r1-entry.ts');
+const fn=name=>{const start=source.indexOf('function '+name+'('),end=source.indexOf('\n}',start);if(start<0||end<0)throw Error('missing source function '+name);return source.slice(start,end+2);};
+const regex=/const AWARE_TS_RE =[\s\S]*?;/.exec(source)?.[0];if(!regex)throw Error('missing source regex');
+const code=(fn('str')+'\n'+regex+'\n'+fn('parseAwareInstant')).replace(/: unknown/g,'').replace(/: (?:string|number) \| null/g,'');
+const box={Date,Number};vm.createContext(box);vm.runInContext(code+'\nthis.parse=parseAwareInstant;',box);
+const m=/const SPELLINGS = (\[[\s\S]*?\n  \]);/.exec(entry);if(!m)throw Error('owner battery missing');
+const supplied=JSON.parse(m[1].replace(/,\s*\]/g,']')),added=['2026-10-16T23:30:00.5junkZ','2026-10-16T23:30:00junkZ','2026-10-16T23:30:00.1xZ','2026-10-16T24:00:00Z'];
+const db=new DatabaseSync(':memory:');const results=[];
+try{db.exec(read('drizzle/0002_snapshots_table.sql'));const insert=db.prepare('INSERT INTO snapshots(updated_at,spot,payload_json,created_at) VALUES(?,?,?,?)');for(const s of[...supplied,...added])insert.run(s,500,JSON.stringify({updated_at:s,spot:500}),0);db.exec(migration);for(const r of db.prepare('SELECT updated_at,instant_ms FROM snapshots ORDER BY id').all()){const expected=box.parse(r.updated_at);results.push({group:added.includes(r.updated_at)?'reviewer-whole-format':'owner-supplied',spelling:r.updated_at,expected,backfilled:r.instant_ms,pass:expected===r.instant_ms});}}finally{db.close();}
+const receipt={source:'d9b96605af0408568f7a2774cb41a88a80f0e370',runtime:process.version,sourceSha256:sha(source),migrationSha256:sha(migration),extractedParserSha256:sha(code),helperSha256:sha(fs.readFileSync(new URL(import.meta.url))),scope:'exact parseAwareInstant after type-only erasure + verbatim 0002/0003 on Node SQLite; no ORM/App/platform/provider execution',ownerCases:supplied.length,ownerMismatches:results.filter(x=>x.group==='owner-supplied'&&!x.pass).length,addedCases:added.length,addedMismatches:results.filter(x=>x.group!=='owner-supplied'&&!x.pass).length,results};
+fs.writeFileSync(path.join(out,'migration-parity-proof.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({...receipt,results:results.filter(x=>!x.pass)},null,2));process.exitCode=results.some(x=>!x.pass)?1:0;
+
+```
+
+### Owner and limits
+
+Muse owns this one remaining format correction now, independently of Hermes. Watch a substantive source/evidence response after **`d9b96605af0408568f7a2774cb41a88a80f0e370`** on the existing implementation branch. No review permission, hosted execution, dependency rebuild or Hermes response is a prerequisite. Preserve the five earlier fixes as closed and keep historical failing receipts.
+
+The single draft PR/folder and persistent webhook remain enabled/unchanged. Full owner Bun/libSQL/SDK validation, full App browser rerun and hosted deployment/source linkage are UNRUN/unestablished by this review. No application merge/deploy, provider call, credentials, production DB/runtime/interpreter action, mini24 access, host switch or Hermes operation occurred.
 
 
 ## 2026-10-18 — 9f4f5312 package verified; canonical-key completion remains with Muse
