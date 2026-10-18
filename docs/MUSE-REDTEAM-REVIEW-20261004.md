@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: 3ed17869 C1-R1 VERIFIED/CLOSED: 53 unique migration spellings match (including all four final witnesses), ten persistence properties PASS, package 145 files / 143 checksums clean. Next single task: ADOPT-C06 storage-error visibility; current insert failures are silently hidden while live feed succeeds. C06 is not implemented. Owner full Bun/libSQL/SDK/hosted replay UNRUN locally; no deployment/runtime promotion.**
+**Current status: a034ec1e C06 insert-failure/schema/recovery behavior verified (S01-S05 plus safe reasons pass). C1-R1 remains CLOSED; ten persistence regressions pass and unchanged 53-case parity evidence is preserved. Package 151 files / 149 checksums clean. One narrow issue remains: the failed-outcome UI says snapshots are not being stored even when a post-insert prune error occurs after a successful save. Next: ADOPT-C06-R1 accurate maintenance warning. Full Bun/libSQL/SDK/hosted replay UNRUN locally.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -10,6 +10,143 @@
 
 
 
+
+
+## 2026-10-18 — a034ec1e C06 insert visibility verified; one maintenance-warning correction
+
+Reviewed [Muse C06 delivery 6255626733](https://github.com/3pacs/muse/pull/2#issuecomment-6255626733), immutable **`a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2`**, against closed C1-R1 source `3ed17869ee20019a51a7c93655992d6348e01545` and docs `552551670fc0fff2037eda19434c76c1516c0354`. Incoming issue-comment delivery `a701a5f0-cb3e-11f1-9218-e4bb0d4b8ed1`.
+
+**The requested C06 insert-failure/schema/recovery correction is independently verified.** The five supplied handler-case meanings pass, safe reason mapping passes, and valid feed status is preserved. One introduced **post-insert maintenance warning is inaccurate** and needs the narrow C06-R1 completion below. C1-R1 remains CLOSED; its storage identity/retention rules are not reopened.
+
+### Verified implementation and evidence
+
+- The actual `getLiveResponse` schema/type now requires `persistence`, with outcomes `saved / already-saved / throttled / no-attempt / failed` and safe reason categories. This is in the real declaration and both handler branches, not an adapter-only field.
+- Independent reviewer execution uses exact current normalization/getLive/persistence/load bodies with disclosed type-only erasure, exact 0002/0003 SQL and triggers in disposable SQLite, a query/insert facade matching the declared libSQL `rowsAffected` return surface, and an in-memory feed stub. No provider URL is contacted. Reviewer: **Node 22.22.1 / SQLite 3.46.1** on confirmed Precision5520.
+- **S01–S05: five handler-case groups PASS:** empty-store insert failure; failure with last-good trail; same-frame recovery/replay; benign throttle/paired overlap; feed-down no-attempt. The first two use a real SQLite `RAISE(ABORT)` test trigger in disposable memory. Paired admission directly exercises the production persistence function with two explicit payloads.
+- **Safe-reason group PASS:** synthetic FULL/BUSY/READONLY/unknown errors map to the four declared safe categories; synthetic raw SQL/path details are absent from returned responses. These four classifier probes are grouped evidence, not four extra full product scenarios.
+- Failure still returns **ok:true and the new valid live frame**, explicit failed persistence, and the old trail intact. Recovery writes the same source identity once and reports saved; replay reports already-saved. Trigger-ignore overlap correctly reports saved + already-saved and stores one whole payload.
+- The supplied [storage-warning SSR snapshot](https://github.com/3pacs/muse/blob/a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2/implementation/dashboard-streaming/preview/storage-warning.html) is hash-verified and contains **LIVE** plus the role=status warning. The supplied healthy success snapshot has no warning. The actual App condition binds to the latest response's `persistence.outcome==="failed"`; there is no independent sticky storage-status state.
+- These are **owner-rendered SSR snapshots inspected locally**, not a new reviewer SSR/React/browser render. Handler recovery plus the checked render condition supports warning removal; a local interactive rerender is UNRUN.
+- The committed C06 receipt reports **5/5 PASS** and all **seven** exercised source/harness hashes match the current tree. Those are owner-executed Bun/libSQL results, distinct from this reviewer execution. Platform SDK response validation and full owner Bun/libSQL replay remain UNRUN locally.
+
+### Preserved closure and package
+
+Independent current-source C1-R1 replay remains **10 PASS / 0 FAIL**. Schema, both migrations and the F1 server pure-helper block are byte-identical to closed 3ed17869, preserving its **53-spelling parity** evidence without rerunning an unchanged migration. Owner reports the broader 14/14 C1-R1 rerun; its committed historical receipt intentionally stays bound to the closed pin and is not relabeled as a new current-source receipt.
+
+Package: **151 files / 149 matching checksum rows**, complete declared coverage. Browser manifest: **41 input hashes / 10 fixtures / 38 available output hash/byte pairs / 19 screenshot references**, zero conflicts. Two omitted generated bundles remain **UNAVAILABLE**. Retained browser images, fresh owner reports, SSR fixtures and reviewer SQL results remain separate evidence.
+
+Current hashes: actions **`674bc29699302ad9881301d08f6036d69e318ebdde49f7e6171795e3330c574c`**, App **`e5dfc336f14d4501f9ce1a46a2fc982f6c66dac64d257a89222d5c1a96a96ba4`**. No pipeline, schema or migration source change is involved in C06.
+
+### One reproduced issue — warning denies a save that already committed
+
+C06 now also catches a **prune-query failure after the insert commits**, returning `failed/storage-busy` for the persistence step as a whole. That is a valid maintenance failure to report. However, [the App's unconditional failed-outcome text](https://github.com/3pacs/muse/blob/a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2/implementation/dashboard-streaming/client/src/App.tsx#L1098) says **“snapshots aren’t being stored right now”**.
+
+A single one-shot failure on the prune SELECT, followed by successful normal trail reads, reproduces:
+
+| Observation | Actual current result |
+| --- | --- |
+| Feed response | ok:true, current valid live frame |
+| Persistence result | failed / storage-busy |
+| Stored rows | **2**, including the current frame |
+| Returned trail | Includes the current frame |
+| App warning condition | True |
+| Bound warning text | “snapshots aren’t being stored right now” |
+
+The insert **did succeed**; the fault is subsequent maintenance. The DB/response observations are executed; the warning in this particular fault scenario is inferred from the checked source condition/text, not a newly rendered browser capture. The supplied SSR snapshot independently shows that same unconditional text for a genuine insert failure, where it is accurate.
+
+This is a small reporting/UI accuracy issue, not a C1-R1 retention regression or a need for a new database framework. Keep the maintenance diagnostic and feed status truthful; do not hide it by turning the good live feed down or suppressing the error.
+
+**Non-blocking semantic observation:** at capacity, a late-old frame can return `saved` because its insert was admitted, then be pruned by the correct newest 1500 policy before the response. The source note defines the outcome as the persistence **attempt/admission**, not a guarantee of continued retention. This review records that distinction; it does not call the correct retention behavior a failure or require a new acknowledgment protocol. Consumers must not infer permanent trail membership from that label alone.
+
+### Next single task — ADOPT-C06-R1 accurate post-insert maintenance warning
+
+Make the saving-health message accurate for **both** an insert failure and a maintenance failure after a successful insert. The smallest acceptable completion can use neutral text that describes a persistence-step issue without claiming no snapshots were saved; equivalent stage-specific information/text is also acceptable. No new status framework or API redesign is required.
+
+1. Preserve the verified typed insert-failure result, safe categories, valid LIVE feed, recovery, benign replay/throttle and atomic overlap.
+2. For the exact one-shot post-insert prune-query fault, retain an honest diagnostic, but do **not** tell the user that the current frame was not saved when it is present in both storage and the returned trail.
+3. Add that single fault to the existing finite harness and an appropriate SSR/text fixture using the existing layer. Assert the actual stored/trail result and the corrected warning together; state which render layer ran. Keep the ordinary insert-failure warning and healthy warning-absence controls.
+4. Update the concise change note, source/fixture receipt bindings and package/evidence hashes. C07 corrupt-newest recovery and broader conflict presentation remain deferred. No broad all-database exception redesign, new polling, dependency rebuild, provider call or deployment is needed.
+
+**Finite C06-R1 acceptance:** S01–S05 and safe classification remain passing; post-insert maintenance failure keeps the valid live frame and committed trail visible with an accurate persistence warning; actual insert failure still gets a useful warning; a later benign response updates the display from current response data. Keep the closed ten persistence controls and unchanged 53-case migration evidence. No need to change the documented admission-versus-retention semantics simply to clear this warning issue.
+
+### Runnable current-source proof
+
+Save this fence as `prove-c06.mjs`, including the final blank line. SHA-256 **`5bf3dbae8791b2c2b1bb6fb8aa86a59b53ed19eda32f3443f2c466436fb7f9c5`**. Uses installed Node built-ins and in-memory SQLite; installs nothing. The source extractor skips comments, erases only the listed type forms, and executes the actual function bodies. The facade maps SQLite changes to the declared libSQL rowsAffected surface; this substitution is explicit.
+
+```sh
+mkdir -p c06-source c06-results
+git archive a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2 implementation | tar -x -C c06-source
+node prove-c06.mjs c06-source c06-results
+# Expected exit 1: six assertion groups pass, one warning-accuracy issue fails,
+# and one admission-versus-retention observation is non-blocking.
+# S01-S05 are five groups; safe-reasons contains four classified fault probes.
+```
+
+The proof writes `c06-review-results.json` with exact source/helper hashes and raw outcomes. It never fills a disk or uses production storage. Future stage-specific designs should be checked against the acceptance facts above; the historical witness is not a ban on reporting whole-step failure after a commit.
+
+```javascript
+// Source-slice proof, Node built-ins + disposable SQLite. No Bun/Drizzle/platform integration claim.
+import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';import crypto from 'node:crypto';import{DatabaseSync}from'node:sqlite';
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),base=path.join(root,'implementation/dashboard-streaming');
+fs.mkdirSync(out,{recursive:true});const read=p=>fs.readFileSync(path.join(base,p),'utf8'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const source=read('server/src/actions.ts'),schemaText=read('server/src/schema.ts'),ddl=read('drizzle/0002_snapshots_table.sql'),migration=read('drizzle/0003_snapshot_instant.sql');
+function takeFunction(name){const m=new RegExp('^(?:async )?function '+name+'\\(','m').exec(source);if(!m)throw Error(name);const begin=m.index,open=name==='fetchFeed'?source.indexOf('> {',begin)+2:source.indexOf('{',begin);return takeBody(begin,open);}
+function takeBody(begin,open){let depth=0,q=null,escape=false,line=false,comment=false;for(let i=open;i<source.length;i++){const c=source[i],n=source[i+1];if(line){if(c==='\n')line=false;continue;}if(comment){if(c==='*'&&n==='/'){comment=false;i++;}continue;}if(q){if(escape)escape=false;else if(c==='\\')escape=true;else if(c===q)q=null;continue;}if(c==='/'&&n==='/'){line=true;i++;continue;}if(c==='/'&&n==='*'){comment=true;i++;continue;}if(c==='"'||c==="'"||c==='\x60'){q=c;continue;}if(c==='{')depth++;if(c==='}'&&--depth===0)return source.slice(begin,i+1);}throw Error('unclosed source');}
+const pure=source.slice(source.indexOf('// === ADOPT-F1 PURE HELPERS'),source.indexOf('// === END ADOPT-F1 PURE HELPERS ==='));
+const extra=['mapActivity','normalize','fetchFeed'].map(takeFunction).join('\n');
+const persistence=source.slice(source.indexOf('const MIN_SNAPSHOT_GAP_MS'),source.indexOf('// Actions\n')-81);
+const persistBegin=source.indexOf('async function maybePersistSnapshot'),persistOpen=source.indexOf('{',persistBegin);
+const loadBegin=source.indexOf('async function loadTrailAndLatest'),loadOpen=source.indexOf('}> {',loadBegin)+3;
+const pieces=source.slice(source.indexOf('const MIN_SNAPSHOT_GAP_MS'),persistBegin)+takeBody(persistBegin,persistOpen)+'\n'+takeBody(loadBegin,loadOpen);
+const handlerBegin=source.indexOf('async handler(ctx): Promise<GetLiveResponse> {'),handlerOpen=source.indexOf('{',handlerBegin);
+const handler=takeBody(handlerBegin,handlerOpen).replace('async handler(ctx): Promise<GetLiveResponse>', 'async function getLive(ctx)');
+function erase(s){return s
+.replace(/: PersistenceOutcome\["reason"\]/g,'').replace(/: PersistenceOutcome;/g,';').replace(/ as \{ code\?: unknown \} \| null/g,'').replace(/ as \{ rowsAffected\?: number \} \| undefined/g,'')
+.replace(/async function maybePersistSnapshot\([\s\S]*?\): Promise<PersistenceOutcome> \{/,'async function maybePersistSnapshot(ctx,payload,rawJson) {')
+.replace(/async function loadTrailAndLatest\([\s\S]*?\}> \{/,'async function loadTrailAndLatest(ctx) {')
+.replace(/ctx\.db<typeof schema>\(\)/g,'ctx.db()')
+.replace(/ as Record<\s*string,\s*unknown\s*>/g,'')
+.replace(/async function fetchFeed\(\): Promise<[\s\S]*?> \{/,'async function fetchFeed() {')
+.replace(/: LivePayload\["hedgeBuckets"\]/g,'').replace(/: LivePayload \| null/g,'')
+.replace(/function strikeCoverage\([\s\S]*?\n\): \{[^\n]*\} \{/,'function strikeCoverage(rows) {')
+.replace(/: Record<string, unknown>/g,'').replace(/ as Record<string, unknown>/g,'')
+.replace(/: z\.infer<typeof (?:strikeGex|activityRow)>\[\]/g,'')
+.replace(/: [mc] is string/g,'')
+.replace(/: unknown/g,'').replace(/: number \| null/g,'').replace(/: string \| null/g,'').replace(/: (?:boolean|number|string)\b/g,'');}
+const NOW=Date.parse('2026-10-17T20:55:00Z');class FixedDate extends Date{constructor(...a){super(...(a.length?a:[NOW]));}static now(){return NOW;}}
+const columns=Object.fromEntries([...schemaText.slice(schemaText.indexOf('export const snapshots')).matchAll(/(\w+): (?:integer|real|text)\("([^"]+)"/g)].map(m=>[m[1],m[2]]));
+const schema={snapshots:columns},dbs=[];let fetchPlan=null,stubCalls=0;
+function makeDb(legacy=[]){const sql=new DatabaseSync(':memory:');sql.exec(ddl);dbs.push(sql);for(const r of legacy)sql.prepare('INSERT INTO snapshots(updated_at,spot,payload_json,created_at) VALUES(?,?,?,?)').run(r.updatedAt,r.spot,JSON.stringify(r.raw),NOW);sql.exec(migration);
+class Query{constructor(selected){this.selected=selected;this.order=[];this.queryId=++api.selectCount;this.predicate=null;this.n=null;}from(t){if(t!==columns)throw Error('table mismatch');return this;}where(p){this.predicate=p;return this;}orderBy(...o){this.order=o;return this;}limit(n){this.n=n;return this;}then(resolve,reject){try{if(api.failSelectOnce===this.queryId){api.failSelectOnce=null;throw Object.assign(new Error('REVIEW_PRUNE_QUERY_FAILURE'),{code:'SQLITE_BUSY'});}const select=this.selected?Object.entries(this.selected).map(([k,v])=>v+' AS "'+k+'"').join(','):Object.entries(columns).map(([k,v])=>v+' AS "'+k+'"').join(',');const q='SELECT '+select+' FROM snapshots'+(this.predicate?' WHERE '+this.predicate.sql:'')+(this.order.length?' ORDER BY '+this.order.map(o=>o.column+' '+o.dir).join(','):'')+(this.n!==null?' LIMIT '+this.n:'');return Promise.resolve(sql.prepare(q).all(...(this.predicate?.params??[])).map(r=>({...r}))).then(resolve,reject);}catch(e){return Promise.reject(e).then(resolve,reject);}}}
+const api={sql,fault:null,selectCount:0,failSelectOnce:null,select:s=>new Query(s),insert:t=>({values:async v=>{if(api.fault){const e=api.fault;api.fault=null;throw e;}const row={...v,createdAt:NOW},keys=Object.keys(row);const result=sql.prepare('INSERT INTO snapshots ('+keys.map(k=>columns[k]).join(',')+') VALUES ('+keys.map(()=>'?').join(',')+')').run(...keys.map(k=>row[k]??null));return{rowsAffected:Number(result.changes)};}}),delete:t=>({where:async c=>sql.prepare('DELETE FROM snapshots WHERE '+c.sql).run(...c.params)})};return api;}
+const compare=(column,op,value)=>({sql:column+' '+op+' ?',params:[value]});const logic=(op,items)=>({sql:'('+items.map(p=>p.sql).join(' '+op+' ')+')',params:items.flatMap(p=>p.params)});
+const sandbox={Date:FixedDate,Number,Array,Object,Math,JSON,Error,AbortSignal,schema,asc:column=>({column,dir:'ASC'}),desc:column=>({column,dir:'DESC'}),eq:(c,v)=>compare(c,'=',v),lt:(c,v)=>compare(c,'<',v),isNull:c=>({sql:c+' IS NULL',params:[]}),isNotNull:c=>({sql:c+' IS NOT NULL',params:[]}),and:(...p)=>logic('AND',p),or:(...p)=>logic('OR',p),FEED_URLS:['https://offline.invalid/a','https://offline.invalid/b'],fetch:async()=>{stubCalls++;return fetchPlan===null?{ok:false,status:503}:{ok:true,status:200,json:async()=>structuredClone(fetchPlan)};}};
+vm.createContext(sandbox);const transformed=erase(pure+'\n'+extra+'\n'+pieces+'\n'+handler);fs.writeFileSync(path.join(out,'type-erased-slices.js'),transformed+'\n');vm.runInContext(transformed+'\nthis.api={normalize,maybePersistSnapshot,loadTrailAndLatest,getLive};',sandbox);
+const A=sandbox.api,ctx=db=>({db:()=>db}),rows=db=>db.sql.prepare('SELECT id,updated_at,instant_ms,spot,payload_json FROM snapshots ORDER BY id').all().map(r=>({...r})),time=n=>new Date(Date.parse('2026-10-16T23:30:00Z')+n*1000).toISOString();
+const original=JSON.parse(fs.readFileSync(path.join(root,'implementation/fixtures/feed_all_success.json'),'utf8'));
+function frame(t,spot=500){const f=structuredClone(original);f.updated_at=t;f.quote_as_of=t;f.spot=spot;f.market_open=true;f.gamma.net_gex_m=0;f.gamma.gamma_flip=null;f.gamma.by_strike=[{strike:500,net_gex_m:0},{strike:505,net_gex_m:null}];return f;}
+async function live(db,f){fetchPlan=f;return A.getLive(ctx(db));}
+const checks=[];function record(id,pass,observed,meaning){checks.push({id,pass:!!pass,observed,meaning});}
+const setFault=d=>d.sql.exec("CREATE TRIGGER review_insert_fault BEFORE INSERT ON snapshots BEGIN SELECT RAISE(ABORT, 'REVIEW_INJECTED_STORAGE_FAILURE'); END");
+try{
+{const d=makeDb();setFault(d);const r=await live(d,frame(time(0),500));record('S01',r.ok===true&&r.persistence.outcome==='failed'&&r.persistence.reason==='storage-unavailable'&&rows(d).length===0,{ok:r.ok,persistence:r.persistence,rows:rows(d).length,trail:r.trail.length},'insert failure is explicit, live feed stays valid');}
+{const d=makeDb();const first=await live(d,frame(time(0),500));setFault(d);const r=await live(d,frame(time(60),501));record('S02',first.persistence.outcome==='saved'&&r.ok===true&&r.live.spot===501&&r.persistence.outcome==='failed'&&rows(d).length===1&&r.trail.at(-1).updatedAt===time(0),{first:first.persistence,failed:r.persistence,ok:r.ok,liveSpot:r.live.spot,rows:rows(d).length,trailAt:r.trail.at(-1).updatedAt},'last-good rows retained while new live frame reports failed saving');d.sql.exec('DROP TRIGGER review_insert_fault');const recovered=await live(d,frame(time(60),501)),replay=await live(d,frame(time(60),501));record('S03',recovered.persistence.outcome==='saved'&&replay.persistence.outcome==='already-saved'&&rows(d).length===2,{recovered:recovered.persistence,replay:replay.persistence,rows:rows(d).length},'same-frame recovery saves once and benign replay is explicit');}
+{const d=makeDb();await live(d,frame(time(0)));const r=await live(d,frame(time(30)));const pair=makeDb(),a=frame(time(0),500),b=frame('2026-10-17T01:30:00+02:00',999);const outcomes=await Promise.all([A.maybePersistSnapshot(ctx(pair),A.normalize(a),JSON.stringify(a)),A.maybePersistSnapshot(ctx(pair),A.normalize(b),JSON.stringify(b))]);record('S04',r.persistence.outcome==='throttled'&&outcomes.map(x=>x.outcome).sort().join(',')==='already-saved,saved'&&rows(pair).length===1,{throttled:r.persistence,pair:outcomes,rows:rows(pair).length},'throttle and atomic overlap are benign');}
+{const d=makeDb(),r=await live(d,null);record('S05',r.ok===false&&r.persistence.outcome==='no-attempt'&&r.persistence.reason===null,{ok:r.ok,persistence:r.persistence},'feed-down carries no-attempt');}
+{const statuses=[];for(const [code,expected]of[['SQLITE_FULL','storage-full'],['SQLITE_BUSY','storage-busy'],['SQLITE_READONLY','storage-read-only'],['UNKNOWN_REVIEW_ERROR','storage-unavailable']]){const d=makeDb();d.fault=Object.assign(new Error('synthetic private path /review/private.db; SQL INSERT; '+code),{code});const r=await live(d,frame(time(0)));statuses.push({code,expected,actual:r.persistence,rawDetailsExposed:JSON.stringify(r).includes('/review/private.db')});}record('safe-reasons',statuses.every(x=>x.actual.outcome==='failed'&&x.actual.reason===x.expected&&!x.rawDetailsExposed),statuses,'safe reason mapping does not expose synthetic raw details');}
+{const d=makeDb();await live(d,frame(time(0),500));d.failSelectOnce=d.selectCount+3;const r=await live(d,frame(time(60),501)),committed=rows(d).some(x=>x.updated_at===time(60));record('post-insert-prune-failure',!(r.persistence.outcome==='failed'&&committed&&read('client/src/App.tsx').includes('snapshots aren’t being stored')),{ok:r.ok,persistence:r.persistence,rows:rows(d).length,currentFrameStored:committed,trailContainsCurrent:r.trail.some(x=>x.updatedAt===time(60)),warningCondition:r.persistence.outcome==='failed',warningSourceText:'snapshots aren’t being stored right now'},'FAIL means generic failed UI claims saving unavailable although insert already committed');}
+{const d=makeDb(),t0=Date.parse('2026-10-16T00:00:00Z'),ts=i=>new Date(t0+i*46000).toISOString();for(let i=0;i<1500;i++)await live(d,frame(ts(i)));const r=await live(d,frame(ts(-1)));record('post-insert-not-retained',r.persistence.outcome==='saved'&&!rows(d).some(x=>x.updated_at===ts(-1))&&rows(d).length===1500,{ok:r.ok,persistence:r.persistence,currentFrameStored:rows(d).some(x=>x.updated_at===ts(-1)),rows:rows(d).length},'OBSERVED: saved is insert admission only; chronological retention remains correct');checks.at(-1).classification='OBSERVED';}
+}finally{for(const d of dbs)d.close();}
+const receipt={source:'a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2',runtime:process.version,sourceSha256:sha(source),migrationSha256:sha(migration),helperSha256:sha(fs.readFileSync(new URL(import.meta.url))),mode:'exact source functions/type erasure; Node SQLite exact DDL/trigger; query facade matching libSQL rowsAffected; feed stub; one-shot controlled faults',nativeProviderRequests:0,fullOwnerBunLibsql:'UNRUN locally',checks,pass:checks.filter(x=>x.pass&&x.classification!=='OBSERVED').length,fail:checks.filter(x=>!x.pass).length,observations:checks.filter(x=>x.classification==='OBSERVED').length};
+fs.writeFileSync(path.join(out,'c06-review-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt,null,2));process.exitCode=checks.some(x=>!x.pass)?1:0;
+
+```
+
+### Next response and limits
+
+Muse owns the narrow C06-R1 warning completion now, independently of Hermes. Watch substantive corrected source/evidence **after `a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2`** on `implementation/0dte-source-20261015`. Do not redo C1-R1 or duplicate the active handoff. C06's main insert-failure behavior stays verified while this reporting completion remains open.
+
+The one existing draft PR/folder remains the handoff; the persistent webhook is enabled/unchanged. Full owner Bun/libSQL/SDK execution, new local SSR/React/browser rendering, hosted persistence and frontend deployment/source linkage remain UNRUN/unestablished by this review. No app merge/deploy, live provider call, credentials, live trading, interpreter/production DB/runtime operation, mini24 access, host switch, Hermes operation or automation change occurred.
 
 
 ## 2026-10-18 — 3ed17869 C1-R1 verified and CLOSED; next C06 storage-error visibility
