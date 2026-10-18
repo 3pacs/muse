@@ -13,16 +13,16 @@
     "typescript": "5.6.3"
   },
   "fileHashes": {
-    "server/src/actions.ts": "592c8c29652f9d1db1846003f41e6d154d67b7063545f993fc22c16ad4d62dfe",
+    "server/src/actions.ts": "59f825f187f26c9cacaf87378bfdf57052bfe322ae85617be0a2cb3fe37c72dd",
     "server/src/schema.ts": "35088a869346468b91f18e0edb6726bec2f870fefdd5f8e2fc1c47a546cb71c8",
     "drizzle/0002_snapshots_table.sql": "c8cc1f77d28ab53a61b81ee354b3ccf0584c639ce4b9a6ad2060ad49f39a0791",
-    "drizzle/0003_snapshot_instant.sql": "b7056d1725eb010dce0b8e4c2be05c25dac18245e6167c21573e8b795f82d63b",
-    "offline/snapshot-audit-r1-entry.ts": "3a9958232df828c89ad41e87d28888602231192c15484328940454650effd715",
+    "drizzle/0003_snapshot_instant.sql": "f0f73744e7cc074a83dfcb9a1513d0e20d6ac19ad88be24d34eff090ae526b2f",
+    "offline/snapshot-audit-r1-entry.ts": "9708f3425c30433b176b5671237f83051de2f8d3e2389041088196c9e42188aa",
     "offline/snapshot-audit-r1.mjs": "f5c10b4308493efec07756e29baa026d889dd10d59fe5b0bad279d53eda4664e"
   },
   "summary": {
-    "cases": 9,
-    "pass": 9,
+    "cases": 14,
+    "pass": 14,
     "fail": 0
   },
   "cases": [
@@ -134,6 +134,61 @@
           3
         ],
         "emptyOk": false
+      }
+    },
+    {
+      "id": "R09",
+      "expectation": "0003 backfill key == application parser key for all 35 spelling shapes; inadmissible clocks stay NULL (compact +0200 and .0005Z both key to 1792193400000; naive stays unkeyed)",
+      "verdict": "PASS",
+      "observed": {
+        "spellings": 35,
+        "mismatches": []
+      }
+    },
+    {
+      "id": "R10",
+      "expectation": "legacy compact-offset and sub-millisecond rows backfill to the admitted instant; equivalent Z replay retains ONE observation with the original payload",
+      "verdict": "PASS",
+      "observed": {
+        "compactOffset": {
+          "rows": 1,
+          "storedSpot": 500
+        },
+        "submillisecond": {
+          "rows": 1,
+          "storedSpot": 500
+        }
+      }
+    },
+    {
+      "id": "R11",
+      "expectation": "naive legacy row backfills NULL, is excluded from trail/latest, and the valid frame remains the fallback",
+      "verdict": "PASS",
+      "observed": {
+        "naiveKey": "row-missing",
+        "staleSnapshotAt": "2026-10-16T22:30:00Z",
+        "trail": [
+          "2026-10-16T22:30:00Z"
+        ]
+      }
+    },
+    {
+      "id": "R12",
+      "expectation": "unkeyed-only storage: staleSnapshot null, staleSnapshotAt null, trail empty — no untrusted newest is advertised",
+      "verdict": "PASS",
+      "observed": {
+        "staleSnapshotAt": null,
+        "stalePresent": false,
+        "trailLength": 0
+      }
+    },
+    {
+      "id": "R13",
+      "expectation": "overlapping Z and +02:00 writes of one instant leave exactly 1 row; stored payload is one whole frame (no hybrid)",
+      "verdict": "PASS",
+      "observed": {
+        "rowCount": 1,
+        "storedSpot": 500
       }
     }
   ]

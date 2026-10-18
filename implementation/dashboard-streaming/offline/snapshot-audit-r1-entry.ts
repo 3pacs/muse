@@ -397,6 +397,169 @@ let ascendingInstants = null;
   );
 }
 
+// --- Completion round 2: the reviewer's five remaining properties ---
+// The application admission parser, mirrored here to generate expected
+// keys independently of the SQL under test (same regex + Date.parse
+// semantics as server/src/actions.ts parseAwareInstant).
+const AWARE_TS_RE =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/;
+function appKey(v) {
+  if (typeof v !== "string" || !AWARE_TS_RE.test(v)) return null;
+  const ms = Date.parse(v);
+  return Number.isFinite(ms) ? ms : null;
+}
+async function seedLegacy(client, updatedAt, spot, payloadOverride) {
+  await client.execute({
+    sql: "INSERT INTO snapshots (updated_at, spot, payload_json, created_at) VALUES (?, ?, ?, ?)",
+    args: [
+      updatedAt,
+      spot,
+      payloadOverride ?? JSON.stringify(frameAt(updatedAt, spot)),
+      1792000000000,
+    ],
+  });
+}
+
+// R09 — migration backfill equivalence battery: for every spelling
+// shape, the 0003 backfill key equals the application parser's key
+// (or both reject). Includes the reviewer's three witnesses.
+{
+  const SPELLINGS = [
+    "2026-10-16T23:30:00.000Z", "2026-10-16T23:30:00Z", "2026-10-16T23:30Z",
+    "2026-10-16T23:30:00.250Z", "2026-10-16T23:30:00.0005Z", "2026-10-16T23:30:00.2505Z",
+    "2026-10-16T23:30:00.5Z", "2026-10-16T23:30:00.9999Z", "2026-10-16T23:30:00.000000001Z",
+    "2026-10-17T01:30:00+02:00", "2026-10-17T01:30+02:00", "2026-10-17T01:30:00.5+02:00",
+    "2026-10-17T01:30:00+0200", "2026-10-17T01:30+0200", "2026-10-17T01:30:00.250+0200",
+    "2026-10-16T18:30:00-05:00", "2026-10-16T18:30:00-0500", "2026-10-16T23:30:00-00:00",
+    "2026-10-17T01:30:00", "2026-10-16T23:30:00.5", "2026-10-16 23:30:00Z",
+    "2026-10-16T23:30:00+02:0a", "2026-13-16T23:30:00Z", "unparseable",
+    "2026-10-16T23:30:00.5+02:00", "2026-10-17T01:30:00.0005+02:00",
+    "2026-10-16T24:30:00Z", "2026-10-16T23:60:00Z", "2026-10-16T23:30:00+24:00",
+    "2026-10-16T23:30:00.5+0200", "2026-02-30T23:30:00Z", "2026-10-16T23:30:60Z",
+    "2026-10-16T23:30:00+23:59", "2026-10-16T23:30:00+02:60", "2026-10-16T00:00:00+00:00",
+  ];
+  const legacy = await createLegacyDb();
+  for (const s of SPELLINGS) await seedLegacy(legacy.client, s, 500);
+  await applyDdl(legacy.client, DDL_0003);
+  const rows = await storedRows(legacy.client);
+  const mismatches = rows
+    .map((r) => ({ spelling: r.updated_at, app: appKey(r.updated_at), sql: r.instant_ms }))
+    .filter((m) => m.app !== m.sql);
+  record(
+    "R09",
+    "0003 backfill key == application parser key for all 35 spelling shapes; inadmissible clocks stay NULL (compact +0200 and .0005Z both key to 1792193400000; naive stays unkeyed)",
+    mismatches.length === 0 &&
+      rows.find((r) => r.updated_at === "2026-10-17T01:30:00+0200")?.instant_ms === 1792193400000 &&
+      rows.find((r) => r.updated_at === "2026-10-16T23:30:00.0005Z")?.instant_ms === 1792193400000 &&
+      rows.find((r) => r.updated_at === "2026-10-17T01:30:00")?.instant_ms === null,
+    { spellings: SPELLINGS.length, mismatches },
+  );
+}
+
+// R10 — admitted legacy spellings dedupe equivalent replays after
+// migration (the reviewer's two duplicate witnesses, closed).
+{
+  let ok = true;
+  const detail = {};
+  for (const [name, spelling] of [
+    ["compactOffset", "2026-10-17T01:30:00+0200"],
+    ["submillisecond", "2026-10-16T23:30:00.0005Z"],
+  ]) {
+    const legacy = await createLegacyDb();
+    await seedLegacy(legacy.client, spelling, 500);
+    await applyDdl(legacy.client, DDL_0003);
+    await live(legacy.ctx, frameAt(iso(0), 999)); // equivalent instant, Z spelling
+    const rows = await storedRows(legacy.client);
+    detail[name] = { rows: rows.length, storedSpot: rows[0]?.spot ?? null };
+    if (!(rows.length === 1 && rows[0].spot === 500)) ok = false;
+  }
+  record(
+    "R10",
+    "legacy compact-offset and sub-millisecond rows backfill to the admitted instant; equivalent Z replay retains ONE observation with the original payload",
+    ok,
+    detail,
+  );
+}
+
+// R11 — a timezone-less legacy row stays untrusted and cannot outrank
+// or suppress a valid older frame.
+{
+  const legacy = await createLegacyDb();
+  const validAt = "2026-10-16T22:30:00Z"; // BASE - 3600s
+  await seedLegacy(legacy.client, validAt, 499);
+  // Naive column timestamp (later wall-clock than the valid frame),
+  // carrying an otherwise valid payload.
+  await seedLegacy(
+    legacy.client,
+    "2026-10-17T01:30:00",
+    999,
+    JSON.stringify(frameAt("2026-10-16T23:30:00.000Z", 999)),
+  );
+  await applyDdl(legacy.client, DDL_0003);
+  const rows = await storedRows(legacy.client);
+  const down = await live(legacy.ctx, null);
+  record(
+    "R11",
+    "naive legacy row backfills NULL, is excluded from trail/latest, and the valid frame remains the fallback",
+    rows.find((r) => r.updated_at === "2026-10-17T01:30:00")?.instant_ms === null &&
+      down.staleSnapshotAt === validAt &&
+      down.staleSnapshot.spot === 499 &&
+      down.trail.length === 1 &&
+      down.trail[0].updatedAt === validAt,
+    {
+      naiveKey: rows.find((r) => r.updated_at === "2026-10-17T01:30:00")?.instant_ms ?? "row-missing",
+      staleSnapshotAt: down.staleSnapshotAt,
+      trail: down.trail.map((t) => t.updatedAt),
+    },
+  );
+}
+
+// R12 — unkeyed-only storage advertises no accepted identity at all
+// (the reviewer's corrupt-metadata witness: updated_at 'unparseable'
+// with an otherwise valid payload).
+{
+  const legacy = await createLegacyDb();
+  await seedLegacy(
+    legacy.client,
+    "unparseable",
+    500,
+    JSON.stringify(frameAt("2026-10-16T23:30:00.000Z", 500)),
+  );
+  await applyDdl(legacy.client, DDL_0003);
+  const down = await live(legacy.ctx, null);
+  record(
+    "R12",
+    "unkeyed-only storage: staleSnapshot null, staleSnapshotAt null, trail empty — no untrusted newest is advertised",
+    down.staleSnapshot === null && down.staleSnapshotAt === null && down.trail.length === 0,
+    {
+      staleSnapshotAt: down.staleSnapshotAt,
+      stalePresent: down.staleSnapshot !== null,
+      trailLength: down.trail.length,
+    },
+  );
+}
+
+// R13 — two overlapping equivalent-spelling writes admit exactly one
+// observation (atomic storage-level dedupe, not check-then-insert).
+{
+  const { client, ctx } = await createDb();
+  const [r1, r2] = await Promise.all([
+    live(ctx, frameAt(iso(0), 500)),
+    live(ctx, frameAt(OFF, 999)),
+  ]);
+  const rows = await storedRows(client);
+  record(
+    "R13",
+    "overlapping Z and +02:00 writes of one instant leave exactly 1 row; stored payload is one whole frame (no hybrid)",
+    rows.length === 1 &&
+      (rows[0].spot === 500 || rows[0].spot === 999) &&
+      JSON.parse(rows[0].payload_json).spot === rows[0].spot &&
+      r1.ok === true &&
+      r2.ok === true,
+    { rowCount: rows.length, storedSpot: rows[0]?.spot ?? null },
+  );
+}
+
 import { writeFileSync } from "node:fs";
 const outDir = process.argv[2];
 if (outDir) {
