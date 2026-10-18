@@ -321,6 +321,36 @@ browser cases pass with fresh reports (HTML changes only by
 the embedded persistence field; screenshots rebound to the
 retained PNGs). Backend suites re-run unchanged: compile
 12/12, watcher 0 failures, J1 50/50 + 27/27 + 27/27.
+
+**ADOPT-C06-R1 — accurate post-insert maintenance warning**
+(change note `ADOPT-C06-R1.md`), on the verified C06 pin
+`a034ec1e`. Product change is wording only, in
+`client/src/App.tsx`: the failed-outcome warning now reads
+"Snapshot saving problem — the latest saving step didn't
+finish (storage …). The live feed is unaffected." — true both
+for an insert failure and for a post-insert prune failure
+(under the old text the App claimed snapshots weren't being
+stored even when the frame had committed). `actions.ts`
+byte-identical to the C06 pin. The C06 harness gains **S06**
+(one-shot prune-enumeration SELECT failure after the insert
+commits — injected at the db facade by counted select, coded
+SQLITE_BUSY, disclosed in the entry header): **6/6 PASS** —
+S06 asserts ok:true + live frame, persistence failed /
+storage-busy, 2 stored rows including the current frame,
+the returned trail including the current frame, and the
+corrected warning text together. SSR layer gains a
+`storage-maintenance` preview case (preview.ts
+`OFFLINE_PRUNE_FAIL=1`): LIVE beside the corrected warning,
+payload trail contains the frame; the insert-failure
+`storage-warning` case (retained HTML changed by exactly the
+warning sentence) and the healthy warning-absence control
+are kept. C1-R1 harness re-run: 14/14 PASS. BUILD-MANIFEST
+33 inputs / 50 outputs. Browser lane re-run: 9/9 cases +
+7/7 controls, failures none; case HTML/responses
+byte-identical (only the hash-recorded app.js changed),
+screenshots rebound to the retained PNGs, 38/38 available
+outputs verify. Backend re-run unchanged: compile 12/12,
+watcher 0 failures, J1 50/50 + 27/27.
 Backend suites below were re-run unchanged at the ADOPT-B2 candidate
 as well: compile 12/12, watcher 0 failures, J1 50/50 + 27/27,
 boundary tests 51/51. Re-run unchanged again at the ADOPT-B2-R1
