@@ -569,7 +569,11 @@ const MAX_SNAPSHOTS = 1500;
 // Ties between stored rows (legacy same-instant rows only) resolve
 // deterministically by row id: the highest id is "newest", trail
 // order is (instant, id) ascending. Legacy rows with instant_ms NULL
-// (unparseable timestamp) are never the newest and prune first.
+// (unparseable timestamp) are excluded from latest/trail selection
+// and prune first. Admission is atomic at the storage layer: the
+// snapshots_unique_instant trigger (migration 0003) ignores an
+// insert whose instant is already stored, so overlapping writes of
+// one instant cannot both land even when both pass the checks below.
 async function maybePersistSnapshot(
   ctx: Ctx,
   payload: LivePayload,
@@ -678,6 +682,10 @@ async function loadTrailAndLatest(
     .from(schema.snapshots)
     // Chronological key (ADOPT-C1-R1): newest 240 by (instant, id),
     // reversed below into ascending instant order for the trail.
+    // Unkeyed rows (instant_ms NULL — inadmissible legacy clocks) are
+    // EXCLUDED from accepted observations, never merely sorted last:
+    // unkeyed-only storage yields an empty trail and no fallback.
+    .where(isNotNull(schema.snapshots.instantMs))
     .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id))
     .limit(240);
   const trail = rows
@@ -700,7 +708,9 @@ async function loadTrailAndLatest(
     })
     .from(schema.snapshots)
     // Newest = greatest validated instant; ties (legacy same-instant
-    // rows) resolve to the highest id, deterministically.
+    // rows) resolve to the highest id, deterministically. Unkeyed
+    // rows are excluded (see the trail query above).
+    .where(isNotNull(schema.snapshots.instantMs))
     .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id))
     .limit(1);
   let staleSnapshot: LivePayload | null = null;
