@@ -1,0 +1,140 @@
+{
+  "assignment": "ADOPT-C1-R1",
+  "base": "ADOPT-C1 audit pin 2eb8159deac1061da12af58540c14757be11bbf5",
+  "mode": "real getLive handler + real schema + verbatim 0002/0003 DDL on drizzle-orm/libsql in-memory storage; SDK adapter + fetch stub substitutions as disclosed in the entry header",
+  "runtime": {
+    "bun": "1.4.2",
+    "node": "v24.20.0"
+  },
+  "dependencyVersions": {
+    "drizzle-orm": "0.45.2",
+    "@libsql/client": "0.14.0",
+    "zod": "4.4.3",
+    "typescript": "5.6.3"
+  },
+  "fileHashes": {
+    "server/src/actions.ts": "592c8c29652f9d1db1846003f41e6d154d67b7063545f993fc22c16ad4d62dfe",
+    "server/src/schema.ts": "35088a869346468b91f18e0edb6726bec2f870fefdd5f8e2fc1c47a546cb71c8",
+    "drizzle/0002_snapshots_table.sql": "c8cc1f77d28ab53a61b81ee354b3ccf0584c639ce4b9a6ad2060ad49f39a0791",
+    "drizzle/0003_snapshot_instant.sql": "b7056d1725eb010dce0b8e4c2be05c25dac18245e6167c21573e8b795f82d63b",
+    "offline/snapshot-audit-r1-entry.ts": "3a9958232df828c89ad41e87d28888602231192c15484328940454650effd715",
+    "offline/snapshot-audit-r1.mjs": "f5c10b4308493efec07756e29baa026d889dd10d59fe5b0bad279d53eda4664e"
+  },
+  "summary": {
+    "cases": 9,
+    "pass": 9,
+    "fail": 0
+  },
+  "cases": [
+    {
+      "id": "R01",
+      "expectation": "equivalent spellings dedupe by instant even after a newer frame; 2 rows; fallback is the newer frame",
+      "verdict": "PASS",
+      "observed": {
+        "rowCount": 2,
+        "storedSpellings": [
+          "2026-10-16T23:30:00.000Z",
+          "2026-10-16T23:31:00.000Z"
+        ],
+        "staleSnapshotAt": "2026-10-16T23:31:00.000Z",
+        "staleSpot": 700.2
+      }
+    },
+    {
+      "id": "R02",
+      "expectation": "order follows parsed instants across spellings/dates; original spellings remain stored",
+      "verdict": "PASS",
+      "observed": {
+        "trail": [
+          "2026-10-16T18:58:00-05:00",
+          "2026-10-17T02:00:30+02:00",
+          "2026-10-17T00:02:00Z"
+        ],
+        "staleSnapshotAt": "2026-10-17T00:02:00Z"
+      }
+    },
+    {
+      "id": "R03",
+      "expectation": "one row per instant; first stored payload wins in any spelling; no hybrid",
+      "verdict": "PASS",
+      "observed": {
+        "rowCountAfterConflict": 1,
+        "storedSpot": 500,
+        "fallbackSpot": 500,
+        "rowCountAfterNewer": 2
+      }
+    },
+    {
+      "id": "R04a",
+      "expectation": "0003 is additive: rows/payloads/spellings untouched, instants backfilled; legacy instant dedupes new deliveries",
+      "verdict": "PASS",
+      "observed": {
+        "rowsAfterMigration": 3,
+        "backfilled": [
+          1792189800000,
+          1792193400000,
+          1792193400000
+        ],
+        "rowsAfterLegacyReplay": 3,
+        "rowsAfterNewFrame": 4,
+        "legacySeedBefore": "n/a (no instant_ms column pre-migration)"
+      }
+    },
+    {
+      "id": "R04b",
+      "expectation": "same-instant legacy tie resolves deterministically to the highest id",
+      "verdict": "PASS",
+      "observed": {
+        "staleSnapshotAt": "2026-10-16T23:30:00.000Z",
+        "staleSpot": 505
+      }
+    },
+    {
+      "id": "R05",
+      "expectation": "ascending 1501 frames retain exactly the newest 1500 instants; trail 240; fallback newest",
+      "verdict": "PASS",
+      "observed": {
+        "retained": 1500,
+        "minInstant": "2026-10-16T00:00:46.000Z",
+        "maxInstant": "2026-10-16T19:10:00.000Z",
+        "staleSnapshotAt": "2026-10-16T19:10:00.000Z"
+      }
+    },
+    {
+      "id": "R06",
+      "expectation": "newest-first 1501 frames retain the SAME newest-1500 instant set as ascending; fallback is the newest input instant",
+      "verdict": "PASS",
+      "observed": {
+        "retained": 1500,
+        "setMatchesAscending": true,
+        "newestInput": "2026-10-16T19:10:00.000Z",
+        "staleSnapshotAt": "2026-10-16T19:10:00.000Z"
+      }
+    },
+    {
+      "id": "R07",
+      "expectation": "older arrival at capacity evicts nothing newer, does not survive pruning itself, fallback unregressed",
+      "verdict": "PASS",
+      "observed": {
+        "retained": 1500,
+        "minInstant": "2026-10-16T00:00:00.000Z",
+        "staleSnapshotAt": "2026-10-16T19:09:14.000Z"
+      }
+    },
+    {
+      "id": "R08",
+      "expectation": "exact replay dedupes; +44 skipped / +45 accepted vs latest persisted instant; 0 stays 0 and null stays null; empty storage honestly empty",
+      "verdict": "PASS",
+      "observed": {
+        "replayRows": 1,
+        "gapCounts": [
+          1,
+          1,
+          2,
+          3
+        ],
+        "emptyOk": false
+      }
+    }
+  ]
+}
