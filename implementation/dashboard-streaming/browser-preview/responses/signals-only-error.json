@@ -113,7 +113,11 @@
         "pinScore": 55,
         "netGexM": 1234.5
       }
-    ]
+    ],
+    "persistence": {
+      "outcome": "saved",
+      "reason": null
+    }
   },
   "getSignals": {
     "ok": false,

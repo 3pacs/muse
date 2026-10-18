@@ -12,7 +12,11 @@
     "live": null,
     "staleSnapshot": null,
     "staleSnapshotAt": null,
-    "trail": []
+    "trail": [],
+    "persistence": {
+      "outcome": "no-attempt",
+      "reason": null
+    }
   },
   "getSignals": {
     "ok": true,
