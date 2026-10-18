@@ -161,6 +161,11 @@
       "sha256": "c8cc1f77d28ab53a61b81ee354b3ccf0584c639ce4b9a6ad2060ad49f39a0791"
     },
     {
+      "path": "drizzle/0003_snapshot_instant.sql",
+      "bytes": 868,
+      "sha256": "b7056d1725eb010dce0b8e4c2be05c25dac18245e6167c21573e8b795f82d63b"
+    },
+    {
       "path": "offline/adapter/build.ts",
       "bytes": 1839,
       "sha256": "9fa6a2076b3d0ec0caa3364bb286011246eb77b12cee3c041caabc0f8c5534cd"
@@ -232,13 +237,13 @@
     },
     {
       "path": "server/src/actions.ts",
-      "bytes": 24318,
-      "sha256": "d6d8ccd134928e9b2e68219c1525105097f9a15d62696bd4df3eb6699a02e266"
+      "bytes": 27077,
+      "sha256": "592c8c29652f9d1db1846003f41e6d154d67b7063545f993fc22c16ad4d62dfe"
     },
     {
       "path": "server/src/schema.ts",
-      "bytes": 1231,
-      "sha256": "a6d397b4f9ed6651468a9535b3ba8cbba6cf687649d6cf717115c13d439802ca"
+      "bytes": 1819,
+      "sha256": "35088a869346468b91f18e0edb6726bec2f870fefdd5f8e2fc1c47a546cb71c8"
     },
     {
       "path": "server/tsconfig.json",
@@ -449,8 +454,8 @@
     },
     {
       "path": "server/actions.js",
-      "bytes": 181642,
-      "sha256": "f45b341ceba50c1eb9c20044c52624a9d9ec34b73e6fb9fba93ebeae4c0dcfdf"
+      "bytes": 183168,
+      "sha256": "135798207f65ec19f8e90f23469677951e6e26cee317816ee25d74904e5cb885"
     },
     {
       "path": "signals-only-error.html",

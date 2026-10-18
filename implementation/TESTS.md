@@ -235,6 +235,47 @@ Audit only — no application source changed. Change note
 `ADOPT-C1.md`. Preserved suites re-run unchanged at this
 candidate: boundary 51/51, compile 12/12, watcher 0 failures,
 J1 50/50 + 27/27.
+
+## ADOPT-C1-R1 addition (chronological snapshot identity fix)
+
+```
+node implementation/dashboard-streaming/offline/snapshot-audit-r1.mjs \
+  --deps <node_modules from this package's bun.lock> --out <dir> \
+  --receipt <receipt.json>
+→ REAL fixed getLive handler + REAL schema + verbatim 0002+0003
+  DDL on drizzle-orm/libsql (in-memory, disposable); same
+  substitutions as the C1 audit (SDK adapter, fetch stub). The
+  harness FAILS the run on any failed expectation. Committed
+  receipt: offline/snapshot-audit-r1-receipt.json. 9/9 PASS:
+  R01 — the C03 sequence now retains 2 observations for 2
+    instants; the offset spelling never becomes latest.
+  R02 — mixed offsets crossing a UTC date boundary order by
+    parsed instant; original spellings remain stored.
+  R03 — same-instant differing payload: first-stored wins, one
+    row, no hybrid (stated storage policy; C05 presentation
+    still deferred).
+  R04a/R04b — legacy rows under additive 0003: nothing deleted,
+    merged or rewritten; instants backfilled; new deliveries
+    dedupe against legacy instants; same-instant ties resolve
+    deterministically to the highest id.
+  R05 — ascending 1501 frames retain exactly the newest 1500
+    instants; trail 240; fallback newest.
+  R06 — newest-first 1501 frames retain the SAME newest-1500
+    instant set as ascending; fallback is the newest input.
+  R07 — an older arrival at capacity evicts nothing newer, is
+    itself pruned, and cannot regress the fallback.
+  R08 — controls: exact replay dedupes; +44 skipped / +45
+    accepted vs the latest persisted instant; genuine 0/null
+    preserved; empty storage honestly empty.
+Fix scope: C03 + C08 only (schema instant_ms column, migration
+0003, actions.ts persistence/load keys). C06/C07 untouched.
+Change note `ADOPT-C1-R1.md`. Evidence lanes re-run at this
+revision: SSR previews byte-identical (boundary 51/51; only the
+server bundle hash changes in BUILD-MANIFEST), browser cases
+byte-identical HTML/responses with fresh passing reports
+(BROWSER-MANIFEST inputs refreshed; screenshot entries bound
+to the retained PNGs). Backend suites re-run unchanged:
+compile 12/12, watcher 0 failures, J1 50/50 + 27/27 + 27/27.
 Backend suites below were re-run unchanged at the ADOPT-B2 candidate
 as well: compile 12/12, watcher 0 failures, J1 50/50 + 27/27,
 boundary tests 51/51. Re-run unchanged again at the ADOPT-B2-R1
