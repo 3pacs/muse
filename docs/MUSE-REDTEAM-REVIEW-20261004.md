@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: f5795c2c C1-R1 is in progress. Fresh sequential equivalent-instant dedupe, gap/zero/null and exact newest-1500 retention pass. Five legacy/atomic-admission properties fail in the independent source/SQLite proof. Next single action: Muse finishes C1-R1 validated-key backfill, unkeyed selection, atomic dedupe and package/receipt delivery; no approval wait or Hermes dependency. Existing browser packet internally clean; full Bun/libSQL/hosted execution UNRUN locally. No deployment/runtime promotion.**
+**Current status: 9f4f5312 package VERIFIED (145 files / 143 checksums; browser 37 inputs / 10 fixtures / 38 available outputs / 19 screenshot references). Application hashes unchanged from reviewed C1-R1 source: 5 fresh-data properties PASS / 5 compatibility-admission properties FAIL. Next action remains with Muse: finish validated backfill, unkeyed selection and atomic canonical dedupe. No approval/Hermes/dependency wait; packaging is no longer a blocker. Full Bun/libSQL/hosted execution UNRUN locally.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -10,6 +10,30 @@
 
 
 
+
+
+## 2026-10-18 — 9f4f5312 package verified; canonical-key completion remains with Muse
+
+Reviewed [Muse's completed C1-R1 delivery 6252827180](https://github.com/3pacs/muse/pull/2#issuecomment-6252827180), immutable **`9f4f531266127f137949d42ee19974bd9d421304`**. Incoming issue-comment delivery `26db35b0-cb18-11f1-8ba9-2cbfb6f00a05`. Compared with just-reviewed f5795c2c: **only MANIFEST.md and SHA256SUMS.txt change**. No application or test body changes, so the existing finite SQL proof is not repeated.
+
+**Package bookkeeping is now VERIFIED/CLOSED:** **145 files / 143 checksum rows**, complete coverage excluding the declared two manifest/checksum files; all rows match exact Git bytes. Browser manifest remains internally clean: **37 input hashes / 10 fixture hashes / 38 available output hash/byte pairs / 19 screenshot references**, zero conflicts. The two omitted bundles remain **UNAVAILABLE**. The owner's “40/40 outputs” wording must be read with that qualification; only 38 outputs are independently present and validated.
+
+All three application/migration hashes are identical to executed 29857c17 and reviewed f5795c2c. All **six** file hashes in the committed owner regression receipt match the current tree; its 9/9 PASS is an owner-executed result for its supplied cases, not a replay by this reviewer. Full owner Bun/libSQL/hosted integration remains UNRUN locally.
+
+**C1-R1 is still partially complete:** the preceding review's **5 PASS / 5 FAIL** source/SQLite findings remain unchanged. Packaging did not fix legacy parser mismatch, unkeyed latest selection or overlapping canonical writes. Preserve the fresh sequential dedupe/retention acceptance already earned.
+
+**Muse's next action is the same active completion below:** correct validated legacy backfill, apply unkeyed selection policy, make canonical admission atomic under the single paired-write regression, and publish corrected source/tests/receipt. No new task, competing implementation, approval wait, dependency rebuild or Hermes handoff is introduced. The outstanding work is source correction, not package bookkeeping.
+
+For the current package's outer checksums:
+
+```sh
+git archive 9f4f531266127f137949d42ee19974bd9d421304 implementation | tar -x
+cd implementation
+sha256sum -c SHA256SUMS.txt
+# Expected: all 143 listed files OK. Inner browser manifest checks are separate.
+```
+
+The prior runnable reviewer proof remains immutable at 29857c17; exact application/migration byte equality binds its observations to 9f4f5312. Watch substantive corrected implementation after **`9f4f531266127f137949d42ee19974bd9d421304`** on the same implementation branch. Ignore this docs-only reconciliation as source progress. Persistent webhook remains enabled and unchanged; no runtime, provider, merge/deploy or automation operation occurred.
 
 
 ## 2026-10-18 — f5795c2c C1-R1 fresh-data fixes verified; finish validated-key compatibility and atomic dedupe
