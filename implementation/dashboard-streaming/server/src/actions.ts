@@ -127,6 +127,31 @@ const trailPoint = z.object({
   netGexM: z.number().nullable(),
 });
 
+// ADOPT-C06: saving-health outcome for THIS response's persistence
+// attempt, reported separately from feed health. `ok` stays a truthful
+// live-feed result; `persistence` says what happened when the frame
+// was offered to storage. `reason` is a safe category only — never a
+// raw driver message, SQL text, path or credential detail.
+const persistenceOutcome = z.object({
+  outcome: z.enum([
+    "saved",
+    "already-saved",
+    "throttled",
+    "no-attempt",
+    "failed",
+  ]),
+  reason: z
+    .enum([
+      "storage-full",
+      "storage-busy",
+      "storage-read-only",
+      "storage-unavailable",
+    ])
+    .nullable(),
+});
+
+type PersistenceOutcome = z.infer<typeof persistenceOutcome>;
+
 const getLiveResponse = z.object({
   ok: z.boolean(),
   feedError: z.string().nullable(),
@@ -135,6 +160,7 @@ const getLiveResponse = z.object({
   staleSnapshot: livePayload.nullable(),
   staleSnapshotAt: z.string().nullable(),
   trail: z.array(trailPoint),
+  persistence: persistenceOutcome,
 });
 
 type GetLiveResponse = z.infer<typeof getLiveResponse>;
@@ -574,38 +600,61 @@ const MAX_SNAPSHOTS = 1500;
 // snapshots_unique_instant trigger (migration 0003) ignores an
 // insert whose instant is already stored, so overlapping writes of
 // one instant cannot both land even when both pass the checks below.
+// ADOPT-C06: classify a storage error into a SAFE category for the
+// response. The driver error is read only to classify; its message,
+// SQL and any embedded details never reach the response or the UI.
+function storageReason(err: unknown): PersistenceOutcome["reason"] {
+  const code = String((err as { code?: unknown } | null)?.code ?? "");
+  const message = err instanceof Error ? err.message : "";
+  const probe = code + " " + message;
+  if (/SQLITE_FULL|disk is full/i.test(probe)) return "storage-full";
+  if (/SQLITE_BUSY|SQLITE_LOCKED|database is locked/i.test(probe))
+    return "storage-busy";
+  if (/SQLITE_READONLY|readonly/i.test(probe)) return "storage-read-only";
+  return "storage-unavailable";
+}
+
 async function maybePersistSnapshot(
   ctx: Ctx,
   payload: LivePayload,
   rawJson: string,
-): Promise<void> {
+): Promise<PersistenceOutcome> {
   const db = ctx.db<typeof schema>();
   const instant = parseAwareInstant(payload.updatedAt);
-  if (instant === null) return; // unreachable post-normalize; never persist unkeyed
-  // Identity: any stored row for this instant dedupes, whatever spelling
-  // it was stored under (including pre-migration rows backfilled by 0003).
-  const same = await db
-    .select({ id: schema.snapshots.id })
-    .from(schema.snapshots)
-    .where(eq(schema.snapshots.instantMs, instant))
-    .limit(1);
-  if (same.length > 0) return;
-  // Throttle against the latest persisted instant (chronological key).
-  const latest = await db
-    .select({
-      instantMs: schema.snapshots.instantMs,
-    })
-    .from(schema.snapshots)
-    .where(isNotNull(schema.snapshots.instantMs))
-    .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id))
-    .limit(1);
-  const latestInstant = latest[0]?.instantMs ?? null;
-  if (latestInstant !== null) {
-    const gap = instant - latestInstant;
-    if (gap >= 0 && gap < MIN_SNAPSHOT_GAP_MS) return;
-  }
+  if (instant === null)
+    // Unreachable post-normalize; never persist unkeyed.
+    return { outcome: "no-attempt", reason: null };
+  let admission: PersistenceOutcome;
   try {
-    await db.insert(schema.snapshots).values({
+    // Identity: any stored row for this instant dedupes, whatever spelling
+    // it was stored under (including pre-migration rows backfilled by 0003).
+    const same = await db
+      .select({ id: schema.snapshots.id })
+      .from(schema.snapshots)
+      .where(eq(schema.snapshots.instantMs, instant))
+      .limit(1);
+    if (same.length > 0) return { outcome: "already-saved", reason: null };
+    // Throttle against the latest persisted instant (chronological key).
+    const latest = await db
+      .select({
+        instantMs: schema.snapshots.instantMs,
+      })
+      .from(schema.snapshots)
+      .where(isNotNull(schema.snapshots.instantMs))
+      .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id))
+      .limit(1);
+    const latestInstant = latest[0]?.instantMs ?? null;
+    if (latestInstant !== null) {
+      const gap = instant - latestInstant;
+      if (gap >= 0 && gap < MIN_SNAPSHOT_GAP_MS)
+        return { outcome: "throttled", reason: null };
+    }
+    // ADOPT-C06: an insert error is a storage FAILURE, reported as
+    // such — it is no longer presumed to be a uniqueness race. The
+    // benign overlap outcome needs no exception at all: migration
+    // 0003's trigger ignores a duplicate-instant insert inside the
+    // statement, which the driver reports as zero rows affected.
+    const inserted = await db.insert(schema.snapshots).values({
       updatedAt: payload.updatedAt,
       instantMs: instant,
       spot: payload.spot,
@@ -619,45 +668,59 @@ async function maybePersistSnapshot(
       regime: payload.regime,
       payloadJson: rawJson,
     });
-  } catch {
-    // Unique-constraint race with a concurrent poll — the row exists, fine.
-    return;
+    const affected = (
+      inserted as { rowsAffected?: number } | undefined
+    )?.rowsAffected;
+    admission =
+      affected === 0
+        ? { outcome: "already-saved", reason: null }
+        : { outcome: "saved", reason: null };
+  } catch (err) {
+    return { outcome: "failed", reason: storageReason(err) };
   }
   // Prune to exactly the newest MAX_SNAPSHOTS observations by
   // (instant, id); arrival order no longer decides what survives, so a
   // late-arriving old frame can never evict a newer accepted one — at
-  // capacity it is the row pruned.
-  const ordered = await db
-    .select({
-      id: schema.snapshots.id,
-      instantMs: schema.snapshots.instantMs,
-    })
-    .from(schema.snapshots)
-    .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id));
-  if (ordered.length > MAX_SNAPSHOTS) {
-    const boundary = ordered[MAX_SNAPSHOTS - 1];
-    if (boundary) {
-      // Delete exactly the rows ordered below the boundary row. NULL
-      // instants sort below every real instant, so against a real
-      // boundary they all go; against a NULL boundary (more legacy
-      // NULL rows than the excess) only the lower-id NULL tail goes.
-      const below =
-        boundary.instantMs === null
-          ? and(
-              isNull(schema.snapshots.instantMs),
-              lt(schema.snapshots.id, boundary.id),
-            )
-          : or(
-              isNull(schema.snapshots.instantMs),
-              lt(schema.snapshots.instantMs, boundary.instantMs),
-              and(
-                eq(schema.snapshots.instantMs, boundary.instantMs),
+  // capacity it is the row pruned. ADOPT-C06: a prune failure means
+  // the persistence step did not complete cleanly, so it is reported
+  // as failed rather than swallowed; the admitted frame itself is
+  // unaffected (its row is stored and redelivery dedupes).
+  try {
+    const ordered = await db
+      .select({
+        id: schema.snapshots.id,
+        instantMs: schema.snapshots.instantMs,
+      })
+      .from(schema.snapshots)
+      .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id));
+    if (ordered.length > MAX_SNAPSHOTS) {
+      const boundary = ordered[MAX_SNAPSHOTS - 1];
+      if (boundary) {
+        // Delete exactly the rows ordered below the boundary row. NULL
+        // instants sort below every real instant, so against a real
+        // boundary they all go; against a NULL boundary (more legacy
+        // NULL rows than the excess) only the lower-id NULL tail goes.
+        const below =
+          boundary.instantMs === null
+            ? and(
+                isNull(schema.snapshots.instantMs),
                 lt(schema.snapshots.id, boundary.id),
-              ),
-            );
-      await db.delete(schema.snapshots).where(below);
+              )
+            : or(
+                isNull(schema.snapshots.instantMs),
+                lt(schema.snapshots.instantMs, boundary.instantMs),
+                and(
+                  eq(schema.snapshots.instantMs, boundary.instantMs),
+                  lt(schema.snapshots.id, boundary.id),
+                ),
+              );
+        await db.delete(schema.snapshots).where(below);
+      }
     }
+  } catch (err) {
+    return { outcome: "failed", reason: storageReason(err) };
   }
+  return admission;
 }
 
 async function loadTrailAndLatest(
@@ -760,9 +823,16 @@ export const Actions = {
           staleSnapshot,
           staleSnapshotAt,
           trail,
+          // No frame arrived, so no persistence was attempted; that
+          // is stated, never dressed up as a saving success (C06).
+          persistence: { outcome: "no-attempt", reason: null },
         };
       }
-      await maybePersistSnapshot(ctx, result.payload, result.rawJson);
+      const persistence = await maybePersistSnapshot(
+        ctx,
+        result.payload,
+        result.rawJson,
+      );
       const { trail } = await loadTrailAndLatest(ctx);
       return {
         ok: true,
@@ -772,6 +842,7 @@ export const Actions = {
         staleSnapshot: null,
         staleSnapshotAt: null,
         trail,
+        persistence,
       };
     },
   }),

@@ -1095,6 +1095,28 @@ export function App() {
 
             {/* Trail */}
             <Panel title="Today's trail — spot vs levels (PT)" className="mt-3">
+              {/* ADOPT-C06: saving health is shown beside the trail,
+                  independent of feed status — a failed save never
+                  relabels the feed, and a healthy feed never hides a
+                  failed save. Only the safe category is displayed. */}
+              {data?.persistence?.outcome === "failed" && (
+                <p
+                  className="mb-2 text-sm"
+                  style={{ color: "var(--amber)" }}
+                  role="status"
+                >
+                  Saved trail unavailable — snapshots aren’t being stored
+                  right now
+                  {data.persistence.reason === "storage-full"
+                    ? " (storage full)"
+                    : data.persistence.reason === "storage-busy"
+                      ? " (storage busy)"
+                      : data.persistence.reason === "storage-read-only"
+                        ? " (storage read-only)"
+                        : ""}
+                  . The live feed is unaffected.
+                </p>
+              )}
               <TrailChart trail={data?.trail ?? []} />
             </Panel>
 
