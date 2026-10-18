@@ -437,6 +437,13 @@ async function seedLegacy(client, updatedAt, spot, payloadOverride) {
     "2026-10-16T24:30:00Z", "2026-10-16T23:60:00Z", "2026-10-16T23:30:00+24:00",
     "2026-10-16T23:30:00.5+0200", "2026-02-30T23:30:00Z", "2026-10-16T23:30:60Z",
     "2026-10-16T23:30:00+23:59", "2026-10-16T23:30:00+02:60", "2026-10-16T00:00:00+00:00",
+    "2026-10-16T23:30:00.5junkZ", "2026-10-16T23:30:00junkZ", "2026-10-16T23:30:00.1xZ",
+    "2026-10-16T24:00:00Z",
+    "2026-10-16T24:00Z", "2026-10-16T24:00:00.000Z", "2026-10-16T24:00:00.5Z",
+    "2026-10-16T24:00:00.0005Z", "2026-10-16T24:00:01Z", "2026-10-16T24:00:00+02:00",
+    "2026-10-16T24:00:00+0200", "2026-10-16T24:01:00Z", "2026-10-16T23:30.5Z",
+    "2026-10-16T23:30:00.Z", "2026-10-16t23:30:00z", "2026-10-16T23:30:00+02:00junk",
+    "2026-02-30T24:00:00Z", "2026-12-31T24:00:00Z",
   ];
   const legacy = await createLegacyDb();
   for (const s of SPELLINGS) await seedLegacy(legacy.client, s, 500);
@@ -447,11 +454,15 @@ async function seedLegacy(client, updatedAt, spot, payloadOverride) {
     .filter((m) => m.app !== m.sql);
   record(
     "R09",
-    "0003 backfill key == application parser key for all 35 spelling shapes; inadmissible clocks stay NULL (compact +0200 and .0005Z both key to 1792193400000; naive stays unkeyed)",
+    "0003 backfill key == application parser key for all 53 spelling shapes; inadmissible clocks stay NULL (compact +0200 and .0005Z both key to 1792193400000; naive and junk-suffixed forms stay unkeyed; admitted 24:00:00Z keys to 1792195200000)",
     mismatches.length === 0 &&
       rows.find((r) => r.updated_at === "2026-10-17T01:30:00+0200")?.instant_ms === 1792193400000 &&
       rows.find((r) => r.updated_at === "2026-10-16T23:30:00.0005Z")?.instant_ms === 1792193400000 &&
-      rows.find((r) => r.updated_at === "2026-10-17T01:30:00")?.instant_ms === null,
+      rows.find((r) => r.updated_at === "2026-10-17T01:30:00")?.instant_ms === null &&
+      rows.find((r) => r.updated_at === "2026-10-16T24:00:00Z")?.instant_ms === 1792195200000 &&
+      rows.find((r) => r.updated_at === "2026-10-16T23:30:00.5junkZ")?.instant_ms === null &&
+      rows.find((r) => r.updated_at === "2026-10-16T23:30:00junkZ")?.instant_ms === null &&
+      rows.find((r) => r.updated_at === "2026-10-16T23:30:00.1xZ")?.instant_ms === null,
     { spellings: SPELLINGS.length, mismatches },
   );
 }

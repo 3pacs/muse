@@ -16,8 +16,8 @@
     "server/src/actions.ts": "59f825f187f26c9cacaf87378bfdf57052bfe322ae85617be0a2cb3fe37c72dd",
     "server/src/schema.ts": "35088a869346468b91f18e0edb6726bec2f870fefdd5f8e2fc1c47a546cb71c8",
     "drizzle/0002_snapshots_table.sql": "c8cc1f77d28ab53a61b81ee354b3ccf0584c639ce4b9a6ad2060ad49f39a0791",
-    "drizzle/0003_snapshot_instant.sql": "f0f73744e7cc074a83dfcb9a1513d0e20d6ac19ad88be24d34eff090ae526b2f",
-    "offline/snapshot-audit-r1-entry.ts": "9708f3425c30433b176b5671237f83051de2f8d3e2389041088196c9e42188aa",
+    "drizzle/0003_snapshot_instant.sql": "6ef107536f88fe061b99bcfcad56b1abf5b50924b81580e003a0ce699821e2d2",
+    "offline/snapshot-audit-r1-entry.ts": "8a825aefdbfa40e44c75ce22c75d35571642130dfbd687b273ec5c51b5f1eb1e",
     "offline/snapshot-audit-r1.mjs": "f5c10b4308493efec07756e29baa026d889dd10d59fe5b0bad279d53eda4664e"
   },
   "summary": {
@@ -138,10 +138,10 @@
     },
     {
       "id": "R09",
-      "expectation": "0003 backfill key == application parser key for all 35 spelling shapes; inadmissible clocks stay NULL (compact +0200 and .0005Z both key to 1792193400000; naive stays unkeyed)",
+      "expectation": "0003 backfill key == application parser key for all 53 spelling shapes; inadmissible clocks stay NULL (compact +0200 and .0005Z both key to 1792193400000; naive and junk-suffixed forms stay unkeyed; admitted 24:00:00Z keys to 1792195200000)",
       "verdict": "PASS",
       "observed": {
-        "spellings": 35,
+        "spellings": 53,
         "mismatches": []
       }
     },
