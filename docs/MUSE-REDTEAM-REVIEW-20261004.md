@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: 2eb8159d C1 audit delivery verified and accepted as evidence; product C03/C06/C08 counterexamples remain OPEN. Independent exact-source/SQLite proof matches eight audit groups plus newest-first retention consequence (9 expected outcomes, not 9 product passes). Package 140 files / 138 checksums; B2-R2/E1 packet remains clean. Next single task: ADOPT-C1-R1 chronological snapshot identity/order/retention fix. Owner Bun/libSQL replay and full App/hosted integration UNRUN locally; no runtime/deployment/empirical promotion.**
+**Current status: f5795c2c C1-R1 is in progress. Fresh sequential equivalent-instant dedupe, gap/zero/null and exact newest-1500 retention pass. Five legacy/atomic-admission properties fail in the independent source/SQLite proof. Next single action: Muse finishes C1-R1 validated-key backfill, unkeyed selection, atomic dedupe and package/receipt delivery; no approval wait or Hermes dependency. Existing browser packet internally clean; full Bun/libSQL/hosted execution UNRUN locally. No deployment/runtime promotion.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -10,6 +10,148 @@
 
 
 
+
+
+## 2026-10-18 — f5795c2c C1-R1 fresh-data fixes verified; finish validated-key compatibility and atomic dedupe
+
+Anik asked to advance Muse and clear blockers. There **is new implementation**, not a permission wait: source commit **`29857c174486a5c2d61c3426c06c5832ac70e04a`**, followed by tests/receipt/evidence commits through current **`f5795c2cf2507fbc28aea00db44a1fd1225e2d84`**, on `implementation/0dte-source-20261015`. No new PR delivery comment was posted at this check. This is one coalesced review of those revisions against C1 source `2eb8159deac1061da12af58540c14757be11bbf5` and docs `e57a58340d609303fe5f66df4c2061726777d179`.
+
+**Accept the demonstrated fresh sequential-data corrections. C1-R1 remains partially complete:** legacy backfill uses a different clock parser, unkeyed records can still be selected, and overlapping writes can duplicate one instant. **Next single task: finish ADOPT-C1-R1 with validated migration/admission and atomic dedupe.** Muse can proceed immediately on these concrete cases; no reviewer approval, Hermes dependency, hosted run or local Bun reconstruction is pending.
+
+### What passes and what remains open
+
+Reviewer confirmed **Precision5520**, unchanged connection/host, before local work. Exact source functions plus the 0002/0003 SQL run in disposable Node SQLite with the same disclosed type-erasure/query-facade method as the C1 review. The five fresh-data groups **PASS**; five additional compatibility/admission properties **FAIL**. These are ten explicit product-property verdicts. No live provider, production DB, interpreter, Hermes or mini24 operation occurred.
+
+The executed application commit is 29857c17. All three exercised application/migration files are **byte-identical at f5795c2c**, independently checked against exact Git bytes; SQL tests were not needlessly repeated after documentation-only pushes.
+
+| Property | Verified result |
+| --- | --- |
+| Genuine zero/null baseline | PASS: values remain distinct through storage, trail and normalized fallback. |
+| Interleaved old equivalent spelling / newer frame | PASS: row counts **1,1,2,2**, fallback is the newer frame; the original C03 sequential witness is fixed. |
+| Persistence-gap boundary | PASS: declared +44/+45 seconds and late-arrival controls remain correct. |
+| Ascending 1501 + late-old arrival | PASS: exactly 1500 newest frames retained; late-old row prunes itself; trail 240. |
+| Newest-first 1501 + late-old arrival | PASS: exactly 1500 newest frames retained; newest fallback stays **19:10:00**. The original C08 regression is fixed. |
+| Legacy compact numeric offset | FAIL: an aware spelling admitted by the application backfills to NULL; equivalent replay creates another row. |
+| Legacy submillisecond spelling | FAIL: backfill rounds to a different millisecond from the application's parser; equivalent replay creates another row. |
+| Legacy timezone-less spelling | FAIL: application rejects it, while migration gives it a non-null validated key; it can suppress a valid fallback. |
+| Only unkeyed legacy record | FAIL: latest/trail selection still admits the NULL-key row despite the explicit “never newest” policy. |
+| Two overlapping equivalent-instant writes | FAIL in the exact-source paired-call proof: both insert, producing two rows for one instant. Hosted/actual Drizzle scheduling remains UNRUN. |
+
+The [owner's new regression companion and committed receipt](https://github.com/3pacs/muse/blob/f5795c2cf2507fbc28aea00db44a1fd1225e2d84/implementation/dashboard-streaming/offline/snapshot-audit-r1-receipt.json) report **9/9 PASS** for their supplied cases. Source/receipt binding and those expectations were inspected. They cover colon offsets, ordinary millisecond fractions and sequential writes; they do not exercise the failing cases below. Full owner Bun/libSQL replay remains **UNRUN locally**, because the required installed environment is unavailable. No install/reconstruction is requested as a blocker.
+
+### Reproduced remaining cases
+
+**R1a — the migration's parser is not the application's parser.** [0003](https://github.com/3pacs/muse/blob/f5795c2cf2507fbc28aea00db44a1fd1225e2d84/implementation/dashboard-streaming/drizzle/0003_snapshot_instant.sql) backfills with SQLite `unixepoch` and `ROUND`, while new writes use the existing F1 aware regex plus `Date.parse`:
+
+| Existing stored updated_at | Application admission / key | Actual 0003 backfill | Consequence |
+| --- | --- | --- | --- |
+| `2026-10-17T01:30:00+0200` | Admitted; **1792193400000** | **NULL** | Later equivalent Z delivery inserts a second observation. |
+| `2026-10-16T23:30:00.0005Z` | Admitted; **1792193400000** | **1792193400001** | Later equivalent .000Z delivery inserts a second observation. |
+| `2026-10-17T01:30:00` | Rejected as timezone-less | Non-null UTC-looking key | It can sort newer than a valid older frame, while its payload fails normalization and suppresses fallback. |
+
+These are existing supported/unsupported F1 spelling boundaries, not a request to invent a wider timestamp format. Do not change F1 admission just to match SQLite's parser. Backfill must produce the same millisecond identity for every admitted spelling and leave inadmissible clocks untrusted, preserving original timestamp/payload bytes. Current migration's ordinary +02:00/.250Z examples do work; that bounded evidence is preserved.
+
+**R1b — NULL sorting is not exclusion.** [loadTrailAndLatest](https://github.com/3pacs/muse/blob/f5795c2cf2507fbc28aea00db44a1fd1225e2d84/implementation/dashboard-streaming/server/src/actions.ts) orders by key but does not filter NULL keys. A legacy record with column timestamp `unparseable`, NULL key and otherwise valid raw payload is returned as fallback when it is the only row: `staleSnapshotAt="unparseable"`, payload.updatedAt=`2026-10-16T23:30:00.000Z`, trail length 1. This is an explicitly corrupt legacy metadata fixture; it does not assert such corruption exists in deployment. It disproves the **new source's explicit NULL-never-newest policy**. Keep untrusted raw history under the stated compatibility policy, but exclude/quarantine it from accepted chronological observations rather than relying on NULL sorting.
+
+**R1c — check-then-insert does not enforce unique instant identity.** The index on `instant_ms` is non-unique. The exact source first reads absence, then later inserts. Two ordinary overlapping calls for one instant, with Z versus +02:00 spelling, both pass the check and insert: **two rows / one instant**. The paired-call proof uses real SQL and a disclosed async query facade; it is a source-level overlap witness, not independent proof of the hosted driver's scheduler. Schema/source supply no unique-key or atomic admission guarantee. Add the same **single pair** as a real existing-driver regression; no broad concurrency/load campaign is requested.
+
+Legacy same-instant rows may preserve their raw originals under the documented compatibility policy. The policy must distinguish those retained raw records from accepted unique observations, and it must not allow new overlap-created duplicates to be labeled “legacy.” C05 presentation, C06 storage diagnostics and C07 corrupt-payload recovery remain deferred; these findings concern the active canonical-key contract only.
+
+### Concrete implementer action — finish C1-R1, without another permission wait
+
+1. Make migration/backfill use the **same validated aware-instant semantics** as application admission, including compact numeric offsets and the published fractional precision examples. Keep original raw bytes and record a deterministic policy for existing same-instant conflicting payloads. Untrusted clocks stay explicitly unkeyed/quarantined; no silent hybrid or destructive raw-history rewrite.
+2. Apply the declared unkeyed-row policy to latest and accepted trail selection. Empty/unkeyed-only storage must not advertise an untrusted newest instant or a mismatched fallback timestamp.
+3. Make new canonical observation admission **atomic/unique** under the two-call equivalent-spelling witness, using the existing storage stack and a provenance-preserving legacy policy. A separate pre-insert SELECT is insufficient. Preserve the passed first-stored-wins, 45-second gap, newest 1500 and newest 240 behavior.
+4. Add the finite regressions below to the existing owner harness; commit its synthetic receipt and finish package manifests. No new evidence framework, full environment rebuild, deployment or Hermes dependency is needed. If there is a real implementation blocker, post its specific error and source pin on PR2 rather than waiting on unspecified review approval.
+
+**Finite acceptance:** the five passed fresh-data groups remain PASS; both admitted legacy spellings backfill exactly **1792193400000** and equivalent replay retains one accepted observation; naive timestamp remains untrusted and cannot outrank the valid frame; unkeyed-only storage produces no accepted latest/fallback identity; two overlapping equivalent-spelling writes leave exactly **one** accepted observation with no hybrid. Preserve raw provenance and declare the compatibility policy. Supply the completed package checksums and receipt; do not call an unfinalized package verified.
+
+### Packaging status at this exact head
+
+At f5795c2c there are **145 files** but the package checksum list is still the preceding **138-row** list. Five listed files mismatch (TESTS, browser manifest, preview manifest, actions, schema) and the newly added migration/note/R1 companions are not yet listed. No final C1-R1 delivery comment is posted. This appears to be an **in-progress packaging state**, not evidence that the owner finished packaging incorrectly; finishing the same delivery is the outstanding bookkeeping action.
+
+The refreshed browser manifest itself is internally clean: **37 input hashes / 10 fixture hashes / 38 available outputs / 19 screenshot references** match; two bundles remain **UNAVAILABLE**. Its fresh owner report timings differ, while retained PNGs/case HTML/responses are preserved as disclosed. Retained frontend/SSR inspection and no new deployment linkage remain separate from SQL verification. Do not label all 40 outputs validated when two are unavailable.
+
+Reviewed application hashes: actions **`592c8c29652f9d1db1846003f41e6d154d67b7063545f993fc22c16ad4d62dfe`**, schema **`35088a869346468b91f18e0edb6726bec2f870fefdd5f8e2fc1c47a546cb71c8`**, migration 0003 **`b7056d1725eb010dce0b8e4c2be05c25dac18245e6167c21573e8b795f82d63b`**.
+
+### Runnable reviewer proof
+
+Save the fence exactly as `prove-r1.mjs`, including its trailing blank line. SHA-256 **`056d97b22effa65c63d4259552adb02420f82838455ce0af7249c5d500f6497f`**. Installed Node 22.22.1 with `node:sqlite` / SQLite 3.46.1 was used; no dependencies were installed. The immutable execution source was 29857c17, whose three application/migration files match reviewed f5795c2c exactly:
+
+```sh
+mkdir -p r1-source r1-results
+git archive 29857c174486a5c2d61c3426c06c5832ac70e04a implementation | tar -x -C r1-source
+node prove-r1.mjs r1-source r1-results
+# Completion exit 0; review-results.json explicitly records 5 PASS / 5 FAIL.
+# Exit0 means the finite proof completed, not that the candidate passed.
+```
+
+It executes exact production normalization/getLive/persistence/load bodies with qualified type erasure, the verbatim 0002+0003 SQL in memory, a query/insert facade replacing Drizzle/default timestamps, an in-memory fetch stub and explicit fixed receipt clock. It writes the erased source and raw observations. Native requests 0; platform/actual Bun-libSQL integration and hosted behavior UNRUN. The same SQL/key witnesses are the bounded next acceptance cases; preserve their failing historical record.
+
+```javascript
+// Source-slice proof, Node built-ins + disposable SQLite. No Bun/Drizzle/platform integration claim.
+import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';import crypto from 'node:crypto';import{DatabaseSync}from'node:sqlite';
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),base=path.join(root,'implementation/dashboard-streaming');
+fs.mkdirSync(out,{recursive:true});const read=p=>fs.readFileSync(path.join(base,p),'utf8'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const source=read('server/src/actions.ts'),schemaText=read('server/src/schema.ts'),ddl=read('drizzle/0002_snapshots_table.sql'),migration=read('drizzle/0003_snapshot_instant.sql');
+function takeFunction(name){const m=new RegExp('^(?:async )?function '+name+'\\(','m').exec(source);if(!m)throw Error(name);const begin=m.index,open=name==='fetchFeed'?source.indexOf('> {',begin)+2:source.indexOf('{',begin);return takeBody(begin,open);}
+function takeBody(begin,open){let depth=0,q=null,escape=false;for(let i=open;i<source.length;i++){const c=source[i];if(q){if(escape)escape=false;else if(c==='\\')escape=true;else if(c===q)q=null;continue;}if(c==='"'||c==="'"||c==='\x60'){q=c;continue;}if(c==='{')depth++;if(c==='}'&&--depth===0)return source.slice(begin,i+1);}throw Error('unclosed source');}
+const pure=source.slice(source.indexOf('// === ADOPT-F1 PURE HELPERS'),source.indexOf('// === END ADOPT-F1 PURE HELPERS ==='));
+const extra=['mapActivity','normalize','fetchFeed'].map(takeFunction).join('\n');
+const persistence=source.slice(source.indexOf('const MIN_SNAPSHOT_GAP_MS'),source.indexOf('// Actions\n')-81);
+const persistBegin=source.indexOf('async function maybePersistSnapshot'),persistOpen=source.indexOf('): Promise<void> {',persistBegin)+'): Promise<void> '.length;
+const loadBegin=source.indexOf('async function loadTrailAndLatest'),loadOpen=source.indexOf('}> {',loadBegin)+3;
+const pieces=source.slice(source.indexOf('const MIN_SNAPSHOT_GAP_MS'),persistBegin)+takeBody(persistBegin,persistOpen)+'\n'+takeBody(loadBegin,loadOpen);
+const handlerBegin=source.indexOf('async handler(ctx): Promise<GetLiveResponse> {'),handlerOpen=source.indexOf('{',handlerBegin);
+const handler=takeBody(handlerBegin,handlerOpen).replace('async handler(ctx): Promise<GetLiveResponse>', 'async function getLive(ctx)');
+function erase(s){return s
+.replace(/async function maybePersistSnapshot\([\s\S]*?\): Promise<void> \{/,'async function maybePersistSnapshot(ctx,payload,rawJson) {')
+.replace(/async function loadTrailAndLatest\([\s\S]*?\}> \{/,'async function loadTrailAndLatest(ctx) {')
+.replace(/ctx\.db<typeof schema>\(\)/g,'ctx.db()')
+.replace(/ as Record<\s*string,\s*unknown\s*>/g,'')
+.replace(/async function fetchFeed\(\): Promise<[\s\S]*?> \{/,'async function fetchFeed() {')
+.replace(/: LivePayload\["hedgeBuckets"\]/g,'').replace(/: LivePayload \| null/g,'')
+.replace(/function strikeCoverage\([\s\S]*?\n\): \{[^\n]*\} \{/,'function strikeCoverage(rows) {')
+.replace(/: Record<string, unknown>/g,'').replace(/ as Record<string, unknown>/g,'')
+.replace(/: z\.infer<typeof (?:strikeGex|activityRow)>\[\]/g,'')
+.replace(/: [mc] is string/g,'')
+.replace(/: unknown/g,'').replace(/: number \| null/g,'').replace(/: string \| null/g,'').replace(/: (?:boolean|number|string)\b/g,'');}
+const NOW=Date.parse('2026-10-17T20:55:00Z');class FixedDate extends Date{constructor(...a){super(...(a.length?a:[NOW]));}static now(){return NOW;}}
+const columns=Object.fromEntries([...schemaText.slice(schemaText.indexOf('export const snapshots')).matchAll(/(\w+): (?:integer|real|text)\("([^"]+)"/g)].map(m=>[m[1],m[2]]));
+const schema={snapshots:columns},dbs=[];let fetchPlan=null,stubCalls=0;
+function makeDb(legacy=[]){const sql=new DatabaseSync(':memory:');sql.exec(ddl);dbs.push(sql);for(const r of legacy)sql.prepare('INSERT INTO snapshots(updated_at,spot,payload_json,created_at) VALUES(?,?,?,?)').run(r.updatedAt,r.spot,JSON.stringify(r.raw),NOW);sql.exec(migration);
+class Query{constructor(selected){this.selected=selected;this.order=[];this.predicate=null;this.n=null;}from(t){if(t!==columns)throw Error('table mismatch');return this;}where(p){this.predicate=p;return this;}orderBy(...o){this.order=o;return this;}limit(n){this.n=n;return this;}then(resolve,reject){try{const select=this.selected?Object.entries(this.selected).map(([k,v])=>v+' AS "'+k+'"').join(','):Object.entries(columns).map(([k,v])=>v+' AS "'+k+'"').join(',');const q='SELECT '+select+' FROM snapshots'+(this.predicate?' WHERE '+this.predicate.sql:'')+(this.order.length?' ORDER BY '+this.order.map(o=>o.column+' '+o.dir).join(','):'')+(this.n!==null?' LIMIT '+this.n:'');return Promise.resolve(sql.prepare(q).all(...(this.predicate?.params??[])).map(r=>({...r}))).then(resolve,reject);}catch(e){return Promise.reject(e).then(resolve,reject);}}}
+const api={sql,fault:null,select:s=>new Query(s),insert:t=>({values:async v=>{if(api.fault){const e=api.fault;api.fault=null;throw e;}const row={...v,createdAt:NOW},keys=Object.keys(row);return sql.prepare('INSERT INTO snapshots ('+keys.map(k=>columns[k]).join(',')+') VALUES ('+keys.map(()=>'?').join(',')+')').run(...keys.map(k=>row[k]??null));}}),delete:t=>({where:async c=>sql.prepare('DELETE FROM snapshots WHERE '+c.sql).run(...c.params)})};return api;}
+const compare=(column,op,value)=>({sql:column+' '+op+' ?',params:[value]});const logic=(op,items)=>({sql:'('+items.map(p=>p.sql).join(' '+op+' ')+')',params:items.flatMap(p=>p.params)});
+const sandbox={Date:FixedDate,Number,Array,Object,Math,JSON,Error,AbortSignal,schema,asc:column=>({column,dir:'ASC'}),desc:column=>({column,dir:'DESC'}),eq:(c,v)=>compare(c,'=',v),lt:(c,v)=>compare(c,'<',v),isNull:c=>({sql:c+' IS NULL',params:[]}),isNotNull:c=>({sql:c+' IS NOT NULL',params:[]}),and:(...p)=>logic('AND',p),or:(...p)=>logic('OR',p),FEED_URLS:['https://offline.invalid/a','https://offline.invalid/b'],fetch:async()=>{stubCalls++;return fetchPlan===null?{ok:false,status:503}:{ok:true,status:200,json:async()=>structuredClone(fetchPlan)};}};
+vm.createContext(sandbox);const transformed=erase(pure+'\n'+extra+'\n'+pieces+'\n'+handler);fs.writeFileSync(path.join(out,'type-erased-slices.js'),transformed+'\n');vm.runInContext(transformed+'\nthis.api={normalize,maybePersistSnapshot,loadTrailAndLatest,getLive};',sandbox);
+const A=sandbox.api,ctx=db=>({db:()=>db}),rows=db=>db.sql.prepare('SELECT id,updated_at,instant_ms,spot,payload_json FROM snapshots ORDER BY id').all().map(r=>({...r})),time=n=>new Date(Date.parse('2026-10-16T23:30:00Z')+n*1000).toISOString();
+const original=JSON.parse(fs.readFileSync(path.join(root,'implementation/fixtures/feed_all_success.json'),'utf8'));
+function frame(t,spot=500){const f=structuredClone(original);f.updated_at=t;f.quote_as_of=t;f.spot=spot;f.market_open=true;f.gamma.net_gex_m=0;f.gamma.gamma_flip=null;f.gamma.by_strike=[{strike:500,net_gex_m:0},{strike:505,net_gex_m:null}];return f;}
+async function live(db,f){fetchPlan=f;return A.getLive(ctx(db));}
+const checks=[];function record(id,propertyPass,observed,meaning){checks.push({id,propertyPass:!!propertyPass,observed,meaning});}
+try{
+{const d=makeDb();await live(d,frame(time(0),500));const l=await live(d,frame(time(60),501)),r=await live(d,null);record('baseline',rows(d).length===2&&r.staleSnapshot.netGexM===0&&r.staleSnapshot.gammaFlip===null&&r.staleSnapshot.byStrike[0].netGexM===0&&r.staleSnapshot.byStrike[1].netGexM===null,{count:rows(d).length,trail:l.trail,staleSnapshotAt:r.staleSnapshotAt},'zero/null baseline preserved');}
+{const d=makeDb(),offset='2026-10-17T01:30:00+02:00',counts=[];for(const f of[frame(time(0),500.1),frame(offset,500.1),frame(time(60),500.2),frame(offset,500.1)]){await live(d,f);counts.push(rows(d).length);}const r=await live(d,null);record('fresh-C03',JSON.stringify(counts)==='[1,1,2,2]'&&r.staleSnapshotAt===time(60)&&r.staleSnapshot.spot===500.2,{counts,rows:rows(d),staleSnapshotAt:r.staleSnapshotAt,staleSpot:r.staleSnapshot.spot},'interleaved equivalent-instant replay now dedupes');}
+{const d=makeDb(),counts=[];for(const t of[0,44,45,91,-30]){await live(d,frame(time(t)));counts.push(rows(d).length);}const r=await live(d,null);record('gap',JSON.stringify(counts)==='[1,1,2,3,4]'&&r.staleSnapshotAt===time(91),{counts,staleSnapshotAt:r.staleSnapshotAt},'declared gap and uniform-Z order preserved');}
+for(const descending of[false,true]){const d=makeDb(),t0=Date.parse('2026-10-16T00:00:00Z'),ts=i=>new Date(t0+i*46000).toISOString();for(let k=0;k<1501;k++){const i=descending?1500-k:k;await live(d,frame(ts(i)));}const before=rows(d),r=await live(d,null);await live(d,frame(ts(-1)));const after=rows(d);record(descending?'descending-C08':'ascending-C08',before.length===1500&&after.length===1500&&r.staleSnapshotAt===ts(1500)&&!after.some(x=>x.updated_at===ts(-1))&&r.trail.length===240,{count:before.length,sourceRange:[...before.map(x=>x.updated_at)].sort().filter((x,i,a)=>i===0||i===a.length-1),fallback:r.staleSnapshotAt,lateOldRetained:after.some(x=>x.updated_at===ts(-1)),trailLength:r.trail.length},'fresh chronological retention now exact and arrival-order independent');}
+for(const spelling of['2026-10-17T01:30:00+0200','2026-10-16T23:30:00.0005Z']){const raw=frame(spelling,500),d=makeDb([{updatedAt:spelling,spot:500,raw}]),before=rows(d),expected=Date.parse(spelling);await live(d,frame(time(0),500));record(spelling.includes('+0200')?'migration-compact-offset':'migration-fraction',before[0].instant_ms===expected&&rows(d).length===1,{awareAdmitted:A.normalize(raw)!==null,expectedInstant:expected,migratedInstant:before[0].instant_ms,rowsAfterEquivalentReplay:rows(d)},'migration must use the same validated instant as application admission');}
+{const invalid='2026-10-17T01:30:00',valid=frame(time(0),500),bad=frame(invalid,999),d=makeDb([{updatedAt:time(0),spot:500,raw:valid},{updatedAt:invalid,spot:999,raw:bad}]),r=await live(d,null);record('migration-naive-rejected',rows(d)[1].instant_ms===null&&r.staleSnapshotAt===time(0),{applicationAdmitsNaive:A.normalize(bad)!==null,migratedRows:rows(d),staleSnapshotAt:r.staleSnapshotAt,staleSnapshot:r.staleSnapshot},'legacy timezone-less clock must not become validated newest identity');}
+{const bad='unparseable',raw=frame(time(0),500),d=makeDb([{updatedAt:bad,spot:500,raw}]),r=await live(d,null);record('unkeyed-never-newest',r.staleSnapshotAt===null&&r.staleSnapshot===null,{row:rows(d)[0],staleSnapshotAt:r.staleSnapshotAt,stalePayloadUpdatedAt:r.staleSnapshot?.updatedAt,trailLength:r.trail.length},'unkeyed legacy row is still selected despite source comment');}
+{const d=makeDb(),a=frame(time(0),500),b=frame('2026-10-17T01:30:00+02:00',500);await Promise.all([A.maybePersistSnapshot(ctx(d),A.normalize(a),JSON.stringify(a)),A.maybePersistSnapshot(ctx(d),A.normalize(b),JSON.stringify(b))]);record('paired-equivalent-writes',rows(d).length===1,{rows:rows(d),uniqueInstantCount:new Set(rows(d).map(x=>x.instant_ms)).size},'two ordinary overlapping equivalent-instant writes must yield one observation');}
+}finally{for(const d of dbs)d.close();}
+const receipt={source:'29857c174486a5c2d61c3426c06c5832ac70e04a',runtime:process.version,sourceSha256:sha(source),schemaSha256:sha(schemaText),migrationSha256:sha(migration),helperSha256:sha(fs.readFileSync(new URL(import.meta.url))),mode:'exact source functions with type erasure; real Node SQLite DDL+migration; query facade replacing Drizzle; in-memory fetch; fixed receipt clock',fullBunLibsql:'UNRUN',nativeRequests:0,stubCalls,checks,productPasses:checks.filter(x=>x.propertyPass).length,productFailures:checks.filter(x=>!x.propertyPass).length};
+fs.writeFileSync(path.join(out,'review-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({...receipt,checks:checks.map(c=>({...c,observed:c.id.includes('migration')||c.id==='unkeyed-never-newest'||c.id==='paired-equivalent-writes'?c.observed:{summary:'see receipt'}}))},null,2));
+// Completion is separate from product verdicts; any failure remains explicit.
+process.exitCode=0;
+
+```
+
+### Next owner and runtime boundary
+
+**Muse owns this completion now**, independently of Hermes. Watch substantive corrected source/evidence after **`f5795c2cf2507fbc28aea00db44a1fd1225e2d84`** on the existing implementation branch; ignore this coordinator docs update. Earlier accepted F1/B2-R2/E1 scope remains preserved. No competing implementation or review was started. Existing draft PR/folder and persistent webhook remain the only handoff path; automation is enabled/unchanged.
+
+No application merge/deploy, live provider call, credential operation, live trading, production DB/service/schedule change, interpreter start, mini24 access or host switch occurred. There is no current connection or reviewer permission blocker; remaining blockers are the reproduced canonical-key cases and completion of Muse's own package/evidence delivery.
 
 
 ## 2026-10-17 — 2eb8159d C1 audit verified; fix snapshot instant identity, ordering and retention
