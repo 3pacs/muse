@@ -292,6 +292,35 @@ selection. Receipt regenerated and committed. Parity round
 shape guards in 0003 (junk suffixes stay unkeyed) and the
 admitted 24:00:00 midnight rollover keys exactly; still
 14/14 PASS, receipt regenerated.
+
+**ADOPT-C06 — storage-error visibility** (change note
+`ADOPT-C06.md`), on the closed C1-R1 pin. New companion
+`offline/snapshot-audit-c06.mjs` +
+`offline/snapshot-audit-c06-entry.ts` with committed receipt
+`offline/snapshot-audit-c06-receipt.json`: the REAL getLive
+chain over verbatim 0002/0003 DDL (drizzle-orm/libsql
+in-memory), fault injected by a test-only RAISE(ABORT)
+trigger in disposable storage. **5/5 PASS** — S01 insert
+failure with empty storage (ok:true, persistence failed /
+storage-unavailable, no saved claim), S02 failure with a
+last-good trail (rows/trail intact, failure explicit), S03
+same-frame recovery saves exactly once and flips the outcome
+to saved, exact replay already-saved, S04 benign outcomes
+(throttled; overlapping pair = saved + already-saved via the
+trigger's zero-rows-affected signal, no failure), S05
+feed-down carries persistence no-attempt. The getLive schema
+gains a typed `persistence { outcome, reason }`; insert
+errors are no longer presumed uniqueness races. UI proof at
+the SSR preview layer: new `storage-warning` preview renders
+LIVE beside the “Saved trail unavailable … (storage full)”
+line with build-asserted payload expectations; the healthy
+preview asserts its absence. C1-R1 harness re-run at this
+revision: 14/14 PASS. SSR previews: nine retained HTMLs
+byte-identical, payloads gain only the persistence field;
+browser cases pass with fresh reports (HTML changes only by
+the embedded persistence field; screenshots rebound to the
+retained PNGs). Backend suites re-run unchanged: compile
+12/12, watcher 0 failures, J1 50/50 + 27/27 + 27/27.
 Backend suites below were re-run unchanged at the ADOPT-B2 candidate
 as well: compile 12/12, watcher 0 failures, J1 50/50 + 27/27,
 boundary tests 51/51. Re-run unchanged again at the ADOPT-B2-R1
