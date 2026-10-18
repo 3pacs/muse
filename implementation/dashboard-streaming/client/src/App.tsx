@@ -1098,22 +1098,28 @@ export function App() {
               {/* ADOPT-C06: saving health is shown beside the trail,
                   independent of feed status — a failed save never
                   relabels the feed, and a healthy feed never hides a
-                  failed save. Only the safe category is displayed. */}
+                  failed save. Only the safe category is displayed.
+                  ADOPT-C06-R1: the wording describes the whole
+                  persistence step, never the insert alone — a failure
+                  can occur in post-insert maintenance (the prune)
+                  AFTER the frame was stored, so the text must not
+                  claim snapshots are not being stored or that the
+                  trail is unavailable. */}
               {data?.persistence?.outcome === "failed" && (
                 <p
                   className="mb-2 text-sm"
                   style={{ color: "var(--amber)" }}
                   role="status"
                 >
-                  Saved trail unavailable — snapshots aren’t being stored
-                  right now
+                  Snapshot saving problem — the latest saving step
+                  didn’t finish
                   {data.persistence.reason === "storage-full"
                     ? " (storage full)"
                     : data.persistence.reason === "storage-busy"
                       ? " (storage busy)"
                       : data.persistence.reason === "storage-read-only"
                         ? " (storage read-only)"
-                        : ""}
+                        : " (storage unavailable)"}
                   . The live feed is unaffected.
                 </p>
               )}
