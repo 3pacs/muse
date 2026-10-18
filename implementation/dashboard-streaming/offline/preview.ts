@@ -117,10 +117,19 @@ class FakeQuery implements PromiseLike<unknown[]> {
   }
 }
 const store: Record<string, unknown>[] = [];
+// ADOPT-C06 preview support: OFFLINE_INSERT_FAIL=1 makes the fake
+// insert reject with a coded storage error, so a preview case can
+// render the saved-trail warning beside a healthy LIVE feed.
+const insertFail = process.env.OFFLINE_INSERT_FAIL === "1";
 const fakeDb = {
   select: () => new FakeQuery(() => store.slice()),
   insert: () => ({
     values: async (v: Record<string, unknown>) => {
+      if (insertFail) {
+        throw Object.assign(new Error("preview injected storage failure"), {
+          code: "SQLITE_FULL",
+        });
+      }
       store.push(v);
     },
   }),

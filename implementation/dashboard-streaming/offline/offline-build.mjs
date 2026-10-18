@@ -187,8 +187,21 @@ run("client bundle (adapter buildClient)", "bun", ["./client/build.mjs"], {
 const CASES = [
   ["success", "feed_all_success.json", "feed_signals_success.json", "", {
     htmlIncludes: ["LIVE", "isolated"],
-    payloadEquals: [["getLive.ok", true]],
+    htmlExcludes: ["Saved trail unavailable"],
+    payloadEquals: [["getLive.ok", true], ["getLive.persistence.outcome", "saved"]],
   }],
+  // ADOPT-C06: the insert fails (injected SQLITE_FULL) while the feed
+  // is healthy — the render must stay LIVE and show the saved-trail
+  // warning with its safe category; the success case above proves
+  // the warning is absent on a healthy save.
+  ["storage-warning", "feed_all_success.json", "feed_signals_success.json", "", {
+    htmlIncludes: ["LIVE", "Saved trail unavailable", "storage full"],
+    payloadEquals: [
+      ["getLive.ok", true],
+      ["getLive.persistence.outcome", "failed"],
+      ["getLive.persistence.reason", "storage-full"],
+    ],
+  }, { OFFLINE_INSERT_FAIL: "1" }],
   ["last-session", "feed_all_last_session.json", "feed_signals_success.json", "", {
     htmlIncludes: ["MARKET CLOSED"],
     payloadEquals: [["getLive.ok", true], ["getLive.live.marketOpen", false]],
@@ -233,14 +246,18 @@ const CASES = [
     payloadEquals: [["getLive.ok", true], ["getSignals.ok", false]],
   }],
 ];
-for (const [name, feedAll, signals, receipt, expect] of CASES) {
+for (const [name, feedAll, signals, receipt, expect, extraEnv] of CASES) {
   run("preview " + name, "bun", [
     "run", join(work, "offline", "preview.ts"), name,
     join(fixtures, feedAll), join(fixtures, signals), join(out, "preview"),
     receipt,
   ], {
     cwd: work,
-    env: { ...process.env, OFFLINE_EXPECT_JSON: JSON.stringify(expect ?? {}) },
+    env: {
+      ...process.env,
+      OFFLINE_EXPECT_JSON: JSON.stringify(expect ?? {}),
+      ...(extraEnv ?? {}),
+    },
   });
 }
 

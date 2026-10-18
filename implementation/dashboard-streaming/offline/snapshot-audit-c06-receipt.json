@@ -1,0 +1,116 @@
+{
+  "assignment": "ADOPT-C06",
+  "base": "ADOPT-C1-R1 closed pin 3ed17869ee20019a51a7c93655992d6348e01545",
+  "mode": "real getLive handler + real schema + verbatim 0002/0003 DDL on drizzle-orm/libsql in-memory storage; SDK adapter + fetch stub substitutions as disclosed in the entry header",
+  "runtime": {
+    "bun": "1.4.2",
+    "node": "v24.20.0"
+  },
+  "dependencyVersions": {
+    "drizzle-orm": "0.45.2",
+    "@libsql/client": "0.14.0",
+    "zod": "4.4.3",
+    "typescript": "5.6.3"
+  },
+  "fileHashes": {
+    "server/src/actions.ts": "674bc29699302ad9881301d08f6036d69e318ebdde49f7e6171795e3330c574c",
+    "server/src/schema.ts": "35088a869346468b91f18e0edb6726bec2f870fefdd5f8e2fc1c47a546cb71c8",
+    "client/src/App.tsx": "e5dfc336f14d4501f9ce1a46a2fc982f6c66dac64d257a89222d5c1a96a96ba4",
+    "drizzle/0002_snapshots_table.sql": "c8cc1f77d28ab53a61b81ee354b3ccf0584c639ce4b9a6ad2060ad49f39a0791",
+    "drizzle/0003_snapshot_instant.sql": "6ef107536f88fe061b99bcfcad56b1abf5b50924b81580e003a0ce699821e2d2",
+    "offline/snapshot-audit-c06-entry.ts": "fb751f50d97d131fc3da89f1fc7fa2792f24da27d2e90ac0c15524fdb5ed4d0f",
+    "offline/snapshot-audit-c06.mjs": "33bb492281feb153766f711022f448661e3c2a2145c56d6a38933d3407b70f4b"
+  },
+  "summary": {
+    "cases": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "cases": [
+    {
+      "id": "S01",
+      "expectation": "insert failure, empty storage: ok:true with live frame, persistence failed/storage-unavailable, 0 rows, empty trail",
+      "verdict": "PASS",
+      "observed": {
+        "ok": true,
+        "persistence": {
+          "outcome": "failed",
+          "reason": "storage-unavailable"
+        },
+        "rows": 0,
+        "trailLength": 0
+      }
+    },
+    {
+      "id": "S02",
+      "expectation": "insert failure with last-good trail: first frame saved; failed response keeps ok:true + new live frame, persistence failed, rows stay 1, trail stays at the first frame",
+      "verdict": "PASS",
+      "observed": {
+        "first": {
+          "outcome": "saved",
+          "reason": null
+        },
+        "failed": {
+          "outcome": "failed",
+          "reason": "storage-unavailable"
+        },
+        "rows": 1,
+        "trail": [
+          "2026-10-16T23:30:00.000Z"
+        ]
+      }
+    },
+    {
+      "id": "S03",
+      "expectation": "recovery: redelivered frame saves exactly once (rows 2, trail catches up), persistence saved; exact replay is already-saved with no duplicate",
+      "verdict": "PASS",
+      "observed": {
+        "recovered": {
+          "outcome": "saved",
+          "reason": null
+        },
+        "replay": {
+          "outcome": "already-saved",
+          "reason": null
+        },
+        "rows": 2,
+        "trail": [
+          "2026-10-16T23:30:00.000Z",
+          "2026-10-16T23:31:00.000Z"
+        ]
+      }
+    },
+    {
+      "id": "S04",
+      "expectation": "benign outcomes: +30s frame is throttled (no row, no failure); overlapping equivalent-instant pair yields saved + already-saved, exactly 1 row, no failure anywhere",
+      "verdict": "PASS",
+      "observed": {
+        "first": {
+          "outcome": "saved",
+          "reason": null
+        },
+        "throttled": {
+          "outcome": "throttled",
+          "reason": null
+        },
+        "pair": [
+          "already-saved",
+          "saved"
+        ],
+        "pairRows": 1
+      }
+    },
+    {
+      "id": "S05",
+      "expectation": "feed down: ok:false and persistence { outcome: no-attempt, reason: null }",
+      "verdict": "PASS",
+      "observed": {
+        "ok": false,
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        }
+      }
+    }
+  ]
+}
