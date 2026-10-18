@@ -162,8 +162,8 @@
     },
     {
       "path": "drizzle/0003_snapshot_instant.sql",
-      "bytes": 868,
-      "sha256": "b7056d1725eb010dce0b8e4c2be05c25dac18245e6167c21573e8b795f82d63b"
+      "bytes": 4550,
+      "sha256": "f0f73744e7cc074a83dfcb9a1513d0e20d6ac19ad88be24d34eff090ae526b2f"
     },
     {
       "path": "offline/adapter/build.ts",
@@ -237,8 +237,8 @@
     },
     {
       "path": "server/src/actions.ts",
-      "bytes": 27077,
-      "sha256": "592c8c29652f9d1db1846003f41e6d154d67b7063545f993fc22c16ad4d62dfe"
+      "bytes": 27720,
+      "sha256": "59f825f187f26c9cacaf87378bfdf57052bfe322ae85617be0a2cb3fe37c72dd"
     },
     {
       "path": "server/src/schema.ts",
@@ -454,8 +454,8 @@
     },
     {
       "path": "server/actions.js",
-      "bytes": 183168,
-      "sha256": "135798207f65ec19f8e90f23469677951e6e26cee317816ee25d74904e5cb885"
+      "bytes": 183244,
+      "sha256": "50a244b8e9cd613728cbb25f728c81630ce068280cd76d51ec8f6c6689b33f00"
     },
     {
       "path": "signals-only-error.html",

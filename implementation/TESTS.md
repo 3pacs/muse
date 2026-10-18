@@ -276,6 +276,18 @@ byte-identical HTML/responses with fresh passing reports
 (BROWSER-MANIFEST inputs refreshed; screenshot entries bound
 to the retained PNGs). Backend suites re-run unchanged:
 compile 12/12, watcher 0 failures, J1 50/50 + 27/27 + 27/27.
+Completion (2026-10-18, review round 2): the same harness now
+runs 14 cases, 14/14 PASS — R09 backfill-equivalence battery
+(35 spellings: the 0003 expression reproduces the application
+parser's key exactly, incl. compact +0200 and truncated
+sub-millisecond fractions; inadmissible clocks stay NULL),
+R10 legacy admitted-spelling replays dedupe to one row,
+R11 timezone-less legacy row cannot outrank a valid frame,
+R12 unkeyed-only storage advertises no fallback identity,
+R13 two overlapping equivalent-spelling writes admit exactly
+one observation (0003 BEFORE INSERT trigger makes admission
+atomic). loadTrailAndLatest now filters unkeyed rows out of
+selection. Receipt regenerated and committed.
 Backend suites below were re-run unchanged at the ADOPT-B2 candidate
 as well: compile 12/12, watcher 0 failures, J1 50/50 + 27/27,
 boundary tests 51/51. Re-run unchanged again at the ADOPT-B2-R1

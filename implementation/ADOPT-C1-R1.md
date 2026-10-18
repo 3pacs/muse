@@ -151,7 +151,79 @@ acceptance table re-tests.
   **27/27**; watcher **0 failures**. No pipeline file changes in this
   completion.
 
-## 6. Scope limits (unchanged honesty labels)
+## 6. Completion (2026-10-18) — validated backfill, unkeyed selection, atomic admission
+
+The review of the first R1 delivery (PR #2 docs heads `3d18605` +
+`b02f3d4`) verified the package and the five fresh-data properties,
+and left three source findings open. This completion closes exactly
+those three; the §1–§6 record above stands as delivered history.
+
+**R1a — the backfill now reproduces the application parser.**
+`drizzle/0003_snapshot_instant.sql` is amended in place (it was never
+deployed): the old `unixepoch(...,'subsec')` + ROUND expression
+diverged from the F1 parser on three admitted/inadmissible shapes —
+compact offsets (`+0200` → NULL), sub-millisecond fractions
+(`.0005Z` → rounded to the wrong millisecond), and timezone-less
+strings (keyed, though the application rejects them). The new
+expression computes the instant arithmetically — naive prefix as
+UTC, zone offset parsed from the suffix, fraction digits TRUNCATED
+to milliseconds by string slicing — behind shape/digit/range guards
+mirroring the application regex. Out-of-range components the SQL
+engine would roll over (hour 24, minute/second 60, offset +24:00)
+are guarded explicitly. Equivalence is not asserted but measured:
+case R09 runs a **35-spelling battery** (Z/colon/compact offsets,
+seconds-less forms, fractions from `.5` to `.000000001`, naive,
+space-separated, bad digits, month 13, Feb 30, hour/minute/second
+overflow) and every backfilled key equals the application parser's
+key or both reject. The reviewer's witnesses now key exactly:
+`+0200` → 1792193400000, `.0005Z` → 1792193400000, naive → NULL.
+R10 replays equivalent Z frames against migrated compact-offset and
+sub-millisecond legacy rows: one observation retained, original
+payload kept.
+
+**R1b — unkeyed rows are excluded, not sorted last.**
+`loadTrailAndLatest` now filters `instant_ms IS NOT NULL` on both
+the trail and the newest-row queries (the throttle query already
+did). R11: a timezone-less legacy row (later wall clock, valid
+payload) stays unkeyed, is absent from the trail, and the valid
+older frame remains the fallback. R12 (the reviewer's corrupt-
+metadata witness — `updated_at = "unparseable"` with a valid
+payload): unkeyed-only storage now returns `staleSnapshot` null,
+`staleSnapshotAt` null, trail empty — no untrusted newest is
+advertised.
+
+**R1c — canonical admission is atomic.** Migration 0003 adds the
+`snapshots_unique_instant` BEFORE INSERT trigger: an insert whose
+`instant_ms` is already stored is ignored inside the insert
+statement itself (RAISE(IGNORE)), so two overlapping writes of one
+instant cannot both land, whichever spelling each carries — the
+pre-insert SELECT is now only the fast path, not the guarantee.
+Legacy rows are untouched (the trigger constrains new inserts
+only), and NULL keys are unrestricted (any number of unkeyed raw
+rows may be retained). Verified directly at the SQL layer and by
+R13: two overlapping `getLive` writes (Z spot 500, +02:00 spot 999)
+under `Promise.all` leave exactly **1 row**, one whole payload, no
+hybrid. First-stored-wins is unchanged (the surviving row is
+whichever insert landed first; the loser is ignored whole).
+
+Amended hashes: `server/src/actions.ts` `59f825f187f2…` (selection
+filters + policy comment only — persistence logic unchanged),
+`drizzle/0003_snapshot_instant.sql` `f0f73744e7cc…`, harness entry
+`9708f3425c30…`. The committed receipt is regenerated:
+`offline/snapshot-audit-r1-receipt.json` (`4a65cd4e91f1…`) now
+binds **14 cases, 14/14 PASS** (R01–R08 unchanged in substance,
+R09–R13 added). Preserved lanes re-run at this revision: SSR
+previews byte-identical, boundary 51/51, BUILD-MANIFEST refreshed
+(actions + 0003 input hashes; server bundle output
+`50a244b8e9cd…`); browser cases byte-identical HTML/responses with
+fresh passing reports, BROWSER-MANIFEST inputs 37 → 38 (the
+committed receipt file enters the directory scan) with screenshot
+entries again bound to the retained PNGs, 40/40 outputs verify;
+backend compile 12/12, J1 50/50 + 27/27 + 27/27, watcher 0
+failures. The reviewer's five passed fresh-data groups are
+re-covered by R01/R05/R06/R08 and remain PASS.
+
+## 7. Scope limits (unchanged honesty labels)
 
 Hosted platform DB behavior and platform schema validation remain
 UNRUN — the evidence is the packaged source + real SQL semantics on
