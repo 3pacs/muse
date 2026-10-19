@@ -131,8 +131,58 @@ const LIVE_G1 = {
   // local time, so the same payload means different instants in UTC vs
   // America/New_York. Reject it without touching last-good/failure.
   _hasExplicitZone(raw) {
-    // Z, or ±HH:MM / ±HHMM / ±HH at the end
-    return /(Z|[+-]\d{2}:?\d{2}|[+-]\d{2})$/.test(raw.trim());
+    // The zone designator (Z, or ±HH:MM / ±HHMM / ±HH) must follow a time
+    // component. A date-only string like "2026-10-07" has no time, and its
+    // trailing "-07" is a calendar day, not a -07 offset — it must not
+    // satisfy the zone guard (R4 date-only correction).
+    return /[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?\s*(Z|[+-]\d{2}:?\d{2}|[+-]\d{2})$/.test(raw.trim());
+  },
+  // STRESS-P1: declared source-identity policy (ADAPTER_SPEC v1 + the
+  // delivery receipt's backend pin). A payload that ASSERTS an
+  // adapter_version / backend_pin outside the supported sets, or a tuple
+  // whose payloads assert different values, is rejected before commit —
+  // foreign data is never silently attributed to the pinned v1 source.
+  // Payloads that assert neither field are not identity-checked. A future
+  // compatible backend/adapter release is supported by extending these
+  // declared sets in the delivery, the same way the footer pin is updated.
+  _sourcePolicy: {
+    adapterVersions: ['live-g1/v1'],
+    backendPins: ['8649ad54'],
+  },
+  // STRESS-P1: validate the whole staged tuple BEFORE any last-good state
+  // or DOM changes. Returns a short rejection reason, or null when the
+  // tuple is admissible. Clock/newer checks stay in _doRefresh.
+  _validateTuple(status, snapshot, history) {
+    const isMap = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+    if (!isMap(snapshot)) return 'snapshot is not an object';
+    if (!isMap(snapshot.fields)) return 'snapshot.fields is not a field map';
+    if (!isMap(history)) return 'history is not an object';
+    if (!Array.isArray(history.records)) return 'history.records is not an array';
+    for (const r of history.records) {
+      if (!isMap(r)) return 'history record is not an object';
+    }
+    if (status !== null && status !== undefined && !isMap(status)) {
+      return 'status is not an object';
+    }
+    const versions = new Set(), pins = new Set();
+    for (const p of [status, snapshot, history]) {
+      if (!isMap(p)) continue;
+      if (p.adapter_version !== undefined) {
+        if (!LIVE_G1._sourcePolicy.adapterVersions.includes(p.adapter_version)) {
+          return 'unsupported adapter_version';
+        }
+        versions.add(p.adapter_version);
+      }
+      if (p.backend_pin !== undefined) {
+        if (!LIVE_G1._sourcePolicy.backendPins.includes(p.backend_pin)) {
+          return 'unsupported backend_pin';
+        }
+        pins.add(p.backend_pin);
+      }
+    }
+    if (versions.size > 1) return 'mixed adapter_version across tuple';
+    if (pins.size > 1) return 'mixed backend_pin across tuple';
+    return null;
   },
   _frameTs(frame) {
     if (!frame || typeof frame !== 'object') return null;
@@ -180,15 +230,21 @@ const LIVE_G1 = {
       if (gen !== LIVE_G1._refreshGen) return;
       // R3: frame identity on parsed UTC instant; invalid clocks rejected.
       // Failure state is retained until a GENUINELY NEWER VALIDATED frame lands.
+      // STRESS-P1: the candidate tuple is staged and validated as a unit
+      // first. A rejected tuple changes nothing — last-good globals, the
+      // DOM and the frame identity all stay with the accepted frame, so a
+      // valid retry at the same timestamp can still be admitted.
       const oldTs = LIVE_G1._frameTs(window.__SNAPSHOT__);
       const newTs = LIVE_G1._frameTs(snapshot);
-      const valid = snapshot && typeof snapshot === 'object' && snapshot.fields;
+      const problem = LIVE_G1._validateTuple(status, snapshot, history);
       const clockOk = newTs !== null;
       const isNewer = clockOk && (!oldTs || newTs > oldTs);
-      if (!valid || !clockOk) {
-        // Malformed frame or unparseable clock: preserve last-good tuple,
+      if (problem || !clockOk) {
+        // Malformed tuple or unparseable clock: preserve last-good tuple,
         // retain existing failure/error state.
-        note.textContent = 'Invalid frame or clock — kept last good snapshot.';
+        note.textContent = 'Invalid frame rejected' +
+          (problem ? ' (' + problem + ')' : ' (unparseable clock)') +
+          ' — kept last good snapshot.';
       } else if (!isNewer) {
         // Old or equal: preserve last-good tuple, retain failure/error state.
         note.textContent = 'No newer data — kept last good snapshot.';
@@ -272,7 +328,14 @@ function render(snapshot, status) {
       cb.textContent = 'unknown'; cb.className = 'badge unknown';
     }
     const v = status.data_vintage;
-    if (v && v.stale) {
+    if (interp && interp.reachable === false) {
+      // STRESS-P1/C10: adapter honesty rule — when the backend is
+      // unreachable the page serves last-known data, which is stale by
+      // definition. A contradictory vintage block claiming fresh must
+      // never surface as fresh next to a disconnected badge.
+      fb.textContent = 'stale: ' + ((v && v.stale && v.stale_reason) || 'backend unreachable');
+      fb.className = 'badge stale';
+    } else if (v && v.stale) {
       fb.textContent = 'stale: ' + (v.stale_reason || 'unknown');
       fb.className = 'badge stale';
     } else if (v && v.stale === false) {
@@ -292,9 +355,11 @@ function render(snapshot, status) {
     document.getElementById('alert').style.display = 'none';
   }
 
-  // Ranges
+  // Ranges (defensive: render never throws on a non-array records value;
+  // admission already guarantees the shape for refreshed tuples)
   const tb = document.querySelector('#ranges tbody');
-  const recs = (window.__HISTORY__ && window.__HISTORY__.records) || [];
+  const recs = (window.__HISTORY__ && Array.isArray(window.__HISTORY__.records))
+    ? window.__HISTORY__.records : [];
   tb.innerHTML = recs.slice(0, 12).map(r =>
     `<tr><td>${String(r.recorded_at||'').slice(11,16)}</td><td>${fmt(r.spot)}</td>` +
     `<td>${fmt(r.max_pain)}</td><td>${fmt(r.gamma_flip)}</td><td>${fmt(r.pin_score,0)}</td></tr>`
