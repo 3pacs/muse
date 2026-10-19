@@ -1,0 +1,486 @@
+{
+  "total": 24,
+  "passed": 24,
+  "failed": [],
+  "results": [
+    {
+      "id": "boot_embedded",
+      "pass": true,
+      "observed": {
+        "spot": "774.94",
+        "rowCount": 12,
+        "conn": "connected",
+        "fresh": "stale: market closed; last record from session close",
+        "alertShown": false,
+        "note": "Embedded snapshot. Set transport for live refresh.",
+        "snapTs": "2026-10-06T05:46:01.101928+00:00",
+        "histLen": 20,
+        "histSpot": 774.94,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null
+      }
+    },
+    {
+      "id": "admit_base",
+      "pass": true,
+      "observed": {
+        "spot": "800.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:38:16Z.",
+        "snapTs": "2026-10-06T07:00:00Z",
+        "histLen": 3,
+        "histSpot": 800,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c07_malformed_history_rejected_atomically",
+      "pass": true,
+      "observed": {
+        "spot": "800.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Invalid frame rejected (history.records is not an array) — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:00:00Z",
+        "histLen": 3,
+        "histSpot": 800,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c07_valid_retry_same_frame_admitted",
+      "pass": true,
+      "observed": {
+        "spot": "900.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:38:16Z.",
+        "snapTs": "2026-10-06T07:11:00Z",
+        "histLen": 3,
+        "histSpot": 900,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c08_string_fields_rejected",
+      "pass": true,
+      "observed": {
+        "spot": "900.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Invalid frame rejected (snapshot.fields is not a field map) — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:11:00Z",
+        "histLen": 3,
+        "histSpot": 900,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c08_array_fields_rejected",
+      "pass": true,
+      "observed": {
+        "spot": "900.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Invalid frame rejected (snapshot.fields is not a field map) — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:11:00Z",
+        "histLen": 3,
+        "histSpot": 900,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c08_valid_retry_admitted",
+      "pass": true,
+      "observed": {
+        "spot": "950.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:38:16Z.",
+        "snapTs": "2026-10-06T07:15:00Z",
+        "histLen": 3,
+        "histSpot": 950,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c09_snapshot_adapter_version",
+      "pass": true,
+      "observed": {
+        "spot": "950.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Invalid frame rejected (unsupported adapter_version) — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:15:00Z",
+        "histLen": 3,
+        "histSpot": 950,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c09_history_adapter_version",
+      "pass": true,
+      "observed": {
+        "spot": "950.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Invalid frame rejected (unsupported adapter_version) — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:15:00Z",
+        "histLen": 3,
+        "histSpot": 950,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c09_foreign_backend_pin",
+      "pass": true,
+      "observed": {
+        "spot": "950.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Invalid frame rejected (unsupported backend_pin) — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:15:00Z",
+        "histLen": 3,
+        "histSpot": 950,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c09_mixed_status_version",
+      "pass": true,
+      "observed": {
+        "spot": "950.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Invalid frame rejected (unsupported adapter_version) — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:15:00Z",
+        "histLen": 3,
+        "histSpot": 950,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c09_valid_retry_admitted",
+      "pass": true,
+      "observed": {
+        "spot": "960.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:38:16Z.",
+        "snapTs": "2026-10-06T07:20:00Z",
+        "histLen": 3,
+        "histSpot": 960,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c10_contradictory_status_not_fresh",
+      "pass": true,
+      "observed": {
+        "spot": "970.00",
+        "rowCount": 3,
+        "conn": "disconnected",
+        "fresh": "stale: backend unreachable",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:38:16Z.",
+        "snapTs": "2026-10-06T07:23:00Z",
+        "histLen": 3,
+        "histSpot": 970,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c06_transport_failure_retains",
+      "pass": true,
+      "observed": {
+        "spot": "970.00",
+        "rowCount": 3,
+        "conn": "disconnected",
+        "fresh": "stale: transport failed",
+        "alertShown": true,
+        "note": "Refresh failed: boom — kept last good data.",
+        "snapTs": "2026-10-06T07:23:00Z",
+        "histLen": 3,
+        "histSpot": 970,
+        "lastError": "boom",
+        "failed": true,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c06_equal_frame_keeps_failure",
+      "pass": true,
+      "observed": {
+        "spot": "970.00",
+        "rowCount": 3,
+        "conn": "disconnected",
+        "fresh": "stale: transport failed",
+        "alertShown": true,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:23:00Z",
+        "histLen": 3,
+        "histSpot": 970,
+        "lastError": "boom",
+        "failed": true,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c06_newer_recovers",
+      "pass": true,
+      "observed": {
+        "spot": "980.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:38:16Z.",
+        "snapTs": "2026-10-06T07:26:00Z",
+        "histLen": 3,
+        "histSpot": 980,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c11_timezone_less_rejected",
+      "pass": true,
+      "observed": {
+        "spot": "980.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Invalid frame rejected (unparseable clock) — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:26:00Z",
+        "histLen": 3,
+        "histSpot": 980,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "r4_date_only_rejected",
+      "pass": true,
+      "observed": {
+        "spot": "980.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Invalid frame rejected (unparseable clock) — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:26:00Z",
+        "histLen": 3,
+        "histSpot": 980,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c11_equal_instant_offset_not_newer",
+      "pass": true,
+      "observed": {
+        "spot": "980.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:26:00Z",
+        "histLen": 3,
+        "histSpot": 980,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "c11_newer_offset_admitted",
+      "pass": true,
+      "observed": {
+        "spot": "990.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:38:16Z.",
+        "snapTs": "2026-10-06T12:57:00+05:30",
+        "histLen": 3,
+        "histSpot": 990,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "burst_coalesces_to_one_followup",
+      "pass": true,
+      "observed": {
+        "spot": "995.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:40:00Z",
+        "histLen": 3,
+        "histSpot": 995,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "snapFetches": 2
+      }
+    },
+    {
+      "id": "c12_large_history",
+      "pass": true,
+      "observed": {
+        "spot": "996.00",
+        "rowCount": 12,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:38:16Z.",
+        "snapTs": "2026-10-06T07:45:00Z",
+        "histLen": 20000,
+        "histSpot": 996,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "badjson_retains_tuple",
+      "pass": true,
+      "observed": {
+        "spot": "996.00",
+        "rowCount": 12,
+        "conn": "disconnected",
+        "fresh": "stale: transport failed",
+        "alertShown": true,
+        "note": "Refresh failed: Unexpected token < in JSON — kept last good data.",
+        "snapTs": "2026-10-06T07:45:00Z",
+        "histLen": 20000,
+        "histSpot": 996,
+        "lastError": "Unexpected token < in JSON",
+        "failed": true,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    },
+    {
+      "id": "final_recovery",
+      "pass": true,
+      "observed": {
+        "spot": "999.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:38:16Z.",
+        "snapTs": "2026-10-06T07:50:00Z",
+        "histLen": 3,
+        "histSpot": 999,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": false,
+        "frameDateOnly": null,
+        "rej": null
+      }
+    }
+  ]
+}

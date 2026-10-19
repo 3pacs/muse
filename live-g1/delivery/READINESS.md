@@ -6,10 +6,16 @@
 - Dashboard template renders embedded captures with honest stale/disconnected badges.
 - Transport (`window.LIVE_G1`) is defined and documented.
 - Build script reproduces the HTML byte-identically from captures + template.
+- Refresh admission (STRESS-P1): the staged status/snapshot/history tuple is
+  validated as a unit before any last-good state or DOM changes — field-map
+  shape, history-records shape, the declared `adapter_version`/`backend_pin`
+  source-identity policy, and unreachable ⇒ stale (never fresh) badge
+  semantics (review findings C07–C10).
 
 ## Deployment-ready: PARTIAL
 What exists:
-- Standalone HTML (`0dte-dashboard-live-g1.html`, 19KB) builds reproducibly.
+- Standalone HTML (`0dte-dashboard-live-g1.html`, 27,275 bytes at the
+  STRESS-P1 candidate) builds reproducibly.
 - Route map documents primary vs demo separation.
 - Adapter runs as a CLI; can serve HTTP with a wrapper.
 

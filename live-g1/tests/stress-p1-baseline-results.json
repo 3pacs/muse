@@ -1,0 +1,503 @@
+{
+  "total": 24,
+  "passed": 8,
+  "failed": [
+    "c07_malformed_history_rejected_atomically",
+    "c07_valid_retry_same_frame_admitted",
+    "c08_string_fields_rejected",
+    "c08_array_fields_rejected",
+    "c08_valid_retry_admitted",
+    "c09_snapshot_adapter_version",
+    "c09_history_adapter_version",
+    "c09_foreign_backend_pin",
+    "c09_mixed_status_version",
+    "c10_contradictory_status_not_fresh",
+    "r4_date_only_rejected",
+    "c11_equal_instant_offset_not_newer",
+    "burst_coalesces_to_one_followup",
+    "c12_large_history",
+    "badjson_retains_tuple",
+    "final_recovery"
+  ],
+  "results": [
+    {
+      "id": "boot_embedded",
+      "pass": true,
+      "observed": {
+        "spot": "774.94",
+        "rowCount": 12,
+        "conn": "connected",
+        "fresh": "stale: market closed; last record from session close",
+        "alertShown": false,
+        "note": "Embedded snapshot. Set transport for live refresh.",
+        "snapTs": "2026-10-06T05:46:01.101928+00:00",
+        "histLen": 20,
+        "histSpot": 774.94,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000
+      }
+    },
+    {
+      "id": "admit_base",
+      "pass": true,
+      "observed": {
+        "spot": "800.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:36:43Z.",
+        "snapTs": "2026-10-06T07:00:00Z",
+        "histLen": 3,
+        "histSpot": 800,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c07_malformed_history_rejected_atomically",
+      "pass": false,
+      "observed": {
+        "spot": "900.00",
+        "rowCount": 3,
+        "conn": "disconnected",
+        "fresh": "stale: transport failed",
+        "alertShown": true,
+        "note": "Refresh failed: recs.slice is not a function — kept last good data.",
+        "snapTs": "2026-10-06T07:11:00Z",
+        "histLen": "non-array:object",
+        "histSpot": null,
+        "lastError": "recs.slice is not a function",
+        "failed": true,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": "recs.slice is not a function"
+      }
+    },
+    {
+      "id": "c07_valid_retry_same_frame_admitted",
+      "pass": false,
+      "observed": {
+        "spot": "900.00",
+        "rowCount": 3,
+        "conn": "disconnected",
+        "fresh": "stale: transport failed",
+        "alertShown": true,
+        "note": "Refresh failed: recs.slice is not a function — kept last good data.",
+        "snapTs": "2026-10-06T07:11:00Z",
+        "histLen": "non-array:object",
+        "histSpot": null,
+        "lastError": "recs.slice is not a function",
+        "failed": true,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": "recs.slice is not a function"
+      }
+    },
+    {
+      "id": "c08_string_fields_rejected",
+      "pass": false,
+      "observed": {
+        "spot": "unavailable",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:36:43Z.",
+        "snapTs": "2026-10-06T07:15:00Z",
+        "histLen": 3,
+        "histSpot": 950,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c08_array_fields_rejected",
+      "pass": false,
+      "observed": {
+        "spot": "unavailable",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:15:00Z",
+        "histLen": 3,
+        "histSpot": 950,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c08_valid_retry_admitted",
+      "pass": false,
+      "observed": {
+        "spot": "unavailable",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:15:00Z",
+        "histLen": 3,
+        "histSpot": 950,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c09_snapshot_adapter_version",
+      "pass": false,
+      "observed": {
+        "spot": "960.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:36:43Z.",
+        "snapTs": "2026-10-06T07:20:00Z",
+        "histLen": 3,
+        "histSpot": 960,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c09_history_adapter_version",
+      "pass": false,
+      "observed": {
+        "spot": "960.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:20:00Z",
+        "histLen": 3,
+        "histSpot": 960,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c09_foreign_backend_pin",
+      "pass": false,
+      "observed": {
+        "spot": "960.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:20:00Z",
+        "histLen": 3,
+        "histSpot": 960,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c09_mixed_status_version",
+      "pass": false,
+      "observed": {
+        "spot": "960.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:20:00Z",
+        "histLen": 3,
+        "histSpot": 960,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c09_valid_retry_admitted",
+      "pass": true,
+      "observed": {
+        "spot": "960.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:20:00Z",
+        "histLen": 3,
+        "histSpot": 960,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c10_contradictory_status_not_fresh",
+      "pass": false,
+      "observed": {
+        "spot": "970.00",
+        "rowCount": 3,
+        "conn": "disconnected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:36:43Z.",
+        "snapTs": "2026-10-06T07:23:00Z",
+        "histLen": 3,
+        "histSpot": 970,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c06_transport_failure_retains",
+      "pass": true,
+      "observed": {
+        "spot": "970.00",
+        "rowCount": 3,
+        "conn": "disconnected",
+        "fresh": "stale: transport failed",
+        "alertShown": true,
+        "note": "Refresh failed: boom — kept last good data.",
+        "snapTs": "2026-10-06T07:23:00Z",
+        "histLen": 3,
+        "histSpot": 970,
+        "lastError": "boom",
+        "failed": true,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c06_equal_frame_keeps_failure",
+      "pass": true,
+      "observed": {
+        "spot": "970.00",
+        "rowCount": 3,
+        "conn": "disconnected",
+        "fresh": "stale: transport failed",
+        "alertShown": true,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:23:00Z",
+        "histLen": 3,
+        "histSpot": 970,
+        "lastError": "boom",
+        "failed": true,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c06_newer_recovers",
+      "pass": true,
+      "observed": {
+        "spot": "980.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:36:43Z.",
+        "snapTs": "2026-10-06T07:26:00Z",
+        "histLen": 3,
+        "histSpot": 980,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c11_timezone_less_rejected",
+      "pass": true,
+      "observed": {
+        "spot": "980.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Invalid frame or clock — kept last good snapshot.",
+        "snapTs": "2026-10-06T07:26:00Z",
+        "histLen": 3,
+        "histSpot": 980,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "r4_date_only_rejected",
+      "pass": false,
+      "observed": {
+        "spot": "990.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "Refreshed from transport at 04:36:43Z.",
+        "snapTs": "2026-10-07",
+        "histLen": 3,
+        "histSpot": 990,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c11_equal_instant_offset_not_newer",
+      "pass": false,
+      "observed": {
+        "spot": "990.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-07",
+        "histLen": 3,
+        "histSpot": 990,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "c11_newer_offset_admitted",
+      "pass": true,
+      "observed": {
+        "spot": "990.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-07",
+        "histLen": 3,
+        "histSpot": 990,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "burst_coalesces_to_one_followup",
+      "pass": false,
+      "observed": {
+        "spot": "990.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-07",
+        "histLen": 3,
+        "histSpot": 990,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "snapFetches": 2
+      }
+    },
+    {
+      "id": "c12_large_history",
+      "pass": false,
+      "observed": {
+        "spot": "990.00",
+        "rowCount": 3,
+        "conn": "connected",
+        "fresh": "fresh",
+        "alertShown": false,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-07",
+        "histLen": 3,
+        "histSpot": 990,
+        "lastError": null,
+        "failed": false,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "badjson_retains_tuple",
+      "pass": false,
+      "observed": {
+        "spot": "990.00",
+        "rowCount": 3,
+        "conn": "disconnected",
+        "fresh": "stale: transport failed",
+        "alertShown": true,
+        "note": "Refresh failed: Unexpected token < in JSON — kept last good data.",
+        "snapTs": "2026-10-07",
+        "histLen": 3,
+        "histSpot": 990,
+        "lastError": "Unexpected token < in JSON",
+        "failed": true,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    },
+    {
+      "id": "final_recovery",
+      "pass": false,
+      "observed": {
+        "spot": "990.00",
+        "rowCount": 3,
+        "conn": "disconnected",
+        "fresh": "stale: transport failed",
+        "alertShown": true,
+        "note": "No newer data — kept last good snapshot.",
+        "snapTs": "2026-10-07",
+        "histLen": 3,
+        "histSpot": 990,
+        "lastError": "Unexpected token < in JSON",
+        "failed": true,
+        "zoneDateOnly": true,
+        "frameDateOnly": 1791331200000,
+        "rej": null
+      }
+    }
+  ]
+}
