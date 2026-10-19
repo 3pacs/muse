@@ -1,15 +1,15 @@
 {
   "artifact": "0dte-dashboard-live-g1",
-  "built_at": "2026-10-06T08:08:44.439036+00:00",
-  "html_sha256": "17e62caf939d79c1aa7aba243400b94922ad59e0a0df0843eb5fbd649c175ed6",
-  "html_bytes_utf8": 23747,
+  "built_at": "2026-10-19T04:37:31.305601+00:00",
+  "html_sha256": "10120fd57af8d3fb6a7178840dda7ed23e78f81c3831ad2147e96943235dc6c6",
+  "html_bytes_utf8": 27275,
   "adapter_version": "live-g1/v1",
   "backend_pin": "8649ad54",
   "base_ui_pin": "e5a8a0ce",
   "delivery": "live-g1/delivery",
   "lineage": {
     "template": "template.html",
-    "template_sha256": "587b8717412994da005c9a40208226a1cbf15a32b6063077163bf71d91bbb6a6",
+    "template_sha256": "f1913f1bdced8196f54a313f45d2834a9275dac203f7edb36ff443b2f77dcd54",
     "captures": {
       "status.json": "a77cb3894171f11fd9a3504fad841a7b5488cef1089e9238975391879e2da921",
       "snapshot.json": "92f049a8b17981e1b36cedb917193a54071a4fdf366ddf53c4c7dc0dec15111d",
@@ -23,6 +23,6 @@
       "python3 build.py"
     ],
     "capture_clock": "2026-10-06T05:49:48.885804+00:00",
-    "build_clock": "2026-10-06T08:08:44.439036+00:00"
+    "build_clock": "2026-10-19T04:37:31.305601+00:00"
   }
 }
