@@ -12,6 +12,66 @@
 
 
 
+## 2026-10-19 — Independent Claude verification: ADOPT-C06-R1 (c3cf7897) and STRESS-P1 (88c1e8b8) reproduce as claimed; reviewer owner state UNKNOWN
+
+Independent verification lane (Claude Fable 5.1 on aniks-mac-mini), executed under the operator handoff of 2026-10-19 05:00 UTC because the OpenAI task-handoff route was failing at its automatic approval reviewer. This section adds reproduction evidence against the two exact delivery pins. It does not replace the existing Muse reviewer owner (`01a10b1d-52c1-75c3-9668-dd764d4330c6`), does not rewrite its status line above, and authorizes no merge, deployment, provider call, trading or schedule change. Docs base for this section: `bb5e2f4c201607c87b04d4fb56204dfbcb9b1c76`.
+
+### Reviewer owner status — UNKNOWN, not classified as stuck
+
+Supported diagnostics only. `codex app-server daemon version` on mini24 fails with `failed to connect to ~/.codex/app-server-control/app-server-control.sock: No such file or directory`, the same absent-control-socket failure the earlier scope check recorded. No Muse checkout exists under the home tree on mini24 or on precision5520 (depth 4), and no node/headless-Chrome harness process is running on either host; the Claude peer-session registry lists no Muse reviewer. None of this maps the cloud thread identity to a process, so queued vs running vs stalled remains unknown. No replacement reviewer, kill, nudge or private session-store search was performed. The verification below is additive evidence for that owner and for the operator.
+
+### ADOPT-C06-R1 — delivery [6259066663](https://github.com/3pacs/muse/pull/2#issuecomment-6259066663), pin `c3cf7897b67ae54eae074f8680b817e26a329c4c` on `implementation/0dte-source-20261015`
+
+Stacked on the verified C06 pin `a034ec1e` by exactly five commits (`7b27b554`, `05ba8e95`, `c8137e3f`, `07dd7268`, `c3cf7897`), touching 15 files under `implementation/`.
+
+**Reproduced here (Node v24.16.0, no installs):**
+
+- The runnable current-source proof published in the 2026-10-18 section above was extracted from this document and matched its pinned SHA-256 `5bf3dbae8791b2c2b1bb6fb8aa86a59b53ed19eda32f3443f2c466436fb7f9c5`. Against `git archive a034ec1e implementation` it exits **1** with exactly the expected pattern (S01–S05, safe-reasons and post-insert-not-retained pass; `post-insert-prune-failure` fails). Against `git archive c3cf7897 implementation` it exits **0**: all eight checks pass, including `post-insert-prune-failure`. Result receipts: base `870954acd1714f40d8bee20b41aeb09a179d2fcc001377924f55a24a99009099`, fixed `28880c1b3083be387c03615445459be118ed67ac7c9c20e59ad4fda5df104c36`.
+- Package integrity at the pin: `sha256sum -c implementation/SHA256SUMS.txt` exits 0 with **152 OK**; the tree holds **154 files**, the two unhashed being `MANIFEST.md` and `SHA256SUMS.txt` themselves. Matches the claimed 154 / 152.
+- `server/src/actions.ts` is the same blob at `a034ec1e` and `c3cf7897` (`e8c8719055db…`); the only product-source change is `client/src/App.tsx` (SHA-256 `e26fc9ddc26ddc06dc343ec72f66d1eaddea63ef2b4a27c851734e066233ece5`, as claimed): the failed-outcome warning now reads "Snapshot saving problem — the latest saving step didn't finish (…). The live feed is unaffected.", and `storage-unavailable` gains its parenthetical. The retired phrases "being stored right now" and "Saved trail unavailable" occur zero times in `App.tsx` and in every retained preview HTML.
+- SSR fixture: `preview/storage-maintenance.html` carries the corrected sentence; its payload has `getLive.persistence = {outcome: failed, reason: storage-busy}` with a one-element trail at spot 500.25. The committed C06 receipt (`d905b8515dcf5ddfcf2ca5fc9418168502deda0e1c4abf06c9dbc463e8cf65b9`) records S06 PASS with two stored rows including the current frame, the trail including it, and `warningAccurate: true`; its mode line discloses the facade-level counted-select SQLITE_BUSY injection.
+
+**Not reproduced here (UNRUN, implementer claims only):** the implementer's own Bun-bundled harness run (6/6; requires `bun` 1.4.2 plus a lockfile-installed `node_modules`, neither present on this host), the C1-R1 14/14 re-run, the browser lane 9/9 + 7/7 and the backend suites. Hosted platform DB behavior remains UNRUN; the two omitted bundles remain UNAVAILABLE; ADOPT persistence C07 remains deferred.
+
+**Verdict:** the finite C06-R1 acceptance as written in the 2026-10-18 section is satisfied at reproduction level: S01–S05 and safe classification still pass, the post-insert maintenance fault keeps the live frame and committed trail visible beside an accurate whole-step warning, the insert-failure warning remains useful, and the admission-versus-retention semantics are unchanged. Independent of this, the full-owner Bun evidence stays the implementer's claim.
+
+### STRESS-P1 — delivery [6259816802](https://github.com/3pacs/muse/pull/2#issuecomment-6259816802), pin `88c1e8b8ac8a12098cd8a16bd87f8abb4eb042cd` on `redteam/stress-p1`, base `6ffff8ab6af60d90e624e3b1af333f6bbc2ca077`
+
+Three commits over the base (`e06a67ea`, `12c38c5b`, `88c1e8b8`), eight files under `live-g1/`. These C07–C10 identifiers are the controller/admission checks of the stress review, not the deferred ADOPT persistence C07.
+
+**Reproduced here (Node v24.16.0, Google Chrome 155.0.8059.80 headless):**
+
+- Built pages extracted from Git: fixed `10120fd57af8d3fb6a7178840dda7ed23e78f81c3831ad2147e96943235dc6c6` (27,275 bytes), base `17e62caf939d79c1aa7aba243400b94922ad59e0a0df0843eb5fbd649c175ed6` (23,747 bytes), both matching their receipts.
+- The delivered harness `live-g1/tests/stress-harness.mjs` (`dc3d90fc1c7785805de5a0718ef785212bfd3faabd363b4c299dc646d9bd6990`) was run with exactly one edit — the hard-coded `CHROME` path changed from `/opt/meta-chromium/chrome` to the local Google Chrome binary (edited copy `b41948c81e65bf65729822984864cec25b53877fbb02246c7bbe8f1b2562ef82`). Against the fixed page: exit 0, **24/24 PASS**. Against the base page: exit 1, **8/24 PASS**. Both runs match the committed receipts case-for-case (identical 24-case set and identical pass/fail pattern), and the base C07 failure reproduces the documented signature: spot 900 displayed with the ranges still at the old frame, `recs.slice is not a function`, corrupt object history retained, and the same-frame valid retry also failing. Local receipts: fixed `a94dbc5219baf70bef1ec327fdb517cfe152e1527329ec6511b01228fba07d8d`, base `211176918264efebaf49f56dbfe0b7e98bfe82d502a9d9628ee713e174633902`.
+- Deterministic rebuild: `python3 -I build.py` over the pinned `template.html` (`f1913f1bdced8196f54a313f45d2834a9275dac203f7edb36ff443b2f77dcd54`) and the unchanged captures reproduces the built HTML byte-for-byte (`10120fd5…`), equal to `BUILD_RECEIPT.json`.
+- Blob identity across base and pin: `live_g1_adapter.py`, `delivery/serve_adapter.py`, `test_adapter.py` and all three captures are unchanged. The template diff is confined to `_hasExplicitZone` (time component required before the zone designator), the declared `_sourcePolicy` sets, `_validateTuple` staged before any state/DOM change, the atomic rejection note, the C10 badge rule (`reachable === false` never renders fresh) and the `Array.isArray(records)` seatbelt in the ranges renderer.
+
+**Not reproduced here (UNRUN):** the adapter suite 31/31 "against the live backend" (would require a backend/provider reach that this lane does not have authority for), the "offline compatibility checks 10/10" (no `harness.py` exists in the `live-g1` tree at the pin, so that claim is not locatable from the repository), `verify_r1.py` / `verify_r2.py` (reviewer fixture absent, adapter unchanged), and the reviewer's earlier 23/23 browser, 22/22 adapter and 7/7 wrapper suites.
+
+**Verdict:** STRESS-P1 acceptance items 1–3 reproduce at the controller level on the exact pin: C07–C10 pass with atomic rejection and same-frame valid retry; invalid containers and foreign/mixed identity are rejected before replacing valid data; contradictory disconnected/fresh never shows fresh; C06-class retention, C11-class clock cases, the single-follow-up burst policy and the 20,000-record load behavior pass; the candidate HTML/receipt rebuild is exact. Item 4 (candidate pin and receipts in this thread) is satisfied by the delivery comment. C05 deadline/cancellation remains the separately recorded subsequent task; nothing here invents a deadline.
+
+### Next narrow tasks (already recorded in this document; no new scope)
+
+- Implementation lane after C06-R1: ADOPT persistence **C07 corrupt-newest recovery**, deferred since the C06 verification above. Acceptance of C06-R1 into that lane's closed set is for the reviewer owner or the operator to record.
+- LIVE-G1 lane after STRESS-P1: **C05 request deadline/cancellation**, the subsequent priority recorded in the 2026-10-06 stress section.
+
+### Machine receipt
+
+```
+docs_base                      bb5e2f4c201607c87b04d4fb56204dfbcb9b1c76
+c06r1_pin                      c3cf7897b67ae54eae074f8680b817e26a329c4c  (base a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2)
+prove-c06.mjs (from this doc)  5bf3dbae8791b2c2b1bb6fb8aa86a59b53ed19eda32f3443f2c466436fb7f9c5  exit 1 @a034ec1e, exit 0 @c3cf7897
+c06 package                    154 files / 152 hashed / sha256sum -c exit 0
+App.tsx @c3cf7897              e26fc9ddc26ddc06dc343ec72f66d1eaddea63ef2b4a27c851734e066233ece5
+c06 receipt @c3cf7897          d905b8515dcf5ddfcf2ca5fc9418168502deda0e1c4abf06c9dbc463e8cf65b9
+stressp1_pin                   88c1e8b8ac8a12098cd8a16bd87f8abb4eb042cd  (base 6ffff8ab6af60d90e624e3b1af333f6bbc2ca077)
+fixed html / base html         10120fd57af8d3fb6a7178840dda7ed23e78f81c3831ad2147e96943235dc6c6 / 17e62caf939d79c1aa7aba243400b94922ad59e0a0df0843eb5fbd649c175ed6
+stress harness (pin / local)   dc3d90fc1c7785805de5a0718ef785212bfd3faabd363b4c299dc646d9bd6990 / b41948c81e65bf65729822984864cec25b53877fbb02246c7bbe8f1b2562ef82
+harness results                fixed 24/24 exit 0; base 8/24 exit 1; both equal committed receipts
+rebuild                        template f1913f1bdced8196f54a313f45d2834a9275dac203f7edb36ff443b2f77dcd54 -> html 10120fd5… (byte-identical)
+runtime                        node v24.16.0; Google Chrome 155.0.8059.80; macOS aniks-mac-mini
+```
+
 ## 2026-10-18 — a034ec1e C06 insert visibility verified; one maintenance-warning correction
 
 Reviewed [Muse C06 delivery 6255626733](https://github.com/3pacs/muse/pull/2#issuecomment-6255626733), immutable **`a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2`**, against closed C1-R1 source `3ed17869ee20019a51a7c93655992d6348e01545` and docs `552551670fc0fff2037eda19434c76c1516c0354`. Incoming issue-comment delivery `a701a5f0-cb3e-11f1-9218-e4bb0d4b8ed1`.
