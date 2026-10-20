@@ -885,6 +885,12 @@ export function App() {
             Interpreter feed unreachable
             {data?.feedError ? ` (${data.feedError})` : ""} — showing the last
             snapshot this page stored, from {fmtTime(display?.updatedAt)} PT.
+            {/* ADOPT-C07: when the fallback stepped past an unusable
+                newer saved frame, say so plainly beside the stale
+                time — the frame shown is an earlier usable one. */}
+            {data?.staleSnapshotReason === "earlier-usable"
+              ? " Showing an earlier usable saved frame."
+              : ""}{" "}
             Nothing below is live.
           </div>
         )}
