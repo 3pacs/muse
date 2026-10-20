@@ -134,6 +134,49 @@ const store: Record<string, unknown>[] = [];
 // the trail and the corrected warning shows beside it.
 const insertFail = process.env.OFFLINE_INSERT_FAIL === "1";
 const pruneFail = process.env.OFFLINE_PRUNE_FAIL === "1";
+// ADOPT-C07 preview support: OFFLINE_FALLBACK_SEED=1 seeds the fake
+// store with a corrupt NEWER saved row and a usable OLDER one, in
+// scan order (the fake query returns rows in store order), so a
+// feed-down case can render the earlier-usable fallback: the older
+// frame shown, with its own time and the honest note beside it.
+if (process.env.OFFLINE_FALLBACK_SEED === "1") {
+  store.push(
+    {
+      updatedAt: "2026-01-04T23:05:00+00:00",
+      instantMs: Date.parse("2026-01-04T23:05:00+00:00"),
+      spot: null,
+      maxPain: null,
+      callWall: null,
+      putWall: null,
+      gammaFlip: null,
+      netGexM: null,
+      pinScore: null,
+      expectedMove: null,
+      regime: null,
+      payloadJson: "{corrupt newer saved payload",
+    },
+    {
+      updatedAt: "2026-01-04T23:04:00+00:00",
+      instantMs: Date.parse("2026-01-04T23:04:00+00:00"),
+      spot: 499.5,
+      maxPain: null,
+      callWall: null,
+      putWall: null,
+      gammaFlip: null,
+      netGexM: null,
+      pinScore: null,
+      expectedMove: null,
+      regime: null,
+      payloadJson: JSON.stringify({
+        status: "ok",
+        updated_at: "2026-01-04T23:04:00+00:00",
+        market_open: false,
+        spot: 499.5,
+        expiry: "2026-01-05",
+      }),
+    },
+  );
+}
 let selectSeq = 0;
 const fakeDb = {
   select: () => {

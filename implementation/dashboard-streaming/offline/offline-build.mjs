@@ -11,9 +11,11 @@
  *      checks against the working copy,
  *   4. builds the server bundle (bun build) and the client bundle (via
  *      the adapter's buildClient),
- *   5. renders nine synthetic-fixture previews (five baseline cases plus
- *      the ADOPT-B1-R1 adversarial matrix) through the REAL handlers +
- *      REAL App, asserting each case's expected view-state,
+ *   5. renders the synthetic-fixture previews (the baseline cases,
+ *      the ADOPT-B1-R1 adversarial matrix, and the ADOPT-C06/C06-R1
+ *      saving-health and ADOPT-C07 earlier-usable cases) through the
+ *      REAL handlers + REAL App, asserting each case's expected
+ *      view-state,
  *   6. writes BUILD-MANIFEST.json mapping every source input to every
  *      output by SHA-256, with the exact toolchain versions recorded.
  *
@@ -221,6 +223,20 @@ const CASES = [
       ["getLive.trail.0.spot", 500.25],
     ],
   }, { OFFLINE_PRUNE_FAIL: "1" }],
+  // ADOPT-C07: feed down, the newest saved row is corrupt and an
+  // older saved frame is usable — the fallback steps back to the
+  // older frame with ITS time, says so plainly ("Showing an earlier
+  // usable saved frame."), and stays FEED DOWN, never LIVE.
+  ["earlier-usable", "feed_all_error.json", "feed_signals_error.json", "", {
+    htmlIncludes: ["FEED DOWN", "Showing an earlier usable saved frame."],
+    htmlExcludes: ["Snapshot saving problem"],
+    payloadEquals: [
+      ["getLive.ok", false],
+      ["getLive.staleSnapshotReason", "earlier-usable"],
+      ["getLive.staleSnapshot.spot", 499.5],
+      ["getLive.staleSnapshotAt", "2026-01-04T23:04:00+00:00"],
+    ],
+  }, { OFFLINE_FALLBACK_SEED: "1" }],
   ["last-session", "feed_all_last_session.json", "feed_signals_success.json", "", {
     htmlIncludes: ["MARKET CLOSED"],
     payloadEquals: [["getLive.ok", true], ["getLive.live.marketOpen", false]],
