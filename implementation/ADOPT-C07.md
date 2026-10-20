@@ -5,7 +5,10 @@ verified ADOPT-C06-R1 pin `c3cf7897`. Scope: exactly the fallback
 selection/diagnostic path named in the PR #2 task "ADOPT-C07 bounded
 last-good fallback recovery" and its finite acceptance table. No
 persistence, trail, retention, migration or parity change; C06
-semantics and the closed C1-R1/F1 behavior are intact.
+semantics and the closed C1-R1/F1 behavior are intact. A
+post-delivery **coherence revision** (raw stored timestamp must
+also name the chosen row's keyed instant) is recorded in section
+5; the current source includes it.
 
 ## 1. The defect (as reproduced by the reviewer)
 
@@ -141,3 +144,78 @@ omitted bundles (client/server build outputs and the browser
 fallback scan qualifies only the payload used as fallback within
 the examined 240-row window; it is not a certification or repair
 of stored history, and it never modifies a stored row.
+
+## 5. Coherence revision — raw stored timestamp (2026-10-20)
+
+**Reviewer finding (independent check of the delivered source,**
+docs `4d26722c`, "13/14 focused cases, delivery still pending"):
+after two legitimate `getLive` saves at 23:30 (spot 500) and 23:31
+(spot 501), alter **only** the newer stored row's raw `updated_at`
+text to 23:32 in disposable storage. Its accepted `instant_ms` and
+its payload clock remain 23:31. The delivered code compared the
+payload clock only to `instant_ms`, selected that row as
+`current`, and returned `staleSnapshotAt`
+`"2026-10-16T23:32:00.000Z"` beside a payload whose own
+`updatedAt` is 23:31 — an incoherent pair, while a coherent older
+row (23:30) existed. Controlled metadata corruption in disposable
+storage only; not evidence of deployed corruption.
+
+**The fix** — `server/src/actions.ts` (`247b3ecaa8d8…`), the same
+fallback candidate loop, one added check: a candidate is usable
+only if its **raw stored `updated_at`** also parses — via the
+existing `parseAwareInstant` — to the row's accepted canonical
+`instantMs` (the same instant the payload clock must already
+equal). If the raw text does not parse, or parses to a different
+instant, the candidate is skipped — never repaired, guessed or
+rewritten. `staleSnapshotAt` returns the raw text verbatim, so the
+raw spelling is part of the advertised pair and must cohere.
+Equivalent aware spellings still pass (T05's `+02:00` row spelling
+parses to the same instant and remains usable). Nothing else
+changed: `normalize`, persistence, the trail, `schema.ts`, the
+migrations, and `client/src/App.tsx` (`2203fbd2dd45…`, untouched
+by this revision) are all as delivered. If no coherent candidate
+exists in the 240 bound, the existing null/reason results apply
+unchanged.
+
+**Evidence at this revision:**
+
+- C07 harness extended — `offline/snapshot-audit-c07-entry.ts`
+  (`b4948324ebc9…`), driver `offline/snapshot-audit-c07.mjs`
+  (`a77516f5eceb…`), regenerated committed receipt
+  `offline/snapshot-audit-c07-receipt.json` (`7a6b096cd7e9…`):
+  **13/13 PASS**. New cases: **T12**, the reviewer's witness
+  exactly (two saves through the REAL handler, then a direct
+  storage UPDATE setting only the newer row's `updated_at` text
+  to `"2026-10-16T23:32:00.000Z"`; feed down → the 23:30 payload,
+  `staleSnapshotAt` = the 23:30 row's raw spelling, reason
+  `earlier-usable`, `ok: false`, and both stored rows
+  byte-unchanged afterwards — the altered 23:32 text stays as
+  stored, unrepaired); **T13**, the newest row's raw `updated_at`
+  unparseable (`"not-a-timestamp"`, payload clock and keyed
+  instant in agreement) beside a coherent older row → newest
+  skipped, older selected, `earlier-usable`. T01–T11 unchanged
+  and still passing.
+- **Regressions re-run at this revision:** C06-R1 harness **6/6
+  PASS**; C1-R1 harness **14/14 PASS** (committed receipts stay
+  bound to their closed pins, as in prior lanes).
+- **SSR packet refreshed** (`preview/BUILD-MANIFEST.json`,
+  `4c6d1ee74891…`): the offline build re-ran; **every retained
+  preview HTML and payload is byte-identical** to the delivered
+  packet (all preview seeds store coherent rows, so no case's
+  content moves), and the client bundle outputs are identical.
+  Only bindings moved: the four changed input entries
+  (`server/src/actions.ts`, the C07 harness entry/driver/receipt)
+  and the hash-recorded server bundle output
+  (`server/actions.js`, 185,767 → 185,847 bytes).
+- **Browser packet refreshed**
+  (`browser-preview/BROWSER-MANIFEST.json`, `4383328d349b…`):
+  lane re-run, **9/9 cases + 7/7 controls PASS, failures none**,
+  aggregation counterexamples 14/14. Case HTML and responses are
+  byte-identical to the delivered packet; screenshot entries are
+  rebound to the retained packaged PNGs (**38/38 PNG references
+  verify** against the packaged bytes). Residual manifest change
+  beyond the four input bindings is fresh settle timings
+  (`elapsedMs`) in the case/control reports only — no assertion,
+  verdict or content change.
+- **Package:** still **160 files / 158 hashed** (no files added
+  or removed); `sha256sum -c` clean on the final tree.

@@ -427,3 +427,37 @@ failures none, screenshots rebound to the retained PNGs (37/37
 PNG references verify). Backend suites re-run unchanged:
 boundary 51/51, tsc clean, compile 12/12, watcher 0 failures,
 J1 50/50 + 27/27.
+
+**ADOPT-C07 coherence revision — raw stored timestamp** (change
+note `ADOPT-C07.md` section 5), answering the independent review
+of the delivered source (13/14 focused cases; the returned raw
+timestamp could disagree with the canonical key/payload clock).
+The fallback candidate loop in `server/src/actions.ts`
+(`247b3ecaa8d8…`) now also requires the row's RAW stored
+`updated_at` to parse via the existing `parseAwareInstant` to the
+row's accepted canonical `instantMs`; a raw spelling that does
+not parse, or parses to a different instant, is skipped, never
+repaired. C07 harness extended to **13/13 PASS** with the
+committed receipt regenerated (`7a6b096cd7e9…`): **T12** — the
+reviewer's witness exactly (legitimate live saves 23:30 spot 500
+/ 23:31 spot 501 through the real handler, then a direct storage
+UPDATE setting only the newer row's `updated_at` text to
+`2026-10-16T23:32:00.000Z`; feed down returns the 23:30 frame,
+`staleSnapshotAt` 23:30 in the row's raw spelling, reason
+earlier-usable, ok:false, both stored rows byte-unchanged — the
+altered 23:32 text stays stored, unrepaired); **T13** — newest
+row's raw `updated_at` unparseable (`not-a-timestamp`) with a
+coherent older row present: newest skipped, older selected,
+reason earlier-usable. T01–T11 unchanged, still passing (T05's
+equivalent aware spelling remains usable). C06-R1 harness re-run
+at this revision: 6/6 PASS. C1-R1 harness re-run: 14/14 PASS.
+SSR preview re-run: every retained preview HTML/payload
+byte-identical to the delivered packet (all seeds coherent; only
+the four changed input bindings and the hash-recorded server
+bundle output move in BUILD-MANIFEST, 36 inputs / 54 outputs).
+Browser lane re-run: 9/9 cases + 7/7 controls, failures none;
+case HTML/responses byte-identical; screenshots rebound to the
+retained PNGs (38/38 PNG references verify); residual manifest
+change beyond input bindings is fresh settle timings only.
+App.tsx untouched by this revision. Package unchanged at 160
+files / 158 hashed.
