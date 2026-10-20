@@ -152,6 +152,30 @@ const persistenceOutcome = z.object({
 
 type PersistenceOutcome = z.infer<typeof persistenceOutcome>;
 
+// ADOPT-C07: why the stale fallback in THIS response is what it is.
+// `current` — the newest keyed stored row was usable and was selected.
+// `earlier-usable` — one or more newer candidates were skipped
+// (unparseable, inadmissible, or identity-mismatched) and an older
+// usable stored frame was selected instead. `empty-storage` — no
+// keyed candidate rows exist at all. `no-usable-candidate` —
+// candidates were examined, none was usable, and the bounded window
+// was not exhausted. `window-exhausted` — the full bounded candidate
+// window was examined with none usable; this says nothing about rows
+// beyond the window. Null on a live (ok:true) response, where no
+// fallback was consulted. Safe category only — never raw JSON, SQL,
+// paths or exception text.
+const staleSnapshotReason = z
+  .enum([
+    "current",
+    "earlier-usable",
+    "empty-storage",
+    "no-usable-candidate",
+    "window-exhausted",
+  ])
+  .nullable();
+
+type StaleSnapshotReason = z.infer<typeof staleSnapshotReason>;
+
 const getLiveResponse = z.object({
   ok: z.boolean(),
   feedError: z.string().nullable(),
@@ -159,6 +183,7 @@ const getLiveResponse = z.object({
   live: livePayload.nullable(),
   staleSnapshot: livePayload.nullable(),
   staleSnapshotAt: z.string().nullable(),
+  staleSnapshotReason,
   trail: z.array(trailPoint),
   persistence: persistenceOutcome,
 });
@@ -729,6 +754,7 @@ async function loadTrailAndLatest(
   trail: z.infer<typeof trailPoint>[];
   staleSnapshot: LivePayload | null;
   staleSnapshotAt: string | null;
+  staleSnapshotReason: StaleSnapshotReason;
 }> {
   const db = ctx.db<typeof schema>();
   const rows = await db
@@ -764,34 +790,70 @@ async function loadTrailAndLatest(
     }))
     .reverse();
 
-  const newest = await db
+  // ADOPT-C07: bounded last-good fallback recovery. The fallback is
+  // no longer the single newest keyed row: candidates are scanned in
+  // the same (instant, id) descending order, bounded by the existing
+  // 240-row trail window, and the FIRST usable candidate wins. A
+  // candidate is usable only when its stored payload parses, passes
+  // the existing F1 normalize() admission unchanged, AND its own
+  // payload clock is the same canonical instant as the row's keyed
+  // instant (equivalent aware spellings of one instant agree; a
+  // mismatched identity is skipped, never guessed or repaired).
+  // Stored rows are never modified, merged or deleted here. The
+  // returned payload/timestamp pair always comes from the CHOSEN row;
+  // when no candidate in the window is usable, both are null and the
+  // reason says only what the bounded scan actually established.
+  const FALLBACK_CANDIDATE_LIMIT = 240;
+  const candidates = await db
     .select({
+      instantMs: schema.snapshots.instantMs,
       updatedAt: schema.snapshots.updatedAt,
       payloadJson: schema.snapshots.payloadJson,
     })
     .from(schema.snapshots)
-    // Newest = greatest validated instant; ties (legacy same-instant
-    // rows) resolve to the highest id, deterministically. Unkeyed
-    // rows are excluded (see the trail query above).
     .where(isNotNull(schema.snapshots.instantMs))
     .orderBy(desc(schema.snapshots.instantMs), desc(schema.snapshots.id))
-    .limit(1);
+    .limit(FALLBACK_CANDIDATE_LIMIT);
   let staleSnapshot: LivePayload | null = null;
   let staleSnapshotAt: string | null = null;
-  const newestRow = newest[0];
-  if (newestRow) {
-    staleSnapshotAt = newestRow.updatedAt;
-    try {
-      const parsed = JSON.parse(newestRow.payloadJson) as Record<
-        string,
-        unknown
-      >;
-      staleSnapshot = normalize(parsed);
-    } catch {
-      staleSnapshot = null;
+  let staleSnapshotReason: StaleSnapshotReason;
+  if (candidates.length === 0) {
+    staleSnapshotReason = "empty-storage";
+  } else {
+    let chosenIndex = -1;
+    for (let i = 0; i < candidates.length; i++) {
+      const row = candidates[i];
+      if (!row) continue;
+      let payload: LivePayload | null = null;
+      try {
+        const parsed = JSON.parse(row.payloadJson) as Record<
+          string,
+          unknown
+        >;
+        payload = normalize(parsed);
+      } catch {
+        payload = null;
+      }
+      if (payload === null) continue;
+      // Coherence: the payload's own clock must BE the row's keyed
+      // instant — compared as parsed instants, never as strings.
+      if (parseAwareInstant(payload.updatedAt) !== row.instantMs) continue;
+      staleSnapshot = payload;
+      staleSnapshotAt = row.updatedAt;
+      chosenIndex = i;
+      break;
+    }
+    if (chosenIndex === 0) {
+      staleSnapshotReason = "current";
+    } else if (chosenIndex > 0) {
+      staleSnapshotReason = "earlier-usable";
+    } else if (candidates.length >= FALLBACK_CANDIDATE_LIMIT) {
+      staleSnapshotReason = "window-exhausted";
+    } else {
+      staleSnapshotReason = "no-usable-candidate";
     }
   }
-  return { trail, staleSnapshot, staleSnapshotAt };
+  return { trail, staleSnapshot, staleSnapshotAt, staleSnapshotReason };
 }
 
 // ---------------------------------------------------------------------------
@@ -813,7 +875,7 @@ export const Actions = {
       const fetchedAt = new Date().toISOString();
       const result = await fetchFeed();
       if ("error" in result) {
-        const { trail, staleSnapshot, staleSnapshotAt } =
+        const { trail, staleSnapshot, staleSnapshotAt, staleSnapshotReason } =
           await loadTrailAndLatest(ctx);
         return {
           ok: false,
@@ -822,6 +884,7 @@ export const Actions = {
           live: null,
           staleSnapshot,
           staleSnapshotAt,
+          staleSnapshotReason,
           trail,
           // No frame arrived, so no persistence was attempted; that
           // is stated, never dressed up as a saving success (C06).
@@ -841,6 +904,7 @@ export const Actions = {
         live: result.payload,
         staleSnapshot: null,
         staleSnapshotAt: null,
+        staleSnapshotReason: null,
         trail,
         persistence,
       };
