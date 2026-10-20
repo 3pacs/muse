@@ -1,0 +1,585 @@
+{
+  "source": "6d543a060ef45432dab3bb03085f86b863a0394b",
+  "runtime": "v22.22.1",
+  "sourceSha256": "80b232a1f256755eb1a66a7a32a2aedf56ed75c0fd66862a349ab9e4737c4104",
+  "appSha256": "2203fbd2dd4593ac5f8e22a7eb79919ad4520c8a3e731b3d8586c86753e46fbe",
+  "helperSha256": "117feeffb25b23b6346fcfb8a0132f92a74cf0f659d78b25d693f09905066fab",
+  "mode": "Exact source bodies with disclosed type erasure and query facade; real disposable SQLite DDL; supplied synthetic feed fixture; fixed receipt clock. Direct inserted/corrupted stored rows exercise bounded scan and identity. fetch is an in-memory stub; no native network.",
+  "nativeRequests": 0,
+  "fullOwnerBunLibsqlSDKSSR": "UNRUN locally",
+  "passed": 13,
+  "total": 14,
+  "observations": [
+    {
+      "name": "newest-usable",
+      "pass": true,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": "2026-10-16T23:31:00.000Z",
+        "staleSnapshotReason": "current",
+        "fallback": {
+          "updatedAt": "2026-10-16T23:31:00.000Z",
+          "spot": 501,
+          "netGexM": 0,
+          "byStrike": [
+            {
+              "strike": 500,
+              "netGexM": 0,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 505,
+              "netGexM": null,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ]
+        },
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 2
+      }
+    },
+    {
+      "name": "corrupt-newest-older-usable",
+      "pass": true,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": "2026-10-16T23:30:00.000Z",
+        "staleSnapshotReason": "earlier-usable",
+        "fallback": {
+          "updatedAt": "2026-10-16T23:30:00.000Z",
+          "spot": 500,
+          "netGexM": 0,
+          "byStrike": [
+            {
+              "strike": 500,
+              "netGexM": 0,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 505,
+              "netGexM": null,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ]
+        },
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 2
+      }
+    },
+    {
+      "name": "inadmissible-newest",
+      "pass": true,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": "2026-10-16T23:30:00.000Z",
+        "staleSnapshotReason": "earlier-usable",
+        "fallback": {
+          "updatedAt": "2026-10-16T23:30:00.000Z",
+          "spot": 500,
+          "netGexM": 0,
+          "byStrike": [
+            {
+              "strike": 500,
+              "netGexM": 0,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 505,
+              "netGexM": null,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ]
+        },
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 2
+      }
+    },
+    {
+      "name": "payload-clock-mismatches-row-key",
+      "pass": true,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": "2026-10-16T23:30:00.000Z",
+        "staleSnapshotReason": "earlier-usable",
+        "fallback": {
+          "updatedAt": "2026-10-16T23:30:00.000Z",
+          "spot": 500,
+          "netGexM": 0,
+          "byStrike": [
+            {
+              "strike": 500,
+              "netGexM": 0,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 505,
+              "netGexM": null,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ]
+        },
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 2
+      }
+    },
+    {
+      "name": "equivalent-aware-clock",
+      "pass": true,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": "2026-10-16T23:30:00.000Z",
+        "staleSnapshotReason": "current",
+        "fallback": {
+          "updatedAt": "2026-10-17T01:30:00+0200",
+          "spot": 500,
+          "netGexM": 0,
+          "byStrike": [
+            {
+              "strike": 500,
+              "netGexM": 0,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 505,
+              "netGexM": null,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ]
+        },
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 1
+      }
+    },
+    {
+      "name": "empty-storage",
+      "pass": true,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": null,
+        "staleSnapshotReason": "empty-storage",
+        "fallback": null,
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 0
+      }
+    },
+    {
+      "name": "all-examined-unusable",
+      "pass": true,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": null,
+        "staleSnapshotReason": "no-usable-candidate",
+        "fallback": null,
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 3
+      }
+    },
+    {
+      "name": "window-exhausted-valid-row-241",
+      "pass": true,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": null,
+        "staleSnapshotReason": "window-exhausted",
+        "fallback": null,
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 240
+      }
+    },
+    {
+      "name": "valid-at-candidate-240",
+      "pass": true,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": "2026-10-16T23:30:00.000Z",
+        "staleSnapshotReason": "earlier-usable",
+        "fallback": {
+          "updatedAt": "2026-10-16T23:30:00.000Z",
+          "spot": 500,
+          "netGexM": 0,
+          "byStrike": [
+            {
+              "strike": 500,
+              "netGexM": 0,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 505,
+              "netGexM": null,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ]
+        },
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 240
+      }
+    },
+    {
+      "name": "legacy-equal-instant-highest-id",
+      "pass": true,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": "2026-10-17T01:30:00+02:00",
+        "staleSnapshotReason": "current",
+        "fallback": {
+          "updatedAt": "2026-10-17T01:30:00+02:00",
+          "spot": 501,
+          "netGexM": 0,
+          "byStrike": [
+            {
+              "strike": 500,
+              "netGexM": 0,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 505,
+              "netGexM": null,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ]
+        },
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 2
+      }
+    },
+    {
+      "name": "live-clears-fallback-diagnostics",
+      "pass": true,
+      "actual": {
+        "ok": true,
+        "live": {
+          "status": "ok",
+          "updatedAt": "2026-10-16T23:30:00.000Z",
+          "quoteAsOf": "2026-10-16T23:30:00.000Z",
+          "marketOpen": true,
+          "spot": 500,
+          "expiry": "2026-01-05",
+          "netGexM": 0,
+          "gammaFlip": null,
+          "callWall": 505,
+          "putWall": 495,
+          "maxPain": 500,
+          "regime": "positive-gamma (pinning)",
+          "pinScore": 55,
+          "pinMagnet": 500,
+          "pinComponents": {
+            "concentration": 0.61,
+            "proximity": 0.82,
+            "timeElapsed": 0.45
+          },
+          "expectedMoveDollars": 2.4,
+          "expectedMovePct": 0.48,
+          "expectedMoveRemaining": 1.1,
+          "hedgeBuckets": [],
+          "dealerGammaPerPtM": 320.5,
+          "speedMPerPt2": 42,
+          "speedWideMPerPt2": 19.5,
+          "reversalConditions": [],
+          "reversalStretched": false,
+          "pcVolume": 1.05,
+          "pcOi": 1.71,
+          "callVolume": 1200000,
+          "putVolume": 1260000,
+          "atmCallIv": 0.179,
+          "atmPutIv": 0.199,
+          "riskReversal25d": null,
+          "totalVannaK": -990.1,
+          "totalCharmK": 5629.2,
+          "byStrike": [
+            {
+              "strike": 500,
+              "netGexM": 0,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 505,
+              "netGexM": null,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ],
+          "topStrikes": [
+            {
+              "strike": 505,
+              "netGexM": 320.1,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 500,
+              "netGexM": 210.4,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ],
+          "strikeCoverage": {
+            "total": 2,
+            "gexKnown": 1,
+            "gexMissing": 1
+          },
+          "elevatedActivity": [
+            {
+              "strike": 500,
+              "side": "?",
+              "volume": 45000,
+              "oi": 42000,
+              "volOi": 1.07,
+              "notionalK": null,
+              "src": null
+            }
+          ],
+          "rtdStrikes": 3,
+          "nasdaqStrikes": 148,
+          "nasdaqAsOf": "2026-01-05T14:31:56+00:00",
+          "nasdaqStale": false
+        },
+        "staleSnapshotAt": null,
+        "staleSnapshotReason": null,
+        "fallback": null,
+        "persistence": {
+          "outcome": "saved",
+          "reason": null
+        },
+        "trailCount": 1
+      }
+    },
+    {
+      "name": "post-insert-maintenance-failure-preserved",
+      "pass": true,
+      "actual": {
+        "ok": true,
+        "live": {
+          "status": "ok",
+          "updatedAt": "2026-10-16T23:31:00.000Z",
+          "quoteAsOf": "2026-10-16T23:31:00.000Z",
+          "marketOpen": true,
+          "spot": 501,
+          "expiry": "2026-01-05",
+          "netGexM": 0,
+          "gammaFlip": null,
+          "callWall": 505,
+          "putWall": 495,
+          "maxPain": 500,
+          "regime": "positive-gamma (pinning)",
+          "pinScore": 55,
+          "pinMagnet": 500,
+          "pinComponents": {
+            "concentration": 0.61,
+            "proximity": 0.82,
+            "timeElapsed": 0.45
+          },
+          "expectedMoveDollars": 2.4,
+          "expectedMovePct": 0.48,
+          "expectedMoveRemaining": 1.1,
+          "hedgeBuckets": [],
+          "dealerGammaPerPtM": 320.5,
+          "speedMPerPt2": 42,
+          "speedWideMPerPt2": 19.5,
+          "reversalConditions": [],
+          "reversalStretched": false,
+          "pcVolume": 1.05,
+          "pcOi": 1.71,
+          "callVolume": 1200000,
+          "putVolume": 1260000,
+          "atmCallIv": 0.179,
+          "atmPutIv": 0.199,
+          "riskReversal25d": null,
+          "totalVannaK": -990.1,
+          "totalCharmK": 5629.2,
+          "byStrike": [
+            {
+              "strike": 500,
+              "netGexM": 0,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 505,
+              "netGexM": null,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ],
+          "topStrikes": [
+            {
+              "strike": 505,
+              "netGexM": 320.1,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 500,
+              "netGexM": 210.4,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ],
+          "strikeCoverage": {
+            "total": 2,
+            "gexKnown": 1,
+            "gexMissing": 1
+          },
+          "elevatedActivity": [
+            {
+              "strike": 500,
+              "side": "?",
+              "volume": 45000,
+              "oi": 42000,
+              "volOi": 1.07,
+              "notionalK": null,
+              "src": null
+            }
+          ],
+          "rtdStrikes": 3,
+          "nasdaqStrikes": 148,
+          "nasdaqAsOf": "2026-01-05T14:31:56+00:00",
+          "nasdaqStale": false
+        },
+        "staleSnapshotAt": null,
+        "staleSnapshotReason": null,
+        "fallback": null,
+        "persistence": {
+          "outcome": "failed",
+          "reason": "storage-busy"
+        },
+        "trailCount": 2
+      }
+    },
+    {
+      "name": "returned-row-timestamp-coherence",
+      "pass": false,
+      "actual": {
+        "ok": false,
+        "live": null,
+        "staleSnapshotAt": "2026-10-16T23:32:00.000Z",
+        "staleSnapshotReason": "current",
+        "fallback": {
+          "updatedAt": "2026-10-16T23:31:00.000Z",
+          "spot": 501,
+          "netGexM": 0,
+          "byStrike": [
+            {
+              "strike": 500,
+              "netGexM": 0,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            },
+            {
+              "strike": 505,
+              "netGexM": null,
+              "callGexM": null,
+              "putGexM": null,
+              "src": null
+            }
+          ]
+        },
+        "persistence": {
+          "outcome": "no-attempt",
+          "reason": null
+        },
+        "trailCount": 2,
+        "coherent": false,
+        "storedRows": [
+          {
+            "id": 1,
+            "updatedAt": "2026-10-16T23:30:00.000Z",
+            "instantMs": 1792193400000,
+            "payloadUpdatedAt": "2026-10-16T23:30:00.000Z"
+          },
+          {
+            "id": 2,
+            "updatedAt": "2026-10-16T23:32:00.000Z",
+            "instantMs": 1792193460000,
+            "payloadUpdatedAt": "2026-10-16T23:31:00.000Z"
+          }
+        ],
+        "note": "After two legitimate getLive saves, change only newest updated_at metadata in disposable SQLite; its accepted key and payload remain unchanged. No application writer changed."
+      }
+    },
+    {
+      "name": "earlier-note-and-feed-down-source-binding",
+      "pass": true,
+      "actual": {
+        "qualification": "Source condition/text inspected only, no local React/SSR/browser execution."
+      }
+    }
+  ]
+}

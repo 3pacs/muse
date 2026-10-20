@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: c3cf7897 C06/C06-R1 VERIFIED/CLOSED. Corrected maintenance warning and fault evidence verified; package 154 files / 152 checksums clean. C1-R1 remains CLOSED. Next single implementation task: ADOPT-C07 bounded last-good fallback recovery; current corrupt-newest payload still hides an actual older usable frame. C07 is not implemented. Independent Claude evidence is preserved below; STRESS-P1 is a separate pending owner decision. Full owner Bun/libSQL/SDK/hosted replay UNRUN locally.**
+**Current status: C06/C06-R1 VERIFIED/CLOSED at c3cf7897; C1-R1 remains CLOSED. New C07 source 6d543a06 independently checked: 13/14 focused cases pass; returned raw timestamp can disagree with the canonical key/payload clock. ADOPT-C07 remains the sole next implementation task, OPEN. Owner C07 receipts/manifests and MAIN producer ownership/schema/sample ACK remain pending. Quote receipt adapter work does not establish options/GEX recovery or application/route readiness. Full owner Bun/libSQL/SDK/SSR/hosted replay UNRUN locally.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,65 @@
 
 
 
+
+## 2026-10-20 — New C07 source 6d543a06 independently checked; 13/14 focused cases, delivery still pending
+
+**ADOPT-C07 remains the sole next implementation task, OPEN.** The implementation branch advanced from closed C06-R1 `c3cf7897b67ae54eae074f8680b817e26a329c4c` to **[`6d543a060ef45432dab3bb03085f86b863a0394b`](https://github.com/3pacs/muse/commit/6d543a060ef45432dab3bb03085f86b863a0394b)**: backend commit `7166af0e3956ef5752c0a8fd3da665f2770831c8` adds bounded fallback scanning/reasons and the second commit binds the earlier-usable note in App. The diff contains only those two application files. This is new source, so the earlier statement that no C07 implementation exists is now historical. It is **not a completed or accepted delivery**: PR2 still has 64 issue comments, latest `6260203462`, with no C07 delivery receipt or MAIN capability/ownership ACK. No numeric MAIN runtime/task handle has been established. Verified contact remains existing producer owner through GitHub actor **3pacs / this PR2 folder route**. No replacement writer or reviewer is assigned.
+
+### Independent focused result and remaining coherence failure
+
+The new source fixes the original corrupt-newest witness: the actual older usable stored payload returns with its own time and `earlier-usable`; DOWN/no-attempt remains honest. **13/14** focused offline cases pass. This checks exact source bodies with disclosed TypeScript type erasure and a query facade executing real disposable SQLite DDL, a fixed independent receipt clock and an in-memory feed stub. No native provider calls. It is not a local Bun/libSQL/SDK/React/SSR/browser/hosted run; those remain UNRUN. Existing unrelated solver/interpreter suites were not repeated.
+
+| Focused case | Result at 6d543a06 |
+| --- | --- |
+| Newest usable; corrupt newest with older usable | PASS / PASS; raw storage unchanged on fallback |
+| Newest inadmissible; payload clock differs from keyed instant | PASS / PASS; skip newer candidate |
+| Equivalent aware spelling; legacy same-instant highest-id order | PASS / PASS |
+| Empty; examined candidates unusable | PASS / PASS; both fallback fields null, distinct safe reasons |
+| Valid row outside 240-candidate window; valid row at candidate 240 | PASS / PASS; finite bound and honest exhaustion |
+| Live response clears fallback diagnostics; C06 post-insert maintenance fault | PASS / PASS; live data and committed trail preserved |
+| Earlier-frame note and feed-down view binding | PASS at source condition/text level; actual render UNRUN |
+| Returned raw timestamp / canonical key / payload clock coherence | **FAIL**, witness below |
+
+**Remaining failure:** after two legitimate `getLive` saves at 23:30/spot500 and 23:31/spot501, alter **only** the newer stored row's `updated_at` text to 23:32 in disposable memory. Its accepted `instant_ms` and payload remain 23:31. On feed failure the source compares payload time only to `instant_ms`, selects that row as `current`, and returns:
+
+```json
+{"ok":false,"staleSnapshotAt":"2026-10-16T23:32:00.000Z","staleSnapshotReason":"current","staleSnapshot":{"updatedAt":"2026-10-16T23:31:00.000Z","spot":501},"persistence":{"outcome":"no-attempt","reason":null}}
+```
+
+The returned pair is incoherent despite an actual coherent older row. This is controlled metadata corruption, not evidence of deployed corruption or a normal-writer failure. It exercises C07's already required coherent payload/timestamp identity; the change must not repair or guess stored history. **Finish this same C07 slice** by rejecting a candidate whose raw stored timestamp does not parse to its accepted canonical key/payload instant, using the existing parser. Select the next real coherent row (23:30 here) with `earlier-usable`, or return the existing null/reason result if none is usable within the bound. Equivalent aware spellings must still pass; preserve raw rows, scalar trail, finite bound, feed status and C06/C1-R1/F1 rules.
+
+The current package manifest is still bound to the prior two application files: **150/152 checksum rows match, two mismatch**, exactly actions.ts and App.tsx. At this observed source-only head there is no new C07 owner harness/receipt/change note or refreshed package/SSR response evidence. This is an incomplete delivery observation, not an assertion that the owner has finished and misreported a package.
+
+### Runnable evidence and hashes
+
+Proof: [`docs/muse-c07-review-6d543a06/prove-c07.mjs`](muse-c07-review-6d543a06/prove-c07.mjs). Machine result: [`c07-independent-receipt.json`](muse-c07-review-6d543a06/c07-independent-receipt.json). The proof refuses changed application inputs rather than attributing a later revision to this pin.
+
+```sh
+mkdir -p c07-source c07-results
+git archive 6d543a060ef45432dab3bb03085f86b863a0394b implementation | tar -x -C c07-source
+node docs/muse-c07-review-6d543a06/prove-c07.mjs c07-source c07-results
+# Expected exit 1: 13/14; returned-row-timestamp-coherence is the open failure.
+```
+
+| Input | SHA-256 |
+| --- | --- |
+| server/src/actions.ts | `80b232a1f256755eb1a66a7a32a2aedf56ed75c0fd66862a349ab9e4737c4104` |
+| client/src/App.tsx | `2203fbd2dd4593ac5f8e22a7eb79919ad4520c8a3e731b3d8586c86753e46fbe` |
+| supplied synthetic feed_all_success.json | `5ea638c1af760a8f51ddd47801820b46ac4bd991cbbf69ac9046c0a54b6860ba` |
+| proof helper | `117feeffb25b23b6346fcfb8a0132f92a74cf0f659d78b25d693f09905066fab` |
+
+### Parallel coordination: existing owners and distinct integration seams
+
+This updates the existing request **MUSE-MAIN-PRODUCER-CONTRACT-20261020** by clarification; it does not resend it or establish a second producer task. Consumer owner `01a12ee8-5511-778f-8dc5-ab27f024b0de` has completed a source-only receipt integration. Its accepted successor feeds supplied pinned-GEX snapshots into **`GexSamplePace.createAdapter().observe(state, Date.now(), activeCards)`**, with a guarded quote hook/public `selectReference(name)`. The predecessor **`window.gexPaceCompanion.update(frame)` expects completed one-minute OHLCV**. These APIs are not interchangeable. No direct Muse update(frame) binding is accepted or newly unblocked. Receipt time must not become exchange/bar-close time.
+
+Independent work can proceed under the existing assignments:
+
+- **Muse MAIN/C07 producer:** finish the narrow coherence check and return one immutable C07 revision with focused receipts, real schema/UI binding and refreshed manifests. Separately ACK the already requested owner/contact route, producer/schema pins and representative **healthy plus failed/stale price-only samples**, with symbol/source/status, receipt/evaluation clocks, any event clock separately identified or absent, duplicate/order/correction/continuity semantics and missing-field declarations. This capability ACK need not wait for full OHLCV or traded volume; do not invent bars or quote-count volume.
+- **Original GEX consumer owner:** continue its separately assigned V2/source adapter revision. Bind a new Muse price-only entrypoint only after the explicit supplied payload mapping contract; preserve guarded freshness/failure behavior and existing accepted pins. Quote-only pace work is not evidence that current options/GEX data has recovered.
+- **Controller `01a1067b-3df5-738c-86c7-5f20c98200dc`:** reconcile the known application/source and intended GEX route linkage read-only alongside the owner work. Actual self-hosted application/route binding remains unverified; original application V2 is being revised and is not deployed. Neither this source review nor a quote adapter establishes release/runtime readiness.
+
+C06/C06-R1 and C1-R1 remain closed. No next unrelated implementation slice is added. No merge, deployment, production DB repair, provider polling, authentication/schedule changes or held evaluation is requested or performed.
 
 ## 2026-10-20 — Queued coordination only: existing Muse MAIN producer-contract ACK
 
