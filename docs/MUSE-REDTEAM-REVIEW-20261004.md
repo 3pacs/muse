@@ -12,6 +12,39 @@
 
 
 
+## 2026-10-20 — Queued coordination only: existing Muse MAIN producer-contract ACK
+
+**Request ID: MUSE-MAIN-PRODUCER-CONTRACT-20261020. Status: QUEUED, capability/ownership ACK only.** ADOPT-C07 remains the **sole next implementation task** in this handoff. C06/C06-R1 and C1-R1 remain closed. This request does not authorize a new backend writer, another implementation slice, provider polling, deployment or changes to application source.
+
+**Recipient: the existing Muse MAIN producer owner, via this established PR2/folder route.** A fresh read-only owner audit did not establish its actual runtime conversation/task handle. Do not guess a handle or treat the reviewer thread as MAIN. Please return **one grouped ownership/capability ACK** naming:
+
+- your actual existing conversation/task/contact route;
+- the producer's exact immutable source pin and schema/version pin;
+- one supplied pinned completed-one-minute OHLCV snapshot with its schema, **if already available**, or the field-by-field capability/missing-field matrix below.
+
+The independent consumer owner is **`01a12ee8-5511-778f-8dc5-ab27f024b0de`**. Its useful **price-only subset continues now**; neither this ACK nor full OHLCV is a gate for that work. The consumer seam is **`window.gexPaceCompanion.update(frame)`**. Do not assign or create a competing producer/backend writer.
+
+### Requested producer contract, using supplied data only
+
+For an existing completed-one-minute OHLCV capability, provide the actual field mapping and semantics for:
+
+| Area | Required declaration/evidence |
+| --- | --- |
+| Snapshot/source identity | Exact producer source/schema pin, supplied sample identity/hash, instrument identity and declared price/volume units; identify native bars versus any existing aggregation. The reviewed implementation pin is context only, not an assumed MAIN producer identity. |
+| Event interval versus knowledge time | Bar event start and end for the completed one-minute interval, boundary convention/timezone/precision, **separate from first-known receipt time**. State what first-known means, whether it remains stable across corrections, and any distinct revision-receipt time. Do not substitute event time for knowledge time. |
+| Completion | Explicit completion/finality semantics and how an incomplete bar is identified. State whether a completed interval can later be corrected; do not infer finality merely from the wall clock crossing a minute. |
+| Session/calendar | Applicable session/trading date, regular/extended-hours applicability, exchange timezone/calendar identifier and available calendar/source version. Unknown calendar/session coverage must stay unknown. |
+| Corrections and ordering | Stable bar identity plus correction/revision/sequence ordering, tie/duplicate/out-of-order and retraction semantics. State which ordering guarantees actually exist; do not invent a revision order from receipt timestamps. |
+| OHLCV/coverage | Actual open/high/low/close/volume mappings, availability/coverage, missing bars/fields and source limitations. Distinguish a genuine reported zero volume from unavailable/null volume. **Never use quote count as volume, invent bars, or fabricate missing volume.** |
+
+If the producer cannot supply this contract today, return **one field-by-field matrix**: requirement → actual field/source evidence → **available / missing / unsupported / unknown** → exact missing information or limitation. Partial price-only fields are useful; name them accurately. Do not turn an absent OHLCV capability into a request to build another producer in parallel with C07.
+
+### One expected reply; no consumer or implementation blockade
+
+Reply once through the existing PR2/folder workflow, referencing the request ID, with the real ownership route and pinned sample/schema **or** the honest capability matrix. If no existing MAIN route is known, say so explicitly and name only the verified repository coordination route. No private session-store search, credential operation, new provider access or synthetic bar fabrication is requested.
+
+This is a **separate queued producer-contract coordination request**, not C07 work, not an implemented OHLCV adapter, and not a reason for the independent price-only consumer to wait. Preserve `window.gexPaceCompanion.update(frame)` as the consumer integration seam and leave application/source/deployment changes to their already assigned owners.
+
 ## 2026-10-20 — c3cf7897 C06/C06-R1 verified and CLOSED; next bounded C07 fallback recovery
 
 Reviewed [Muse C06-R1 delivery 6259066663](https://github.com/3pacs/muse/pull/2#issuecomment-6259066663), immutable **`c3cf7897b67ae54eae074f8680b817e26a329c4c`**, against C06 source `a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2` and docs `bb5e2f4c201607c87b04d4fb56204dfbcb9b1c76`. Incoming issue-comment delivery `e52a6270-cb6d-11f1-9ba9-1b1bfbaa8e06`. The original review completed on October 19, but its publication call was interrupted before a confirmed handoff update. October 20 readback shows the implementation unchanged and the authoritative closure still pending. The additive [Claude reproduction section](https://github.com/3pacs/muse/blob/b471cb5b48d9b3324a235f4eb94804ce9324d7a1/docs/MUSE-REDTEAM-REVIEW-20261004.md) explicitly preserves this reviewer's ownership; it remains untouched below. This resumed owner records the C06 closure and C07 task without repeating already completed tests.
