@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: a034ec1e C06 insert-failure/schema/recovery behavior verified (S01-S05 plus safe reasons pass). C1-R1 remains CLOSED; ten persistence regressions pass and unchanged 53-case parity evidence is preserved. Package 151 files / 149 checksums clean. One narrow issue remains: the failed-outcome UI says snapshots are not being stored even when a post-insert prune error occurs after a successful save. Next: ADOPT-C06-R1 accurate maintenance warning. Full Bun/libSQL/SDK/hosted replay UNRUN locally.**
+****Current status: c3cf7897 C06/C06-R1 VERIFIED/CLOSED. Corrected maintenance warning and fault evidence verified; package 154 files / 152 checksums clean. C1-R1 remains CLOSED. Next single implementation task: ADOPT-C07 bounded last-good fallback recovery; current corrupt-newest payload still hides an actual older usable frame. C07 is not implemented. Independent Claude evidence is preserved below; STRESS-P1 is a separate pending owner decision. Full owner Bun/libSQL/SDK/hosted replay UNRUN locally.** a034ec1e C06 insert-failure/schema/recovery behavior verified (S01-S05 plus safe reasons pass). C1-R1 remains CLOSED; ten persistence regressions pass and unchanged 53-case parity evidence is preserved. Package 151 files / 149 checksums clean. One narrow issue remains: the failed-outcome UI says snapshots are not being stored even when a post-insert prune error occurs after a successful save. Next: ADOPT-C06-R1 accurate maintenance warning. Full Bun/libSQL/SDK/hosted replay UNRUN locally.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -8,6 +8,146 @@
 
 
 
+
+
+
+
+## 2026-10-20 — c3cf7897 C06/C06-R1 verified and CLOSED; next bounded C07 fallback recovery
+
+Reviewed [Muse C06-R1 delivery 6259066663](https://github.com/3pacs/muse/pull/2#issuecomment-6259066663), immutable **`c3cf7897b67ae54eae074f8680b817e26a329c4c`**, against C06 source `a034ec1e59f620b1eb1d7cc52ec6d1d090985bc2` and docs `bb5e2f4c201607c87b04d4fb56204dfbcb9b1c76`. Incoming issue-comment delivery `e52a6270-cb6d-11f1-9ba9-1b1bfbaa8e06`. The original review completed on October 19, but its publication call was interrupted before a confirmed handoff update. October 20 readback shows the implementation unchanged and the authoritative closure still pending. The additive [Claude reproduction section](https://github.com/3pacs/muse/blob/b471cb5b48d9b3324a235f4eb94804ce9324d7a1/docs/MUSE-REDTEAM-REVIEW-20261004.md) explicitly preserves this reviewer's ownership; it remains untouched below. This resumed owner records the C06 closure and C07 task without repeating already completed tests.
+
+**ADOPT-C06 and C06-R1 are VERIFIED/CLOSED for their defined finite acceptance.** The corrected whole-step warning is accurate for insert failure and maintenance failure after a committed insert. C1-R1 remains CLOSED. **Next single task: ADOPT-C07 bounded last-good fallback recovery**, based on the known availability/diagnostic gap re-observed below; it is **not implemented** by this delivery.
+
+### Closure evidence and qualifications
+
+- The application diff from a034ec1e is limited to the warning text/comment/default safe label in App. `server/src/actions.ts`, schema and both migrations are byte-identical. The C06 outcome/recovery/atomic-admission behavior is preserved; no backend algorithm change needs a repeated full suite for this wording fix.
+- The warning now says **“Snapshot saving problem — the latest saving step didn’t finish … The live feed is unaffected.”** It makes no unsupported assertion that a committed frame was not saved or that the trail is unavailable. It still binds solely to the latest failed outcome, uses safe categories and retains role=status.
+- Independent replay of **only the previously failing post-insert case** passes: one injected prune SELECT failure, response ok:true / failed-storage-busy, **two stored rows including the current frame**, returned trail including it, neutral warning source present and both retired source phrases absent. The exact source bodies run with the existing disclosed type-erasure/query facade, exact SQL in disposable Node SQLite, in-memory feed stub and fixed independent receipt clock.
+- The supplied **storage-maintenance** SSR HTML/payload is independently hash-verified and inspected: **LIVE**, failed/storage-busy, current frame in trail and the corrected warning together. The ordinary insert-failure SSR case shows LIVE + failed/storage-full with empty trail and the same accurate neutral wording. Healthy success shows saved with **no warning**.
+- Those are **owner-rendered SSR snapshots inspected locally**, not a new local React/SSR/browser run. The replay checks the source binding rather than claiming it renders the App. Full owner Bun/libSQL/SDK/hosted execution remains UNRUN locally.
+- The updated owner C06 receipt reports **6/6 PASS**, including S06. All **seven** exercised-file hashes match this exact tree. Its counted-select fault is explicitly disclosed; all other SQL is on the owner's real in-memory driver. These are owner-executed results.
+- Previous independently verified S01–S05, safe categories, ten C1-R1 properties and 53-case parity carry forward because their backend/schema/migration inputs are unchanged. They were **not needlessly rerun** here. The historical closed-pin C1-R1 receipt remains pinned as documented.
+- Package: **154 files / 152 matching checksum rows**, complete declared coverage; browser **41 input hashes / 10 fixtures / 38 available output hash/byte pairs / 19 screenshot references**, zero conflicts. The two omitted bundles remain **UNAVAILABLE**.
+- Precision5520 was confirmed before local work. No host switch, dependency install, provider request or production runtime operation occurred.
+
+Current App SHA-256 **`e26fc9ddc26ddc06dc343ec72f66d1eaddea63ef2b4a27c851734e066233ece5`**; unchanged actions **`674bc29699302ad9881301d08f6036d69e318ebdde49f7e6171795e3330c574c`**. The documented `saved` admission-versus-retention distinction is preserved and is not a reopened defect.
+
+### C07 current-source observation — an older valid fallback exists but is not used
+
+In disposable memory, the exact current handler stores frames at **23:30 (spot 500)** and **23:31 (spot 501)**. The reviewer then changes only the newer row's `payload_json` to deliberately invalid JSON, leaving its valid canonical key/metadata in place, and supplies a feed-down stub response.
+
+Observed result:
+
+| Field | Current value |
+| --- | --- |
+| Stored rows | **2** |
+| Older 23:30 payload | Present and successfully normalized by the real source |
+| getLive.ok | false — honestly feed down |
+| persistence | no-attempt / null reason — no new frame was offered |
+| staleSnapshot | **null** |
+| staleSnapshotAt | **23:31**, the corrupt newest row's time |
+| trail points | **2**, existing scalar-column behavior |
+
+This reproduces the previously recorded C07 availability/diagnostic gap at the now-closed C06 source. No payload is fabricated and no live claim is made, so this does not invalidate C06 or C1-R1. The problem is that one corrupt newest payload suppresses an actual usable older saved frame, while a timestamp is advertised beside a null payload with no snapshot-specific explanation.
+
+This is intentional synthetic corruption of a disposable database only. It is not evidence of deployed corruption and does not authorize production repair.
+
+### One next task — ADOPT-C07 bounded last-good fallback recovery
+
+Change only the fallback selection/diagnostic path needed to recover an **actual stored usable payload** when a newer candidate cannot be parsed/normalized. Muse owns the implementation and evidence independently of Hermes.
+
+1. Inspect saved candidates in descending **accepted canonical instant/id order** and select the first usable stored payload under the existing F1 normalization/admission rules. Preserve the raw stored timestamp and payload; do not invent metrics, repair clocks by guessing, merge candidates or rewrite/delete historical rows.
+2. Keep fallback payload and timestamp coherent: `staleSnapshotAt` must refer to the **chosen usable row**, and its normalized payload clock must agree with that row's canonical observation instant. Equivalent aware spellings for the same instant are allowed; a mismatched identity must not silently become a last-good frame. Do not introduce a new timestamp grammar or reopen closed parity work.
+3. Use an explicit **finite candidate bound** (reusing the existing 240-point bound is acceptable). If no usable payload exists within the checked window, return **null payload and null fallback timestamp**, with a minimal safe typed outcome/reason distinguishing empty storage from no usable candidate/window exhaustion. Do not claim all historical storage is invalid just because a bounded scan found none.
+4. When falling back past an unusable newer record, surface enough safe context beside the existing fallback time to make the older saved frame honest, for example “showing an earlier usable saved frame.” Keep feed status DOWN/stale under the existing rules; do not promote saved fallback to LIVE or fresh. Keep `feedError` about the feed, preserve C06 saving-health/no-attempt semantics, and do not expose raw JSON/SQL/paths.
+5. Keep the existing scalar trail and raw history intact; this task qualifies the **payload used as fallback**, not a new certification/repair of every trail row. Preserve canonical ordering/retention, zero/null values and C06 warning/recovery behavior.
+6. Publish a narrow source diff, actual response schema/UI binding, finite synthetic receipt, fixture/helper hashes and package results using the existing offline runtime. No provider, interpreter, production DB, deployment, Hermes dependency or dependency reconstruction is needed.
+
+**Finite C07 acceptance:**
+
+| Controlled case | Required behavior |
+| --- | --- |
+| Newest payload usable | Select it unchanged; timestamp and canonical identity agree. |
+| Newest JSON corrupt, older payload usable | Return the actual older payload, its own timestamp and a safe skipped-newer explanation; do not modify either stored row. |
+| Newest parses but fails existing admission, or payload identity mismatches metadata | Skip it under a stated policy and select the next actual usable candidate; no guessed clock or hybrid values. |
+| Equivalent aware spelling of same instant | Coherent row/payload remains usable; do not require textual equality for equal canonical instants. |
+| Empty storage / all examined candidates unusable | Both fallback fields null; safe truthful reason distinguishes the states. |
+| Candidate bound exhausted | Work stays bounded; report that no usable fallback was found in the examined window, without claiming global absence. |
+| View-state / preserved controls | Feed-down fallback never becomes LIVE/fresh; selected older time/reason is rendered honestly; C06 outcomes and closed C1-R1/F1 behavior remain intact. |
+
+C07 is a **new focused task**, not a completed fix. Do not fold broad DB exception redesign, conflict presentation, global history cleanup, new retention rules, provider/GRID ingestion or trading/alpha claims into it. Existing availability/diagnostic findings stay visible until verified.
+
+### Runnable closure replay and current C07 witness
+
+Save as `prove-closure-and-fallback.mjs`, including the final blank line. SHA-256 **`59922d4bd78343960bfd915f1699d86cb33bc02a68dc4ce42102c63744fb8265`**. Uses installed Node built-ins/SQLite and the same disclosed source adapter as the prior review. It replays only the former maintenance-warning failure, then constructs the disposable C07 witness; it does not repeat the unchanged full C06/C1-R1 suites.
+
+```sh
+mkdir -p c06r1-source c06r1-results
+git archive c3cf7897b67ae54eae074f8680b817e26a329c4c implementation | tar -x -C c06r1-source
+node prove-closure-and-fallback.mjs c06r1-source c06r1-results
+# Expected exit 0: C06R1.pass true.
+# C07Current records the OPEN fallback gap; it is not a passing C07 fix.
+```
+
+The generated receipt binds exact source/App/helper hashes and raw observed response/storage facts. SQL/fetch work is in memory, with a one-shot controlled maintenance fault and then deliberately invalid JSON in the next-task fixture. Native provider requests 0. The new warning's actual React render is not claimed by the source replay; the supplied hash-bound SSR fixtures provide the separate rendered evidence.
+
+```javascript
+// Source-slice proof, Node built-ins + disposable SQLite. No Bun/Drizzle/platform integration claim.
+import fs from 'node:fs';import path from 'node:path';import vm from 'node:vm';import crypto from 'node:crypto';import{DatabaseSync}from'node:sqlite';
+const root=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),base=path.join(root,'implementation/dashboard-streaming');
+fs.mkdirSync(out,{recursive:true});const read=p=>fs.readFileSync(path.join(base,p),'utf8'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const source=read('server/src/actions.ts'),schemaText=read('server/src/schema.ts'),ddl=read('drizzle/0002_snapshots_table.sql'),migration=read('drizzle/0003_snapshot_instant.sql');
+function takeFunction(name){const m=new RegExp('^(?:async )?function '+name+'\\(','m').exec(source);if(!m)throw Error(name);const begin=m.index,open=name==='fetchFeed'?source.indexOf('> {',begin)+2:source.indexOf('{',begin);return takeBody(begin,open);}
+function takeBody(begin,open){let depth=0,q=null,escape=false,line=false,comment=false;for(let i=open;i<source.length;i++){const c=source[i],n=source[i+1];if(line){if(c==='\n')line=false;continue;}if(comment){if(c==='*'&&n==='/'){comment=false;i++;}continue;}if(q){if(escape)escape=false;else if(c==='\\')escape=true;else if(c===q)q=null;continue;}if(c==='/'&&n==='/'){line=true;i++;continue;}if(c==='/'&&n==='*'){comment=true;i++;continue;}if(c==='"'||c==="'"||c==='\x60'){q=c;continue;}if(c==='{')depth++;if(c==='}'&&--depth===0)return source.slice(begin,i+1);}throw Error('unclosed source');}
+const pure=source.slice(source.indexOf('// === ADOPT-F1 PURE HELPERS'),source.indexOf('// === END ADOPT-F1 PURE HELPERS ==='));
+const extra=['mapActivity','normalize','fetchFeed'].map(takeFunction).join('\n');
+const persistence=source.slice(source.indexOf('const MIN_SNAPSHOT_GAP_MS'),source.indexOf('// Actions\n')-81);
+const persistBegin=source.indexOf('async function maybePersistSnapshot'),persistOpen=source.indexOf('{',persistBegin);
+const loadBegin=source.indexOf('async function loadTrailAndLatest'),loadOpen=source.indexOf('}> {',loadBegin)+3;
+const pieces=source.slice(source.indexOf('const MIN_SNAPSHOT_GAP_MS'),persistBegin)+takeBody(persistBegin,persistOpen)+'\n'+takeBody(loadBegin,loadOpen);
+const handlerBegin=source.indexOf('async handler(ctx): Promise<GetLiveResponse> {'),handlerOpen=source.indexOf('{',handlerBegin);
+const handler=takeBody(handlerBegin,handlerOpen).replace('async handler(ctx): Promise<GetLiveResponse>', 'async function getLive(ctx)');
+function erase(s){return s
+.replace(/: PersistenceOutcome\["reason"\]/g,'').replace(/: PersistenceOutcome;/g,';').replace(/ as \{ code\?: unknown \} \| null/g,'').replace(/ as \{ rowsAffected\?: number \} \| undefined/g,'')
+.replace(/async function maybePersistSnapshot\([\s\S]*?\): Promise<PersistenceOutcome> \{/,'async function maybePersistSnapshot(ctx,payload,rawJson) {')
+.replace(/async function loadTrailAndLatest\([\s\S]*?\}> \{/,'async function loadTrailAndLatest(ctx) {')
+.replace(/ctx\.db<typeof schema>\(\)/g,'ctx.db()')
+.replace(/ as Record<\s*string,\s*unknown\s*>/g,'')
+.replace(/async function fetchFeed\(\): Promise<[\s\S]*?> \{/,'async function fetchFeed() {')
+.replace(/: LivePayload\["hedgeBuckets"\]/g,'').replace(/: LivePayload \| null/g,'')
+.replace(/function strikeCoverage\([\s\S]*?\n\): \{[^\n]*\} \{/,'function strikeCoverage(rows) {')
+.replace(/: Record<string, unknown>/g,'').replace(/ as Record<string, unknown>/g,'')
+.replace(/: z\.infer<typeof (?:strikeGex|activityRow)>\[\]/g,'')
+.replace(/: [mc] is string/g,'')
+.replace(/: unknown/g,'').replace(/: number \| null/g,'').replace(/: string \| null/g,'').replace(/: (?:boolean|number|string)\b/g,'');}
+const NOW=Date.parse('2026-10-17T20:55:00Z');class FixedDate extends Date{constructor(...a){super(...(a.length?a:[NOW]));}static now(){return NOW;}}
+const columns=Object.fromEntries([...schemaText.slice(schemaText.indexOf('export const snapshots')).matchAll(/(\w+): (?:integer|real|text)\("([^"]+)"/g)].map(m=>[m[1],m[2]]));
+const schema={snapshots:columns},dbs=[];let fetchPlan=null,stubCalls=0;
+function makeDb(legacy=[]){const sql=new DatabaseSync(':memory:');sql.exec(ddl);dbs.push(sql);for(const r of legacy)sql.prepare('INSERT INTO snapshots(updated_at,spot,payload_json,created_at) VALUES(?,?,?,?)').run(r.updatedAt,r.spot,JSON.stringify(r.raw),NOW);sql.exec(migration);
+class Query{constructor(selected){this.selected=selected;this.order=[];this.queryId=++api.selectCount;this.predicate=null;this.n=null;}from(t){if(t!==columns)throw Error('table mismatch');return this;}where(p){this.predicate=p;return this;}orderBy(...o){this.order=o;return this;}limit(n){this.n=n;return this;}then(resolve,reject){try{if(api.failSelectOnce===this.queryId){api.failSelectOnce=null;throw Object.assign(new Error('REVIEW_PRUNE_QUERY_FAILURE'),{code:'SQLITE_BUSY'});}const select=this.selected?Object.entries(this.selected).map(([k,v])=>v+' AS "'+k+'"').join(','):Object.entries(columns).map(([k,v])=>v+' AS "'+k+'"').join(',');const q='SELECT '+select+' FROM snapshots'+(this.predicate?' WHERE '+this.predicate.sql:'')+(this.order.length?' ORDER BY '+this.order.map(o=>o.column+' '+o.dir).join(','):'')+(this.n!==null?' LIMIT '+this.n:'');return Promise.resolve(sql.prepare(q).all(...(this.predicate?.params??[])).map(r=>({...r}))).then(resolve,reject);}catch(e){return Promise.reject(e).then(resolve,reject);}}}
+const api={sql,fault:null,selectCount:0,failSelectOnce:null,select:s=>new Query(s),insert:t=>({values:async v=>{if(api.fault){const e=api.fault;api.fault=null;throw e;}const row={...v,createdAt:NOW},keys=Object.keys(row);const result=sql.prepare('INSERT INTO snapshots ('+keys.map(k=>columns[k]).join(',')+') VALUES ('+keys.map(()=>'?').join(',')+')').run(...keys.map(k=>row[k]??null));return{rowsAffected:Number(result.changes)};}}),delete:t=>({where:async c=>sql.prepare('DELETE FROM snapshots WHERE '+c.sql).run(...c.params)})};return api;}
+const compare=(column,op,value)=>({sql:column+' '+op+' ?',params:[value]});const logic=(op,items)=>({sql:'('+items.map(p=>p.sql).join(' '+op+' ')+')',params:items.flatMap(p=>p.params)});
+const sandbox={Date:FixedDate,Number,Array,Object,Math,JSON,Error,AbortSignal,schema,asc:column=>({column,dir:'ASC'}),desc:column=>({column,dir:'DESC'}),eq:(c,v)=>compare(c,'=',v),lt:(c,v)=>compare(c,'<',v),isNull:c=>({sql:c+' IS NULL',params:[]}),isNotNull:c=>({sql:c+' IS NOT NULL',params:[]}),and:(...p)=>logic('AND',p),or:(...p)=>logic('OR',p),FEED_URLS:['https://offline.invalid/a','https://offline.invalid/b'],fetch:async()=>{stubCalls++;return fetchPlan===null?{ok:false,status:503}:{ok:true,status:200,json:async()=>structuredClone(fetchPlan)};}};
+vm.createContext(sandbox);const transformed=erase(pure+'\n'+extra+'\n'+pieces+'\n'+handler);fs.writeFileSync(path.join(out,'type-erased-slices.js'),transformed+'\n');vm.runInContext(transformed+'\nthis.api={normalize,maybePersistSnapshot,loadTrailAndLatest,getLive};',sandbox);
+const A=sandbox.api,ctx=db=>({db:()=>db}),rows=db=>db.sql.prepare('SELECT id,updated_at,instant_ms,spot,payload_json FROM snapshots ORDER BY id').all().map(r=>({...r})),time=n=>new Date(Date.parse('2026-10-16T23:30:00Z')+n*1000).toISOString();
+const original=JSON.parse(fs.readFileSync(path.join(root,'implementation/fixtures/feed_all_success.json'),'utf8'));
+function frame(t,spot=500){const f=structuredClone(original);f.updated_at=t;f.quote_as_of=t;f.spot=spot;f.market_open=true;f.gamma.net_gex_m=0;f.gamma.gamma_flip=null;f.gamma.by_strike=[{strike:500,net_gex_m:0},{strike:505,net_gex_m:null}];return f;}
+async function live(db,f){fetchPlan=f;return A.getLive(ctx(db));}
+const app=read('client/src/App.tsx'),observations={};
+try{
+{const d=makeDb();await live(d,frame(time(0),500));d.failSelectOnce=d.selectCount+3;const r=await live(d,frame(time(60),501)),committed=rows(d).some(x=>x.updated_at===time(60));const neutral=app.includes('Snapshot saving problem — the latest saving step')&&app.includes('didn’t finish'),retired=app.includes('Saved trail unavailable')||app.includes('snapshots aren’t being stored');observations.C06R1={pass:r.ok===true&&committed&&r.trail.some(x=>x.updatedAt===time(60))&&r.persistence.outcome==='failed'&&r.persistence.reason==='storage-busy'&&neutral&&!retired,ok:r.ok,persistence:r.persistence,rows:rows(d).length,currentFrameStored:committed,currentFrameInTrail:r.trail.some(x=>x.updatedAt===time(60)),neutralSourceWording:neutral,retiredSourceWording:retired,renderQualification:'source conditional/text checked; supplied SSR snapshots are separately inspected, no local React render'};}
+{const d=makeDb();await live(d,frame(time(0),500));await live(d,frame(time(60),501));d.sql.prepare('UPDATE snapshots SET payload_json=? WHERE updated_at=?').run('{ deliberately invalid JSON',time(60));const r=await live(d,null),stored=rows(d),old=stored.find(x=>x.updated_at===time(0));observations.C07Current={classification:'known availability/diagnostic gap remains; not a C06-R1 failure or implemented fix',ok:r.ok,persistence:r.persistence,storedRows:stored.length,olderValidPayloadAvailable:!!old&&A.normalize(JSON.parse(old.payload_json))!==null,olderAt:old?.updated_at,staleSnapshot:r.staleSnapshot,staleSnapshotAt:r.staleSnapshotAt,trailPoints:r.trail.length,expectedNextTask:'recover actual older valid fallback with coherent timestamp and safe reason; no fabricated/live frame'};}
+}finally{for(const d of dbs)d.close();}
+const receipt={source:'c3cf7897b67ae54eae074f8680b817e26a329c4c',runtime:process.version,sourceSha256:sha(source),appSha256:sha(app),helperSha256:sha(fs.readFileSync(new URL(import.meta.url))),mode:'exact current getLive/normalization/persistence/load bodies, disclosed type erasure/query facade, real SQLite DDL, feed stub, fixed independent receipt clock, one-shot maintenance fault; disposable payload corruption for next-task witness',nativeRequests:0,fullOwnerBunLibsqlSSR:'UNRUN locally',observations};
+fs.writeFileSync(path.join(out,'closure-and-c07-witness.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt,null,2));process.exitCode=observations.C06R1.pass?0:1;
+
+```
+
+### Pending owner and remaining limits
+
+Watch Muse's **C07 implementation/evidence after `c3cf7897b67ae54eae074f8680b817e26a329c4c`** on `implementation/0dte-source-20261015`. No reviewer permission, Hermes response, hosted run or environment rebuild is pending from us. Ignore this coordinator docs publication as implementation progress; retain the C06/C06-R1 and C1-R1 closures.
+
+The existing single draft PR/folder remains the handoff, and the persistent webhook stays enabled/unchanged. Full owner Bun/libSQL/SDK/platform replay, new local SSR/React/browser rendering, hosted persistence and frontend deployment/source linkage remain UNRUN/unestablished by this review. No app merge/deploy, provider polling, credentials, live trading, interpreter/production DB/runtime operation, mini24 access, host switch, Hermes operation or automation change occurred.
 
 
 
