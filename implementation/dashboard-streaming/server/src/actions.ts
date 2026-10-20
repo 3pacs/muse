@@ -799,6 +799,10 @@ async function loadTrailAndLatest(
   // payload clock is the same canonical instant as the row's keyed
   // instant (equivalent aware spellings of one instant agree; a
   // mismatched identity is skipped, never guessed or repaired).
+  // Its raw stored timestamp — returned verbatim as staleSnapshotAt
+  // — must likewise parse to that same instant; a raw spelling that
+  // does not parse, or parses to a different instant, is skipped
+  // the same way, never repaired.
   // Stored rows are never modified, merged or deleted here. The
   // returned payload/timestamp pair always comes from the CHOSEN row;
   // when no candidate in the window is usable, both are null and the
@@ -838,6 +842,12 @@ async function loadTrailAndLatest(
       // Coherence: the payload's own clock must BE the row's keyed
       // instant — compared as parsed instants, never as strings.
       if (parseAwareInstant(payload.updatedAt) !== row.instantMs) continue;
+      // Coherence (raw timestamp): staleSnapshotAt returns the row's
+      // RAW stored timestamp text verbatim, so that text must also
+      // name the same keyed instant. A raw spelling that does not
+      // parse, or parses to a different instant, would advertise an
+      // incoherent pair beside the payload; skip it, never repair.
+      if (parseAwareInstant(row.updatedAt) !== row.instantMs) continue;
       staleSnapshot = payload;
       staleSnapshotAt = row.updatedAt;
       chosenIndex = i;
