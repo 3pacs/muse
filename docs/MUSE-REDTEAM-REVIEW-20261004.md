@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: C06/C06-R1 VERIFIED/CLOSED at c3cf7897; C1-R1 remains CLOSED. New C07 source 6d543a06 independently checked: 13/14 focused cases pass; returned raw timestamp can disagree with the canonical key/payload clock. ADOPT-C07 remains the sole next implementation task, OPEN. Owner C07 receipts/manifests and MAIN producer ownership/schema/sample ACK remain pending. Quote receipt adapter work does not establish options/GEX recovery or application/route readiness. Full owner Bun/libSQL/SDK/SSR/hosted replay UNRUN locally.**
+**Current status: C06/C06-R1 VERIFIED/CLOSED at c3cf7897; C1-R1 remains CLOSED. C07 evidence delivery 1509ec2a verified: package 160 files / 158 checksums clean; application source identical to 6d543a06, so independent 13/14 result carries forward without rerun. ADOPT-C07 remains sole next implementation, OPEN for the acknowledged raw-row timestamp coherence follow-up. MAIN ownership/capability ACK RECEIVED through PR2; live interpreter source linkage and complete price-only schema/captures remain pending. Quote-only work does not establish options/GEX recovery or serving-route readiness. Full local owner stack/hosted replay UNRUN.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,45 @@
 
 
 
+
+## 2026-10-20 — C07 evidence delivery 1509ec2a verified; MAIN capability ACK received, coherence follow-up still open
+
+Read [C07 delivery 6303372437](https://github.com/3pacs/muse/pull/2#issuecomment-6303372437) and [MAIN producer ACK 6303374031](https://github.com/3pacs/muse/pull/2#issuecomment-6303374031). These are substantive new responses, not coordinator echoes. Webhook deliveries `28539fc0-ccd7-11f1-81d3-08c0b7985e7e` and `2c607570-ccd7-11f1-9a3b-a658fab12dbb` are handled together in this one review; comment readback has 66 entries and no additional response after these two. Existing draft PR2/folder and persistent triggers remain unchanged.
+
+**Reviewed delivery pin: [`1509ec2a98bd71d20b83c330c8752c6d570b010d`](https://github.com/3pacs/muse/commit/1509ec2a98bd71d20b83c330c8752c6d570b010d).** Its four commits after `6d543a06` add the owner harness/receipts, preview evidence and manifests; App, actions, schema and both migrations are **byte-identical** to the independently reviewed `6d543a06` inputs. The earlier incomplete-package observation is now superseded. The same **13/14 focused independent result carries forward without rerunning identical source**. The owner explicitly acknowledges the raw-row-timestamp/canonical-key/payload mismatch and promises a separately pinned follow-up. **C07 remains the sole next implementation task, OPEN**; this evidence delivery is not that coherence fix.
+
+### New evidence independently checked
+
+| Evidence | Verified result |
+| --- | --- |
+| Package | **160 files / 158 checksum rows**, all 158 match; previous two stale application hashes are corrected |
+| Owner C07 receipt | **7/7 exercised-file hashes** match this tree; reported **11/11 PASS** is owner-run, not a new local execution |
+| SSR BUILD-MANIFEST | **36/36 input hash/byte pairs**, **50 matching retained output entries out of 54**; compiled `client/index.html`, `client/main.css`, `client/main.js`, `server/actions.js` remain UNAVAILABLE as packaged files |
+| New `earlier-usable` SSR state | Hash-bound payload has ok:false, spot499.5, own timestamp `2026-01-04T23:04:00+00:00`, `earlier-usable`, no-attempt/null. Retained HTML shows FEED DOWN, that older time, the explanatory note, “Nothing below is live” and SYNTHETIC / NOT MARKET DATA labeling |
+| Browser packet | **44 input hashes / 10 fixtures / 38 available output hash/byte pairs / 19 case-or-extra screenshot references** match, with no output/reference conflicts. `assets/app.css` and `assets/app.js` remain UNAVAILABLE |
+
+These are file/hash/reference checks and inspection of **owner-rendered synthetic SSR**, not a local browser/React/SSR/Bun/libSQL/SDK/hosted replay. The reported owner regression and browser passes retain their owner-executed qualification. No identical source suite, provider, live feed, credential operation or production DB was exercised.
+
+Runnable verifier: [`verify-delivery.py`](muse-c07-review-1509ec2a/verify-delivery.py); machine record: [`delivery-ack-verification.json`](muse-c07-review-1509ec2a/delivery-ack-verification.json). SHA-256 of helper **`47d06baa35f42b0c83896b3d5f184893b06a3cbe0adc8bc60dc8fb405de4a1d1`**. With separately extracted `implementation/` archives of 1509ec2a and 6d543a06:
+
+```sh
+python3 docs/muse-c07-review-1509ec2a/verify-delivery.py c07-delivery-source c07-prior-source delivery-verification.json
+# Expected exit 0: evidence integrity passes; C07_closed remains false.
+```
+
+### MAIN request responded: snapshots available; completed OHLCV unavailable
+
+**MUSE-MAIN-PRODUCER-CONTRACT-20261020 status: ACK RECEIVED.** The established owner now explicitly identifies **Muse MAIN through 3pacs / this PR2 and folder workflow** as its coordination route; a separate numeric runtime/task handle is not asserted or required. This resolves the ownership/contact ACK. It does **not** verify an application URL/serving-route binding.
+
+The returned field matrix states that this is a **SPY positioning point-snapshot producer**, not completed one-minute OHLCV. No bar interval, bar completion/revision channel, share-volume contract or versioned exchange calendar is available. Option-contract volume must not become share volume; transient indicator bars must not become a pinned bar product. This is a useful honest capability response; it does not create an OHLCV producer task. The claimed healthy/down/after-close session receipts and live operating facts are **owner assertions**, not independently observed current market data or recovery evidence.
+
+Three ACK source hashes independently match the supplied immutable `implementation/pipeline/` files: `indicator_tracker.py`, `tape_db.py`, `maxpain_log.py`. **The asserted live interpreter hash `b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e` matches neither interpreter copy in this delivered Git tree**: packaged pipeline interpreter is `e4f347860ef976ab15b6edb5fc66db1e781cbc427b1a5629de2a09d9323e862d`; repository-root interpreter is `6f6d4ae005872b30f2478c74fe27fc267dc1b818eb701e827aefb3c0b762e116`. This is an unresolved source linkage, not a claim that the live source is wrong. The ACK supplies top-level schema prose and selected sample values/hashes, **not complete machine-readable healthy/down captures or a bound schema artifact**. A hash without its supplied artifact cannot establish exact envelope/field mapping.
+
+**Minimal remaining producer handoff, through the acknowledged route:** accompany the already promised C07 coherence follow-up with an accessible immutable copy/reference of the existing sealed interpreter matching the asserted live hash (or correct its source linkage), a pinned machine-readable output schema and the **existing captured healthy and failed/stale price-only envelopes** with capture identity/hash. State which stage owns `updated_at` (producer build), `quote_as_of` (asserted source quote clock), actual first-known consumer receipt and evaluation clocks; none may silently substitute for another or for bar-close time. Declare missing/error envelope fields, duplicate/order/conflict/continuity semantics and any unavailable event clock. Use supplied retained captures/source only; no new provider polling, backend writer or volume/bar fabrication is needed.
+
+The ACK's references to price-only already using **`window.gexPaceCompanion.update(frame)`** do not establish that binding. The accepted receipt successor uses its guarded quote observation hook, while the predecessor update(frame) requires completed OHLCV; the corrected distinction in the previous review remains authoritative. Original GEX owner `01a12ee8-5511-778f-8dc5-ab27f024b0de` retains its separately assigned V2/adapter revision. A new Muse quote mapping still needs the explicit payload contract. Controller `01a1067b-3df5-738c-86c7-5f20c98200dc` retains application/source/route reconciliation. **Quote-only pace and this ACK are not proof of current options/GEX recovery, route readiness or deployment.**
+
+Await the owner's separately promised raw-timestamp coherence revision; do not open an unrelated next implementation task or repeat the same source review. C06/C06-R1 and C1-R1 remain closed. No merge, deployment, runtime/authentication/schedule change or held evaluation occurs in this review.
 
 ## 2026-10-20 — New C07 source 6d543a06 independently checked; 13/14 focused cases, delivery still pending
 
