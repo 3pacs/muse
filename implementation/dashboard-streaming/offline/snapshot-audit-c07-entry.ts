@@ -15,6 +15,10 @@
 // Those inserts are test setup against disposable storage only; the
 // code under test never rewrites or deletes them, and case T02
 // asserts both stored rows are byte-unchanged after the fallback.
+// T12 saves through the REAL live path and then alters ONLY the
+// newer row's raw updated_at text in disposable storage (the
+// reviewer's raw-timestamp coherence witness); T13 seeds a newest
+// row whose raw updated_at text does not parse at all.
 // Verdicts are computed from observations; the receipt is written
 // by the driver.
 //
@@ -411,6 +415,81 @@ function record(id, expectation, pass, observed) {
     "App binding: earlier-usable note is rendered from staleSnapshotReason beside the stale banner; C06 warning text intact",
     noteBound && c06Intact,
     { noteBound, c06Intact },
+  );
+}
+
+// T12 (coherence revision) — the reviewer's raw-timestamp witness,
+// exactly: two legitimate getLive saves (23:30 spot 500, 23:31 spot
+// 501) through the REAL handler; then alter ONLY the newer stored
+// row's raw updated_at TEXT to 23:32, leaving its accepted
+// instant_ms and its payload clock at 23:31. The pair that row
+// would advertise (raw 23:32 beside payload 23:31) is incoherent,
+// so the row must be skipped and the coherent 23:30 row selected
+// with reason "earlier-usable". The altered row stays stored
+// byte-for-byte as altered — unrepaired.
+{
+  const { client, ctx } = await createDb();
+  await live(ctx, rawFrame("2026-10-16T23:30:00.000Z", 500));
+  await live(ctx, rawFrame("2026-10-16T23:31:00.000Z", 501));
+  const saved = await storedRows(client);
+  await client.execute({
+    sql: "UPDATE snapshots SET updated_at = ? WHERE updated_at = ?",
+    args: ["2026-10-16T23:32:00.000Z", "2026-10-16T23:31:00.000Z"],
+  });
+  const before = await storedRows(client);
+  const resp = await down(ctx);
+  const after = await storedRows(client);
+  const altered = after.find((r) => r.spot === 501);
+  record(
+    "T12",
+    "reviewer raw-timestamp witness (live saves 23:30/500 + 23:31/501, newer row's raw updated_at text altered to 23:32 only): incoherent newest skipped, 23:30 frame returned with its raw timestamp, reason earlier-usable, ok:false, altered row left stored unrepaired",
+    saved.length === 2 &&
+      before.length === 2 &&
+      altered !== undefined &&
+      altered.updated_at === "2026-10-16T23:32:00.000Z" &&
+      altered.instant_ms === BASE + 60000 &&
+      JSON.stringify(before) === JSON.stringify(after) &&
+      resp.ok === false &&
+      resp.staleSnapshot !== null &&
+      resp.staleSnapshot.spot === 500 &&
+      resp.staleSnapshot.updatedAt === "2026-10-16T23:30:00.000Z" &&
+      resp.staleSnapshotAt === "2026-10-16T23:30:00.000Z" &&
+      resp.staleSnapshotReason === "earlier-usable",
+    {
+      ok: resp.ok,
+      staleSpot: resp.staleSnapshot?.spot ?? null,
+      payloadUpdatedAt: resp.staleSnapshot?.updatedAt ?? null,
+      staleSnapshotAt: resp.staleSnapshotAt,
+      reason: resp.staleSnapshotReason,
+      alteredRowKept: altered?.updated_at ?? null,
+      rowsUnchanged: JSON.stringify(before) === JSON.stringify(after),
+    },
+  );
+}
+
+// T13 (coherence revision) — the newest row's raw updated_at text
+// does not parse at all ("not-a-timestamp"), while its payload clock
+// and keyed instant agree with each other. An unparseable raw
+// spelling cannot be the advertised timestamp of a coherent pair:
+// skipped; the coherent older row is selected, reason
+// "earlier-usable".
+{
+  const { client, ctx } = await createDb();
+  await seedRow(client, iso(0), BASE, JSON.stringify(rawFrame(iso(0), 500)), 500);
+  await seedRow(client, "not-a-timestamp", BASE + 120000, JSON.stringify(rawFrame(iso(120), 501)), 501);
+  const resp = await down(ctx);
+  record(
+    "T13",
+    "newest row's raw updated_at unparseable (payload clock and keyed instant agree): newest skipped, older coherent row selected, reason earlier-usable",
+    resp.staleSnapshot !== null &&
+      resp.staleSnapshot.spot === 500 &&
+      resp.staleSnapshotAt === iso(0) &&
+      resp.staleSnapshotReason === "earlier-usable",
+    {
+      staleSpot: resp.staleSnapshot?.spot ?? null,
+      staleSnapshotAt: resp.staleSnapshotAt,
+      reason: resp.staleSnapshotReason,
+    },
   );
 }
 

@@ -123,7 +123,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 811,
+              "elapsedMs": 1187,
               "outcome": "settled"
             }
           }
@@ -225,7 +225,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 614,
+              "elapsedMs": 1143,
               "outcome": "settled"
             }
           }
@@ -507,7 +507,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 603,
+              "elapsedMs": 612,
               "outcome": "settled"
             }
           }
@@ -597,7 +597,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 602,
+              "elapsedMs": 603,
               "outcome": "settled"
             }
           }
@@ -697,7 +697,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 602,
+              "elapsedMs": 617,
               "outcome": "settled"
             }
           }
@@ -787,7 +787,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 602,
+              "elapsedMs": 609,
               "outcome": "settled"
             }
           }
@@ -1005,7 +1005,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 605,
+              "elapsedMs": 603,
               "outcome": "settled"
             }
           }
@@ -1091,7 +1091,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 602,
+              "elapsedMs": 606,
               "outcome": "settled"
             }
           }
@@ -1367,7 +1367,7 @@
             "charts": [],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 601,
+              "elapsedMs": 602,
               "outcome": "settled"
             }
           }
@@ -1467,7 +1467,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 605,
+              "elapsedMs": 608,
               "outcome": "settled"
             }
           }
@@ -1557,7 +1557,7 @@
             ],
             "settle": {
               "budgetMs": 6000,
-              "elapsedMs": 602,
+              "elapsedMs": 603,
               "outcome": "settled"
             }
           }
@@ -1727,7 +1727,7 @@
         ],
         "settle": {
           "budgetMs": 6000,
-          "elapsedMs": 2411,
+          "elapsedMs": 2424,
           "outcome": "invalid-chart"
         }
       }
@@ -1784,7 +1784,7 @@
         "charts": [],
         "settle": {
           "budgetMs": 6000,
-          "elapsedMs": 6011,
+          "elapsedMs": 6012,
           "outcome": "budget-expired"
         }
       }
@@ -2033,7 +2033,7 @@
         ],
         "settle": {
           "budgetMs": 6000,
-          "elapsedMs": 2409,
+          "elapsedMs": 2408,
           "outcome": "invalid-chart"
         }
       }
@@ -2325,18 +2325,18 @@
     },
     {
       "path": "offline/snapshot-audit-c07-entry.ts",
-      "bytes": 16166,
-      "sha256": "a49c2994173d02febed60014e317e8f9f013a3a1a04d7a96f4a52f08b0c7e31f"
+      "bytes": 19836,
+      "sha256": "b4948324ebc92d9dff09799685f01a31fde08ac04d1ce42fc581ce848166ae6c"
     },
     {
       "path": "offline/snapshot-audit-c07-receipt.json",
-      "bytes": 5399,
-      "sha256": "26b45ab5d984d4013b3bd9947e8f1bb0691246faac9c31a8bb64f7dcff9dc6fc"
+      "bytes": 6421,
+      "sha256": "7a6b096cd7e9d1c737498331b251005c63d4bb21d2865a8953a3ae5455eabf05"
     },
     {
       "path": "offline/snapshot-audit-c07.mjs",
-      "bytes": 6319,
-      "sha256": "09a06ef84d6d3263afab87fe6ae92b22a12b6b6644a73d8eb4404cd67d839ee0"
+      "bytes": 6407,
+      "sha256": "a77516f5eceb0e4e86892be26610552592b41f255735c7074d2248def03360b5"
     },
     {
       "path": "offline/snapshot-audit-entry.ts",
@@ -2370,8 +2370,8 @@
     },
     {
       "path": "server/src/actions.ts",
-      "bytes": 33568,
-      "sha256": "80b232a1f256755eb1a66a7a32a2aedf56ed75c0fd66862a349ab9e4737c4104"
+      "bytes": 34225,
+      "sha256": "247b3ecaa8d8d4107868c7407271bf4c46bc9a9c22013fc2c388d420fccddd55"
     },
     {
       "path": "server/src/schema.ts",

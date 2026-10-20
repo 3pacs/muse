@@ -13,17 +13,17 @@
     "typescript": "5.6.3"
   },
   "fileHashes": {
-    "server/src/actions.ts": "80b232a1f256755eb1a66a7a32a2aedf56ed75c0fd66862a349ab9e4737c4104",
+    "server/src/actions.ts": "247b3ecaa8d8d4107868c7407271bf4c46bc9a9c22013fc2c388d420fccddd55",
     "server/src/schema.ts": "35088a869346468b91f18e0edb6726bec2f870fefdd5f8e2fc1c47a546cb71c8",
     "client/src/App.tsx": "2203fbd2dd4593ac5f8e22a7eb79919ad4520c8a3e731b3d8586c86753e46fbe",
     "drizzle/0002_snapshots_table.sql": "c8cc1f77d28ab53a61b81ee354b3ccf0584c639ce4b9a6ad2060ad49f39a0791",
     "drizzle/0003_snapshot_instant.sql": "6ef107536f88fe061b99bcfcad56b1abf5b50924b81580e003a0ce699821e2d2",
-    "offline/snapshot-audit-c07-entry.ts": "a49c2994173d02febed60014e317e8f9f013a3a1a04d7a96f4a52f08b0c7e31f",
-    "offline/snapshot-audit-c07.mjs": "09a06ef84d6d3263afab87fe6ae92b22a12b6b6644a73d8eb4404cd67d839ee0"
+    "offline/snapshot-audit-c07-entry.ts": "b4948324ebc92d9dff09799685f01a31fde08ac04d1ce42fc581ce848166ae6c",
+    "offline/snapshot-audit-c07.mjs": "a77516f5eceb0e4e86892be26610552592b41f255735c7074d2248def03360b5"
   },
   "summary": {
-    "cases": 11,
-    "pass": 11,
+    "cases": 13,
+    "pass": 13,
     "fail": 0
   },
   "cases": [
@@ -142,6 +142,30 @@
       "observed": {
         "noteBound": true,
         "c06Intact": true
+      }
+    },
+    {
+      "id": "T12",
+      "expectation": "reviewer raw-timestamp witness (live saves 23:30/500 + 23:31/501, newer row's raw updated_at text altered to 23:32 only): incoherent newest skipped, 23:30 frame returned with its raw timestamp, reason earlier-usable, ok:false, altered row left stored unrepaired",
+      "verdict": "PASS",
+      "observed": {
+        "ok": false,
+        "staleSpot": 500,
+        "payloadUpdatedAt": "2026-10-16T23:30:00.000Z",
+        "staleSnapshotAt": "2026-10-16T23:30:00.000Z",
+        "reason": "earlier-usable",
+        "alteredRowKept": "2026-10-16T23:32:00.000Z",
+        "rowsUnchanged": true
+      }
+    },
+    {
+      "id": "T13",
+      "expectation": "newest row's raw updated_at unparseable (payload clock and keyed instant agree): newest skipped, older coherent row selected, reason earlier-usable",
+      "verdict": "PASS",
+      "observed": {
+        "staleSpot": 500,
+        "staleSnapshotAt": "2026-10-16T23:30:00.000Z",
+        "reason": "earlier-usable"
       }
     }
   ]

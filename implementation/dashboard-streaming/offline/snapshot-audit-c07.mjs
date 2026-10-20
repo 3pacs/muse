@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
  * ADOPT-C07 — bounded last-good fallback recovery regression
- * entrypoint. Cases T01–T11 cover the finite C07 acceptance table
+ * entrypoint. Cases T01–T13 cover the finite C07 acceptance table
  * (newest usable / corrupt newest / admission failure / identity
  * mismatch / equivalent spelling / empty / none usable / bound
  * exhausted / the reviewer's 23:30–23:31 witness / live-response
- * null reason / App note binding).
+ * null reason / App note binding / the reviewer's raw-timestamp
+ * coherence witness and unparseable-raw case, T12–T13).
  *
  * One command that, with NO network, NO platform SDK, NO real feed and
  * NO production database:
