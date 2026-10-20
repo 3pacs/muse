@@ -384,3 +384,46 @@ Notes:
   provider; the optional Schwab/Tradier/Massive utilities require
   keys that do not exist in this environment and were compile-checked
   only (test 1).
+
+**ADOPT-C07 — bounded last-good fallback recovery** (change note
+`ADOPT-C07.md`), on the verified C06-R1 pin `c3cf7897`. New
+companion `offline/snapshot-audit-c07.mjs` +
+`offline/snapshot-audit-c07-entry.ts` with committed receipt
+`offline/snapshot-audit-c07-receipt.json`: the REAL getLive chain
+over verbatim 0002/0003 DDL (drizzle-orm/libsql in-memory), cases
+seeding stored rows directly in disposable storage where a state
+the live path never produces is required (corrupt payloads,
+identity mismatch, >240 rows; disclosed in the entry header).
+**11/11 PASS** — T01 newest usable selected unchanged, reason
+current; T02 newest corrupt JSON, older usable returned with its
+own timestamp, reason earlier-usable, both stored rows
+byte-unchanged; T03 newest parses but fails admission, skipped;
+T04 payload identity mismatch (payload clock != row instant),
+skipped; T05 equivalent aware spelling of the same instant
+(+02:00 row / Z payload) usable, row spelling preserved as
+staleSnapshotAt; T06 empty storage, both null, reason
+empty-storage; T07 all candidates unusable (< bound), both null,
+reason no-usable-candidate; T08 bound exhausted (245 rows, first
+240 corrupt, usable row beyond the bound NOT returned), both
+null, reason window-exhausted; T09 the reviewer's C07 witness
+(23:30 spot 500 / 23:31 spot 501, 23:31 payload corrupt, feed
+down) returns the 23:30 frame with staleSnapshotAt 23:30 and
+reason earlier-usable, ok:false; T10 live response carries null
+reason and null fallback fields; T11 App renders the
+earlier-usable note from staleSnapshotReason beside the stale
+banner, C06 warning text intact. The getLive schema gains the
+nullable `staleSnapshotReason` enum (current / earlier-usable /
+empty-storage / no-usable-candidate / window-exhausted); the
+fallback scan is bounded at the existing 240-row trail bound.
+C06-R1 harness re-run at this revision: 6/6 PASS (incl. S06, the
+post-insert maintenance-failure case). C1-R1 harness re-run:
+14/14 PASS. SSR layer gains an `earlier-usable` preview case
+(preview.ts `OFFLINE_FALLBACK_SEED=1`): FEED DOWN beside
+"Showing an earlier usable saved frame.", payload-bound to the
+older frame; all other retained preview HTMLs byte-identical,
+payloads gain only the new field; BUILD-MANIFEST 36 inputs / 54
+outputs. Browser lane re-run: 9/9 cases + 7/7 controls,
+failures none, screenshots rebound to the retained PNGs (37/37
+PNG references verify). Backend suites re-run unchanged:
+boundary 51/51, tsc clean, compile 12/12, watcher 0 failures,
+J1 50/50 + 27/27.

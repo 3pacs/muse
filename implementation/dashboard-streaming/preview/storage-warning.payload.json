@@ -102,6 +102,7 @@
     },
     "staleSnapshot": null,
     "staleSnapshotAt": null,
+    "staleSnapshotReason": null,
     "trail": [],
     "persistence": {
       "outcome": "failed",

@@ -12,6 +12,7 @@
     "live": null,
     "staleSnapshot": null,
     "staleSnapshotAt": null,
+    "staleSnapshotReason": "empty-storage",
     "trail": [],
     "persistence": {
       "outcome": "no-attempt",

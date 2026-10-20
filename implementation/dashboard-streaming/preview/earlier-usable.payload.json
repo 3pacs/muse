@@ -1,0 +1,93 @@
+{
+  "case": "earlier-usable",
+  "synthetic": true,
+  "feedAllFixture": "feed_all_error.json",
+  "signalsFixture": "feed_signals_error.json",
+  "frozenClock": "2026-01-04T23:05:30.000Z",
+  "clockSource": "fixture+30s",
+  "getLive": {
+    "ok": false,
+    "feedError": "interpreter status: error",
+    "fetchedAt": "2026-01-04T23:05:30.000Z",
+    "live": null,
+    "staleSnapshot": {
+      "status": "ok",
+      "updatedAt": "2026-01-04T23:04:00+00:00",
+      "quoteAsOf": null,
+      "marketOpen": false,
+      "spot": 499.5,
+      "expiry": "2026-01-05",
+      "netGexM": null,
+      "gammaFlip": null,
+      "callWall": null,
+      "putWall": null,
+      "maxPain": null,
+      "regime": null,
+      "pinScore": null,
+      "pinMagnet": null,
+      "pinComponents": null,
+      "expectedMoveDollars": null,
+      "expectedMovePct": null,
+      "expectedMoveRemaining": null,
+      "hedgeBuckets": [],
+      "dealerGammaPerPtM": null,
+      "speedMPerPt2": null,
+      "speedWideMPerPt2": null,
+      "reversalConditions": [],
+      "reversalStretched": null,
+      "pcVolume": null,
+      "pcOi": null,
+      "callVolume": null,
+      "putVolume": null,
+      "atmCallIv": null,
+      "atmPutIv": null,
+      "riskReversal25d": null,
+      "totalVannaK": null,
+      "totalCharmK": null,
+      "byStrike": [],
+      "topStrikes": [],
+      "strikeCoverage": {
+        "total": 0,
+        "gexKnown": 0,
+        "gexMissing": 0
+      },
+      "elevatedActivity": [],
+      "rtdStrikes": null,
+      "nasdaqStrikes": null,
+      "nasdaqAsOf": null,
+      "nasdaqStale": null
+    },
+    "staleSnapshotAt": "2026-01-04T23:04:00+00:00",
+    "staleSnapshotReason": "earlier-usable",
+    "trail": [
+      {
+        "updatedAt": "2026-01-04T23:04:00+00:00",
+        "spot": 499.5,
+        "callWall": null,
+        "putWall": null,
+        "gammaFlip": null,
+        "maxPain": null,
+        "pinScore": null,
+        "netGexM": null
+      },
+      {
+        "updatedAt": "2026-01-04T23:05:00+00:00",
+        "spot": null,
+        "callWall": null,
+        "putWall": null,
+        "gammaFlip": null,
+        "maxPain": null,
+        "pinScore": null,
+        "netGexM": null
+      }
+    ],
+    "persistence": {
+      "outcome": "no-attempt",
+      "reason": null
+    }
+  },
+  "getSignals": {
+    "ok": false,
+    "signals": null
+  }
+}
