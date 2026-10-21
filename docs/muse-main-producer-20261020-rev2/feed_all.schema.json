@@ -1,0 +1,369 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "Muse MAIN producer \u2014 GET /feed/all envelope contract (rev2, corrected)",
+ "description": "Status-discriminated contract for the /feed/all envelope of the producer pinned at b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e. Variants are source-backed: ok (full snapshot), error (sparse poll-exception shape OR no-quote shape \u2014 data fields ABSENT, not null, beyond the listed optional keys), quarantined (future-quote rejection), starting (pre-first-poll). CONSUMER GATE: interpret market data ONLY when status == 'ok'; every other status is no-data regardless of shape. updated_at is the producer BUILD-START time, not a completed-response receipt. Scope: price/status contract \u2014 the top level and the gamma block are binding; flow/vanna_charm/iv/positioning are declared as objects whose detailed fields are descriptive (typed from the supplied capture), not a frozen analytical schema.",
+ "oneOf": [
+  {
+   "$ref": "#/$defs/ok"
+  },
+  {
+   "$ref": "#/$defs/error"
+  },
+  {
+   "$ref": "#/$defs/quarantined"
+  },
+  {
+   "$ref": "#/$defs/starting"
+  }
+ ],
+ "$defs": {
+  "ok": {
+   "type": "object",
+   "properties": {
+    "status": {
+     "const": "ok"
+    },
+    "updated_at": {
+     "type": "string"
+    },
+    "market_open": {
+     "type": "boolean"
+    },
+    "quote_as_of": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "spot": {
+     "type": "number"
+    },
+    "expiry": {
+     "type": "string"
+    },
+    "n_strikes": {
+     "type": "integer"
+    },
+    "n_strikes_rtd_live": {
+     "type": "integer"
+    },
+    "n_strikes_nasdaq_delayed": {
+     "type": "integer"
+    },
+    "sources": {
+     "type": "object",
+     "properties": {
+      "rtd": {
+       "type": "object",
+       "properties": {
+        "as_of": {
+         "type": "string"
+        },
+        "delay": {
+         "type": "string"
+        },
+        "n_strikes": {
+         "type": "integer"
+        },
+        "stale": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "as_of",
+        "delay",
+        "n_strikes"
+       ]
+      },
+      "nasdaq": {
+       "type": "object",
+       "properties": {
+        "as_of": {
+         "type": "string"
+        },
+        "delay": {
+         "type": "string"
+        },
+        "n_strikes": {
+         "type": "integer"
+        },
+        "stale": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "as_of",
+        "delay",
+        "n_strikes"
+       ]
+      }
+     },
+     "required": [
+      "rtd",
+      "nasdaq"
+     ]
+    },
+    "gamma": {
+     "type": "object",
+     "properties": {
+      "spot": {
+       "type": "number"
+      },
+      "expiry": {
+       "type": "string"
+      },
+      "gex_formula": {
+       "type": "string"
+      },
+      "gex_units": {
+       "type": "string"
+      },
+      "net_gex_m": {
+       "type": "number"
+      },
+      "gamma_flip": {
+       "type": [
+        "number",
+        "null"
+       ]
+      },
+      "gamma_flip_method": {
+       "type": "string"
+      },
+      "gamma_flip_roots": {
+       "type": "array"
+      },
+      "gamma_flip_residuals": {
+       "type": "array"
+      },
+      "gamma_flip_scale": {
+       "type": "number"
+      },
+      "gamma_flip_underflow_samples": {
+       "type": "integer"
+      },
+      "speed_m_per_pt2": {
+       "type": [
+        "number",
+        "null"
+       ]
+      },
+      "speed_wide_m_per_pt2": {
+       "type": [
+        "number",
+        "null"
+       ]
+      },
+      "speed_note": {
+       "type": "string"
+      },
+      "gamma_flip_note": {
+       "type": [
+        "string",
+        "null"
+       ]
+      },
+      "call_wall": {
+       "type": [
+        "number",
+        "null"
+       ]
+      },
+      "put_wall": {
+       "type": [
+        "number",
+        "null"
+       ]
+      },
+      "regime": {
+       "type": "string"
+      },
+      "by_strike": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "strike": {
+          "type": "number"
+         },
+         "src": {
+          "type": "string"
+         },
+         "greeks": {
+          "type": "string"
+         },
+         "net_gex_m": {
+          "type": [
+           "number",
+           "null"
+          ]
+         },
+         "call_gex_m": {
+          "type": "number"
+         },
+         "put_gex_m": {
+          "type": "number"
+         }
+        },
+        "required": [
+         "strike",
+         "net_gex_m"
+        ]
+       }
+      },
+      "top_strikes": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "strike": {
+          "type": "number"
+         },
+         "src": {
+          "type": "string"
+         },
+         "greeks": {
+          "type": "string"
+         },
+         "net_gex_m": {
+          "type": [
+           "number",
+           "null"
+          ]
+         },
+         "call_gex_m": {
+          "type": "number"
+         },
+         "put_gex_m": {
+          "type": "number"
+         }
+        },
+        "required": [
+         "strike",
+         "net_gex_m"
+        ]
+       }
+      },
+      "max_pain": {
+       "type": [
+        "number",
+        "null"
+       ]
+      }
+     },
+     "required": [
+      "spot",
+      "expiry",
+      "net_gex_m",
+      "gamma_flip",
+      "call_wall",
+      "put_wall",
+      "regime",
+      "by_strike",
+      "top_strikes",
+      "max_pain"
+     ]
+    },
+    "flow": {
+     "type": "object"
+    },
+    "vanna_charm": {
+     "type": "object"
+    },
+    "iv": {
+     "type": "object"
+    },
+    "positioning": {
+     "type": "object"
+    }
+   },
+   "required": [
+    "status",
+    "updated_at",
+    "market_open",
+    "quote_as_of",
+    "spot",
+    "expiry",
+    "n_strikes",
+    "n_strikes_rtd_live",
+    "n_strikes_nasdaq_delayed",
+    "sources",
+    "gamma",
+    "flow",
+    "vanna_charm",
+    "iv",
+    "positioning"
+   ]
+  },
+  "error": {
+   "type": "object",
+   "properties": {
+    "status": {
+     "const": "error"
+    },
+    "error": {
+     "type": "string"
+    },
+    "updated_at": {
+     "type": "string"
+    },
+    "market_open": {
+     "type": "boolean"
+    },
+    "spot": {
+     "type": "number"
+    },
+    "expiry": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "status",
+    "error",
+    "updated_at"
+   ]
+  },
+  "quarantined": {
+   "type": "object",
+   "properties": {
+    "status": {
+     "const": "quarantined"
+    },
+    "quarantine_reason": {
+     "type": "string"
+    },
+    "updated_at": {
+     "type": "string"
+    },
+    "market_open": {
+     "const": false
+    },
+    "quote_as_of": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "status",
+    "quarantine_reason",
+    "updated_at",
+    "market_open",
+    "quote_as_of"
+   ]
+  },
+  "starting": {
+   "type": "object",
+   "properties": {
+    "status": {
+     "const": "starting"
+    },
+    "updated_at": {
+     "type": "null"
+    }
+   },
+   "required": [
+    "status",
+    "updated_at"
+   ]
+  }
+ }
+}
