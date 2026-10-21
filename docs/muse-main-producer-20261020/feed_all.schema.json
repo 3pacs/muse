@@ -1,0 +1,701 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "Muse MAIN producer \u2014 GET /feed/all envelope (SPY 0DTE positioning snapshot)",
+ "description": "Descriptive schema of the producer output at source pin b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e (interpreter.py, byte-identical to the sealed copy in this folder). Generated from the supplied captured envelope in this folder and verified against it; nullability beyond that capture follows the pinned source (gamma_flip / call_wall / put_wall may be null). Not a bar schema: no OHLCV fields exist in this envelope.",
+ "type": "object",
+ "properties": {
+  "status": {
+   "type": "string"
+  },
+  "updated_at": {
+   "type": "string"
+  },
+  "market_open": {
+   "type": "boolean"
+  },
+  "quote_as_of": {
+   "type": "string"
+  },
+  "spot": {
+   "type": "number"
+  },
+  "expiry": {
+   "type": "string"
+  },
+  "n_strikes": {
+   "type": "integer"
+  },
+  "n_strikes_rtd_live": {
+   "type": "integer"
+  },
+  "n_strikes_nasdaq_delayed": {
+   "type": "integer"
+  },
+  "sources": {
+   "type": "object",
+   "properties": {
+    "rtd": {
+     "type": "object",
+     "properties": {
+      "as_of": {
+       "type": "string"
+      },
+      "delay": {
+       "type": "string"
+      },
+      "n_strikes": {
+       "type": "integer"
+      }
+     },
+     "required": [
+      "as_of",
+      "delay",
+      "n_strikes"
+     ]
+    },
+    "nasdaq": {
+     "type": "object",
+     "properties": {
+      "as_of": {
+       "type": "string"
+      },
+      "delay": {
+       "type": "string"
+      },
+      "n_strikes": {
+       "type": "integer"
+      },
+      "stale": {
+       "type": "boolean"
+      }
+     },
+     "required": [
+      "as_of",
+      "delay",
+      "n_strikes",
+      "stale"
+     ]
+    }
+   },
+   "required": [
+    "nasdaq",
+    "rtd"
+   ]
+  },
+  "gamma": {
+   "type": "object",
+   "properties": {
+    "spot": {
+     "type": "number"
+    },
+    "expiry": {
+     "type": "string"
+    },
+    "gex_formula": {
+     "type": "string"
+    },
+    "gex_units": {
+     "type": "string"
+    },
+    "net_gex_m": {
+     "type": "number"
+    },
+    "gamma_flip": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "gamma_flip_method": {
+     "type": "string"
+    },
+    "gamma_flip_roots": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     }
+    },
+    "gamma_flip_residuals": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     }
+    },
+    "gamma_flip_scale": {
+     "type": "number"
+    },
+    "gamma_flip_underflow_samples": {
+     "type": "integer"
+    },
+    "speed_m_per_pt2": {
+     "type": "number"
+    },
+    "speed_wide_m_per_pt2": {
+     "type": "number"
+    },
+    "speed_note": {
+     "type": "string"
+    },
+    "gamma_flip_note": {
+     "type": "null"
+    },
+    "call_wall": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "put_wall": {
+     "type": [
+      "null",
+      "null"
+     ]
+    },
+    "regime": {
+     "type": "string"
+    },
+    "by_strike": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "strike": {
+        "type": "number"
+       },
+       "src": {
+        "type": "string"
+       },
+       "greeks": {
+        "type": "string"
+       },
+       "net_gex_m": {
+        "type": "number"
+       },
+       "call_gex_m": {
+        "type": "number"
+       },
+       "put_gex_m": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "call_gex_m",
+       "greeks",
+       "net_gex_m",
+       "put_gex_m",
+       "src",
+       "strike"
+      ]
+     }
+    },
+    "top_strikes": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "strike": {
+        "type": "number"
+       },
+       "src": {
+        "type": "string"
+       },
+       "greeks": {
+        "type": "string"
+       },
+       "net_gex_m": {
+        "type": "number"
+       },
+       "call_gex_m": {
+        "type": "number"
+       },
+       "put_gex_m": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "call_gex_m",
+       "greeks",
+       "net_gex_m",
+       "put_gex_m",
+       "src",
+       "strike"
+      ]
+     }
+    },
+    "max_pain": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "by_strike",
+    "call_wall",
+    "expiry",
+    "gamma_flip",
+    "gamma_flip_method",
+    "gamma_flip_note",
+    "gamma_flip_residuals",
+    "gamma_flip_roots",
+    "gamma_flip_scale",
+    "gamma_flip_underflow_samples",
+    "gex_formula",
+    "gex_units",
+    "max_pain",
+    "net_gex_m",
+    "put_wall",
+    "regime",
+    "speed_m_per_pt2",
+    "speed_note",
+    "speed_wide_m_per_pt2",
+    "spot",
+    "top_strikes"
+   ]
+  },
+  "flow": {
+   "type": "object",
+   "properties": {
+    "spot": {
+     "type": "number"
+    },
+    "expiry": {
+     "type": "string"
+    },
+    "pc_volume": {
+     "type": "number"
+    },
+    "pc_oi": {
+     "type": "number"
+    },
+    "call_volume": {
+     "type": "number"
+    },
+    "put_volume": {
+     "type": "number"
+    },
+    "call_oi": {
+     "type": "number"
+    },
+    "put_oi": {
+     "type": "number"
+    },
+    "elevated_volume_activity": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "strike": {
+        "type": "number"
+       },
+       "side": {
+        "type": "string"
+       },
+       "src": {
+        "type": "string"
+       },
+       "unsigned": {
+        "type": "boolean"
+       },
+       "volume": {
+        "type": "number"
+       },
+       "oi": {
+        "type": "number"
+       },
+       "vol_oi": {
+        "type": "number"
+       },
+       "notional_k": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "notional_k",
+       "oi",
+       "side",
+       "src",
+       "strike",
+       "unsigned",
+       "vol_oi",
+       "volume"
+      ]
+     }
+    },
+    "top_volume_activity": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "strike": {
+        "type": "number"
+       },
+       "call_vol": {
+        "type": "number"
+       },
+       "put_vol": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "call_vol",
+       "put_vol",
+       "strike"
+      ]
+     }
+    },
+    "activity_note": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "activity_note",
+    "call_oi",
+    "call_volume",
+    "elevated_volume_activity",
+    "expiry",
+    "pc_oi",
+    "pc_volume",
+    "put_oi",
+    "put_volume",
+    "spot",
+    "top_volume_activity"
+   ]
+  },
+  "vanna_charm": {
+   "type": "object",
+   "properties": {
+    "spot": {
+     "type": "number"
+    },
+    "expiry": {
+     "type": "string"
+    },
+    "T_years": {
+     "type": "number"
+    },
+    "assumptions": {
+     "type": "object",
+     "properties": {
+      "r": {
+       "type": "number"
+      },
+      "q": {
+       "type": "number"
+      },
+      "dealer_position": {
+       "type": "string"
+      },
+      "vanna_units": {
+       "type": "string"
+      },
+      "charm_units": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "charm_units",
+      "dealer_position",
+      "q",
+      "r",
+      "vanna_units"
+     ]
+    },
+    "total_vanna_k": {
+     "type": "number"
+    },
+    "total_charm_k": {
+     "type": "number"
+    },
+    "by_strike": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "strike": {
+        "type": "number"
+       },
+       "vanna_k": {
+        "type": "number"
+       },
+       "charm_k": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "charm_k",
+       "strike",
+       "vanna_k"
+      ]
+     }
+    }
+   },
+   "required": [
+    "T_years",
+    "assumptions",
+    "by_strike",
+    "expiry",
+    "spot",
+    "total_charm_k",
+    "total_vanna_k"
+   ]
+  },
+  "iv": {
+   "type": "object",
+   "properties": {
+    "spot": {
+     "type": "number"
+    },
+    "expiry": {
+     "type": "string"
+    },
+    "atm_strike": {
+     "type": "number"
+    },
+    "atm_call_iv": {
+     "type": "number"
+    },
+    "atm_put_iv": {
+     "type": "number"
+    },
+    "risk_reversal_25d": {
+     "type": "null"
+    },
+    "risk_reversal_note": {
+     "type": "string"
+    },
+    "skew_by_strike": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "strike": {
+        "type": "number"
+       },
+       "call_iv": {
+        "type": "number"
+       },
+       "put_iv": {
+        "type": "number"
+       },
+       "put_minus_call": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "call_iv",
+       "put_iv",
+       "put_minus_call",
+       "strike"
+      ]
+     }
+    },
+    "smile_2pct": {
+     "type": "object",
+     "properties": {
+      "width": {
+       "type": "number"
+      },
+      "min_iv_strike": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "min_iv_strike",
+      "width"
+     ]
+    },
+    "term_structure": {
+     "type": "null"
+    },
+    "term_structure_note": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "atm_call_iv",
+    "atm_put_iv",
+    "atm_strike",
+    "expiry",
+    "risk_reversal_25d",
+    "risk_reversal_note",
+    "skew_by_strike",
+    "smile_2pct",
+    "spot",
+    "term_structure",
+    "term_structure_note"
+   ]
+  },
+  "positioning": {
+   "type": "object",
+   "properties": {
+    "expected_move": {
+     "type": "object",
+     "properties": {
+      "dollars": {
+       "type": "number"
+      },
+      "dollars_kind": {
+       "type": "string"
+      },
+      "pct": {
+       "type": "number"
+      },
+      "remaining_dollars": {
+       "type": "number"
+      },
+      "remaining_kind": {
+       "type": "string"
+      },
+      "remaining_pct": {
+       "type": "number"
+      },
+      "atm_strike": {
+       "type": "number"
+      },
+      "note": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "atm_strike",
+      "dollars",
+      "dollars_kind",
+      "note",
+      "pct",
+      "remaining_dollars",
+      "remaining_kind",
+      "remaining_pct"
+     ]
+    },
+    "hedge_buckets": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "shock_bp": {
+        "type": "integer"
+       },
+       "dS": {
+        "type": "number"
+       },
+       "notional_m": {
+        "type": "number"
+       },
+       "direction": {
+        "type": "string"
+       }
+      },
+      "required": [
+       "dS",
+       "direction",
+       "notional_m",
+       "shock_bp"
+      ]
+     }
+    },
+    "hedge_buckets_note": {
+     "type": "string"
+    },
+    "dealer_gamma_notional_m_per_pt": {
+     "type": "number"
+    },
+    "pin_score": {
+     "type": "number"
+    },
+    "pin_magnet": {
+     "type": "number"
+    },
+    "pin_components": {
+     "type": "object",
+     "properties": {
+      "concentration": {
+       "type": "number"
+      },
+      "proximity": {
+       "type": "number"
+      },
+      "time_elapsed": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "concentration",
+      "proximity",
+      "time_elapsed"
+     ]
+    },
+    "assumptions": {
+     "type": "string"
+    },
+    "reversal_watch": {
+     "type": "object",
+     "properties": {
+      "magnet": {
+       "type": "number"
+      },
+      "displacement_dollars": {
+       "type": "number"
+      },
+      "displacement_pct": {
+       "type": "number"
+      },
+      "expected_move_remaining": {
+       "type": "number"
+      },
+      "stretched": {
+       "type": "boolean"
+      },
+      "flip_distance_dollars": {
+       "type": "number"
+      },
+      "conditions": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "note": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "conditions",
+      "displacement_dollars",
+      "displacement_pct",
+      "expected_move_remaining",
+      "flip_distance_dollars",
+      "magnet",
+      "note",
+      "stretched"
+     ]
+    }
+   },
+   "required": [
+    "assumptions",
+    "dealer_gamma_notional_m_per_pt",
+    "expected_move",
+    "hedge_buckets",
+    "hedge_buckets_note",
+    "pin_components",
+    "pin_magnet",
+    "pin_score",
+    "reversal_watch"
+   ]
+  }
+ },
+ "required": [
+  "expiry",
+  "flow",
+  "gamma",
+  "iv",
+  "market_open",
+  "n_strikes",
+  "n_strikes_nasdaq_delayed",
+  "n_strikes_rtd_live",
+  "positioning",
+  "quote_as_of",
+  "sources",
+  "spot",
+  "status",
+  "updated_at",
+  "vanna_charm"
+ ]
+}

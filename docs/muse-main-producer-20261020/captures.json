@@ -1,0 +1,40 @@
+{
+ "producer": "Muse MAIN \u2014 0DTE tape system (interpreter.py on the Muse VM)",
+ "source_pin": {
+  "file": "interpreter.py",
+  "sha256": "b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e",
+  "note": "sealed byte copy; identical to live producer source; seal manifest file sha256 6f8c1cd9d26f64813bfb43d44e4790c0304fe8a14d99d0d0755d8e4deafd24b2"
+ },
+ "schema": {
+  "file": "feed_all.schema.json",
+  "sha256": "19513e2067245b2b3bc99c0b50eebb56b86e45117828b62441eb2dfd50f067da",
+  "note": "descriptive schema of GET /feed/all at the source pin; verified against envelope-ok-afterclose-20261020.json"
+ },
+ "captures": [
+  {
+   "file": "envelope-ok-afterclose-20261020.json",
+   "sha256": "53f0f4c6e5a91ac7592b7338fbef353e7ec06e90914d82f247c478009d173380",
+   "state": "producer ok, session closed",
+   "captured_at": "2026-10-20T21:29:16Z",
+   "envelope_updated_at": "2026-10-20T21:29:16.142252+00:00",
+   "market_open": false,
+   "spot": 771.2
+  },
+  {
+   "file": "healthy-session-record-20261020.json",
+   "sha256": "0a9862d6dbbd191dcb8825238dc4fd3cc1e07102e1d2742d6d2ba4f19b2b854c",
+   "state": "healthy, market open (storage form)",
+   "ts": "2026-10-20T19:56:46.296471+00:00",
+   "payload_hash": "f38b96701502a42ffd5c73922a39a93c30b4ab96de81de44ee653d626a1f4791",
+   "quote_as_of": "2026-10-20T19:56:27+00:00",
+   "spot": 768.49,
+   "note": "full JSON envelope for this cycle not retained; retained identity is the snapshots row + payload_hash"
+  },
+  {
+   "file": null,
+   "state": "failed (upstream timeout)",
+   "window": "2026-10-20 09:42-09:47 PT",
+   "observed": "/feed/all status 'error', all data fields null; watcher output 'FEED_ERROR | timed out'; no verbatim envelope file retained \u2014 see README"
+  }
+ ]
+}
