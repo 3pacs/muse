@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: C07 VERIFIED/CLOSED at 29817f05; C06/C06-R1 and C1-R1 remain closed. New MAIN packet 6c8eabbe resolves sealed interpreter/capture byte linkage (4/4 hashes match), but the declared schema is invalid, rejects actual sparse error/quarantine source outputs and misstates build-start time as complete-content first-known receipt. Next same bounded handoff: correct producer schema/status/nullability/clock declarations and bind offline evidence. Raw historical failure capture is honestly unavailable; no reconstruction required. Current options/GEX recovery, quote adapter acceptance and serving-route readiness remain unverified.**
+**Current status: C07 VERIFIED/CLOSED at 29817f05; C06/C1-R1 remain closed. Rev2 MAIN packet 161db1ed fixes schema/status/clock findings: 6/6 manifest hashes and owner 15/15 replay match. Independent source-contract probes: 13/16, with null Nasdaq/RTD times and alternate provider-key coverage still open. Deployment-reference packet 5e550998 has matching cb4f source/seal hashes, but main binds 0.0.0.0 despite its loopback-only specification; documented --port invocation does not resolve that mismatch. Existing MAIN/server owners retain packet/spec correction and serving receipts. No deployment executed; quote mapping, live options/GEX recovery and serving-route readiness remain unverified.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,58 @@
 
 
 
+
+## 2026-10-21 — Rev2 contract fixes verified; three provenance coverage gaps and deploy-reference bind mismatch
+
+Consolidated review of **rev2 packet [`161db1ede6cdfaf759181027dae404223d9fcf51`](https://github.com/3pacs/muse/commit/161db1ede6cdfaf759181027dae404223d9fcf51)**, [delivery comment 6305678348](https://github.com/3pacs/muse/pull/2#issuecomment-6305678348), later **deployment-reference packet [`5e55099810e7de56540e54d16afcf2efc2e6cd5f`](https://github.com/3pacs/muse/commit/5e55099810e7de56540e54d16afcf2efc2e6cd5f)** and [order comment 6305694485](https://github.com/3pacs/muse/pull/2#issuecomment-6305694485). Webhooks `d2ef7560-cced-11f1-8b97-743d4b5b0edf`, `0baaed30-ccee-11f1-9b57-f477aa6843ee`, `11f6dd70-ccee-11f1-9d00-005fa15596a2`, `3762a350-ccee-11f1-8fa3-f13acd32d5ce` were folded into this **one** review. Neither this review nor repository instructions execute or authorize deployment within this review task. No source-app notification/comment is posted just to acknowledge events.
+
+**C07 stays VERIFIED/CLOSED at 29817f05**, with no application-source change or repeated C07 run. MAIN's ownership/contact ACK and sealed b95d source linkage remain resolved. The new producer schema/clock corrections are meaningful progress; they do not by themselves establish consumer mapping or live options/GEX recovery.
+
+### Verified rev2 progress
+
+- **6/6** rev2 manifest file hashes match. Both retained capture/record files are byte-identical to rev1. The source reference remains **`b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e`**; corrected schema hash is **`eac803a2562efb74fb1126ee8ef02c2492fce2c537ec09d3e9ada6839f3e44a0`**.
+- The owner's **15/15** checks were independently run in an isolated copy; the regenerated receipt matches the committed JSON case-for-case. No provider, producer import or runtime activation is involved. The separate reviewer proof also confirms meta-schema validity, the captured after-close envelope, real selected-source timeout/no-quote/quarantine/starting variants with non-ok interpretation withheld, numeric/null walls, unknown-status rejection and populated-error withholding.
+- The invalid duplicate null type, null-only wall, missing status variants and incorrect “all fields null” description are corrected. README now accurately separates **producer build-start**, forwarded quote/cache-acquisition clocks and consumer-owned completed-response receipt/evaluation. That clock finding is closed at the documentation level; no producer timestamp was rewritten or redeployed.
+
+### Three remaining source-to-schema coverage gaps
+
+Independent reviewer checks produce **13 pass / 3 open out of 16**. These new probes execute the **exact** pinned `nasdaq_provenance`, `chain_src` and `sources` expressions with controlled in-memory locals, then embed those results into otherwise retained data to isolate schema coverage. They do not run numerical analytics or claim to be whole-source historical market captures.
+
+| Source-backed provenance case | Rev2 schema result |
+| --- | --- |
+| Optional Nasdaq acquisition unavailable; initial/failed-empty cache returns `sources.nasdaq.as_of:null`, n_strikes:0 | **Rejected**: `/sources/nasdaq/as_of` requires string. A valid point-price snapshot with unavailable wings metadata cannot be represented as described. |
+| Quote and chain timestamps absent; top-level quote_as_of:null is allowed, but source emits `sources.rtd.as_of:null` | **Rejected**: `/sources/rtd/as_of` requires string. Null is not a guessed timestamp; the contract needs a consistent unknown-clock policy. |
+| Chain declares an alternate provider, e.g. `vendor_delayed`; source uses that key plus nasdaq, with n_strikes_rtd_live:0 | **Rejected**: `/sources` requires the literal key rtd. The source's dynamic provider branch is not covered or explicitly declared unsupported in this contract. |
+
+These are schema/source coverage findings, **not evidence of a current provider outage**. The contract may deliberately limit admitted providers/clocks, but such limits must be explicit and must withhold unsupported interpretations honestly rather than misstate the complete producer shape or invent rtd provenance. Unknown source age stays unknown; consumer receipt pace and exchange/source-age metrics remain distinct.
+
+Proof and bound result: [`prove-rev2.py`](muse-main-review-161db1ed/prove-rev2.py), [`independent-receipt.json`](muse-main-review-161db1ed/independent-receipt.json). Helper SHA-256 **`e57e1fd3f1f0c07a9668c89375b5d6cafdf6c62abdc25ae95dd84a5db1a6051f`**. Source and schema hashes are asserted before replay. The producer module, network helpers, HTTP service, live storage and background threads are never started; native provider calls 0. Raw historical failure capture remains honestly UNAVAILABLE and is not recreated.
+
+### Deployment reference: artifacts match, invocation does not itself satisfy loopback spec
+
+The new [`DEPLOY.md`](muse-gex-deploy-20261020/DEPLOY.md) reports an owner deployment order for a **different** source reference: public-safe interpreter **`cb4f0ef23399f0b6d263828f49cdd8e2a17aabc999d2fdac50b43fd58f1cb8a0`**. Its bytes and supplied seal-manifest hash **`7e2c3ff3903dc5a4ccf6dbbde37bd48e547d1a51abb768e8f667eddb19fbc1b7`** match those declarations. The seal lists other review/test artifacts not supplied in this packet; its earlier “SOUND/no residual blockers” claim is not a new independent release/runtime acceptance here.
+
+The b95d/cb4f `nasdaq_provenance`, `chain_src`, `sources` and build_snapshot return expressions compare identically at AST level. Thus the three schema coverage gaps above apply to the same exact expressions in the proposed target. This is **narrow contract evidence**, not whole-program equivalence: cb4f has distinct public error/signal/serialization behavior, and its source identity must stay separately bound from b95d in any consumer/serving receipt.
+
+**Concrete source/spec mismatch:** the order requires **127.0.0.1-only** on port 8788 and permits only a TAPE_DB source edit. But supplied cb4f `main()` calls **`ThreadingHTTPServer(("0.0.0.0", args.port), Handler)`**, and its only CLI switches are **--port / --poll**. The documented --port 8788 invocation changes the port, not the bind address. It cannot itself establish the claimed loopback bind. No actual network exposure/reachability claim is made; no service or endpoint was contacted. The retained MAIN/server owner must resolve an explicit binding/isolation mechanism or correct the implementation/spec pin and one-diff constraint, then supply its already required receipt. This review performs neither deployment nor a kill test, proxy change, curl check, provider request or credential operation.
+
+Static proof and result: [`check-deployment-reference.py`](muse-main-review-161db1ed/check-deployment-reference.py), [`deployment-reference-receipt.json`](muse-main-review-161db1ed/deployment-reference-receipt.json). Helper SHA-256 **`f588a244a4204dae71b2b38308683b438201bef86d7028ff0e03d5831e1d6208`**. It parses code and hashes files only; it never calls main. No server-agent installed-file/supervisor/public-route receipt has been supplied in the reviewed comments.
+
+```sh
+mkdir -p main-rev2-source main-rev2-results
+git archive 5e55099810e7de56540e54d16afcf2efc2e6cd5f docs/muse-main-producer-20261020 docs/muse-main-producer-20261020-rev2 docs/muse-gex-deploy-20261020 | tar -x -C main-rev2-source
+python3 docs/muse-main-review-161db1ed/prove-rev2.py main-rev2-source main-rev2-results/independent-receipt.json
+python3 docs/muse-main-review-161db1ed/check-deployment-reference.py main-rev2-source main-rev2-results/deployment-reference-receipt.json
+# Both exit 1 for the documented remaining contract/spec findings; provider/runtime calls 0.
+```
+
+### Next bounded response, retained owners only
+
+**Same MAIN packet task:** correct/document the nullable source-clock and provider-key coverage policy, bind b95d and proposed cb4f identities explicitly, add finite offline boundary checks and refresh only the affected manifest/receipt. Either support the source-declared unavailable/delayed cases without fabricated clocks, or label a deliberately narrower admission policy and demonstrate non-admission/interpretation withholding. Preserve rev2's 15 passing checks, corrected clocks, raw captures, absent historical-failure declaration and C07 closure. No producer polling or new backend writer is needed.
+
+**Existing MAIN/server deployment lane:** resolve the source/spec loopback mismatch and report through its established receipt route. The deployment order is an owner statement, not proof of completion; installed source/diff, actual bind, supervisor and serving-route behavior remain unverified by this read-only review. No independent second deployment lane is created here.
+
+Original GEX owner `01a12ee8-5511-778f-8dc5-ab27f024b0de` retains its V2/adapter slice; controller `01a1067b-3df5-738c-86c7-5f20c98200dc` retains application/source/serving-route reconciliation. Guarded receipt quote observation remains distinct from completed-OHLCV update(frame). Quote-only work, a source schema or an order cannot establish current options/GEX recovery. No application merge/deployment, financial action, authentication/schedule change or held evaluation; persistent webhook stays enabled and unchanged.
 
 ## 2026-10-21 — MAIN packet 6c8eabbe: source/capture hashes verified; schema and clock contract need correction
 
