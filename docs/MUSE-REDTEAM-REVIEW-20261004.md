@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: C06/C06-R1 VERIFIED/CLOSED at c3cf7897; C1-R1 remains CLOSED. C07 evidence delivery 1509ec2a verified: package 160 files / 158 checksums clean; application source identical to 6d543a06, so independent 13/14 result carries forward without rerun. ADOPT-C07 remains sole next implementation, OPEN for the acknowledged raw-row timestamp coherence follow-up. MAIN ownership/capability ACK RECEIVED through PR2; live interpreter source linkage and complete price-only schema/captures remain pending. Quote-only work does not establish options/GEX recovery or serving-route readiness. Full local owner stack/hosted replay UNRUN.**
+**Current status: ADOPT-C07 VERIFIED/CLOSED for finite acceptance at 29817f05: independent exact-source 15/15, package 160 files / 158 checksums clean. Raw-row timestamp/key/payload coherence failure is fixed; C06/C06-R1 and C1-R1 remain closed. Next bounded handoff: finish the existing MAIN producer source/schema/retained healthy+failed/stale sample linkage through PR2. MAIN ownership/capability ACK is received; completed OHLCV is unavailable. Quote-only work and C07 closure do not establish options/GEX recovery or serving-route readiness. Full local owner stack/hosted replay UNRUN.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,67 @@
 
 
 
+
+## 2026-10-21 — C07 coherence 29817f05 VERIFIED/CLOSED; next existing producer snapshot-binding handoff
+
+Reviewed [coherence delivery 6304572745](https://github.com/3pacs/muse/pull/2#issuecomment-6304572745), webhook `b7b45500-cce2-11f1-89c9-fec4ae694f8b`, against the established handoff and exact implementation **[`29817f052543f91bf1a978daa1f60439bd2df298`](https://github.com/3pacs/muse/commit/29817f052543f91bf1a978daa1f60439bd2df298)**. This is substantive new code after delivery `1509ec2a`, not a handoff-only echo. The one application change adds `parseAwareInstant(row.updatedAt) === row.instantMs` to the same bounded fallback scan. App, normalization, persistence, schema and migrations are unchanged. The new check uses the existing parser and never rewrites storage.
+
+**ADOPT-C07 is VERIFIED/CLOSED for its finite acceptance at 29817f05.** C06/C06-R1 and C1-R1 remain closed. Independent exact-source replay now passes **15/15**: the previous 14 cases, with a stronger assertion that the coherence witness returns the actual older frame, plus the malformed-raw-clock case. This is a fresh run on the new source, not application of the old result to a changed head. No unrelated source suites were repeated. Full local Bun/libSQL/SDK/React/browser/hosted execution remains UNRUN.
+
+### Closure evidence
+
+| Controlled case | Independent result |
+| --- | --- |
+| Save 23:30/spot500 and 23:31/spot501 through real source handler; alter only newer raw row timestamp to 23:32; feed down | **PASS** — actual 23:30/spot500 payload, `staleSnapshotAt` 23:30, `earlier-usable`, ok:false, no-attempt/null; corrupt newer metadata remains stored unchanged |
+| Newest raw timestamp unparseable | **PASS** — older coherent row returned, raw rows unchanged |
+| Equivalent aware timestamp spellings; equal-instant legacy highest-id order | **PASS / PASS** — no textual-equality requirement or closed parity change |
+| Newest usable; corrupt JSON; inadmissible payload; payload/key mismatch | **4/4 PASS** — correct actual candidate, own coherent timestamp and safe reason |
+| Empty; no usable examined candidate; usable candidate only beyond bound; valid candidate at position 240 | **4/4 PASS** — null/null with truthful distinct reason or real bounded fallback, no scan beyond 240 |
+| Live diagnostics reset; C06 post-insert maintenance fault; stale note/feed-down source binding | **3/3 PASS** — saving semantics/committed trail and honest DOWN state preserved; note check is source-level, actual local rendering UNRUN |
+
+The replay executes exact normalization/persistence/loader/getLive source bodies with disclosed type erasure and a query facade over real disposable SQLite DDL, supplied labeled synthetic fixture, fixed independent receipt clock and in-memory fetch stub. It is not full platform/driver integration and makes **zero native provider requests**. Controlled row corruption is confined to disposable memory; no deployed corruption or production repair is implied.
+
+Evidence integrity independently passes: **160 package files / 158 checksum rows**, all match; **7/7** owner C07 receipt file hashes match and the owner's updated **13/13** result retains its owner-executed qualification. SSR **36 inputs / 50 retained output entries out of 54**, browser **44 inputs / 10 fixtures / 38 available output entries / 19 screenshot references** match. The four compiled SSR entries and two browser bundles remain UNAVAILABLE. **All 64 retained preview/browser files excluding manifests are byte-identical to 1509ec2a**, so the prior inspected synthetic FEED DOWN/earlier-frame HTML/payload evidence carries forward without another render. No new live/runtime/serving-route acceptance is asserted.
+
+Runnable [source proof](muse-c07-review-29817f05/prove-c07.mjs), [independent 15-case receipt](muse-c07-review-29817f05/c07-independent-receipt.json), [packet verifier](muse-c07-review-29817f05/verify-packet.py) and [packet verification](muse-c07-review-29817f05/packet-verification.json) are preserved in this same draft handoff. The proof refuses mismatched application inputs.
+
+```sh
+mkdir -p c07-fixed-source c07-delivered-source c07-results
+git archive 29817f052543f91bf1a978daa1f60439bd2df298 implementation | tar -x -C c07-fixed-source
+git archive 1509ec2a98bd71d20b83c330c8752c6d570b010d implementation | tar -x -C c07-delivered-source
+node docs/muse-c07-review-29817f05/prove-c07.mjs c07-fixed-source c07-results
+python3 docs/muse-c07-review-29817f05/verify-packet.py c07-fixed-source c07-delivered-source c07-results/packet-verification.json
+# Both exit 0; independent source 15/15, packet integrity pass, finite C07 closed.
+```
+
+| Bound input | SHA-256 |
+| --- | --- |
+| actions.ts | `247b3ecaa8d8d4107868c7407271bf4c46bc9a9c22013fc2c388d420fccddd55` |
+| unchanged App.tsx | `2203fbd2dd4593ac5f8e22a7eb79919ad4520c8a3e731b3d8586c86753e46fbe` |
+| independent source proof | `3f183b61d8852b00b2e6c72fccfc9dab04e67695c3bfe13d24f87306aa3a4d3a` |
+| packet verifier | `e4018b0aebf95e6f20b47187e156aae5518315c8e4c42a4f0d164f8d88feb82c` |
+
+### One next bounded handoff — finish existing MAIN producer source/schema/sample linkage
+
+This advances the **already pending** snapshot-binding part of `MUSE-MAIN-PRODUCER-CONTRACT-20261020`, whose ownership/capability ACK was received at [6303374031](https://github.com/3pacs/muse/pull/2#issuecomment-6303374031). It does not resend that request, add a producer implementation, reopen C07 or assign a second consumer. Existing Muse MAIN retains producer/schema ownership through **3pacs / PR2 and this folder**; original GEX owner `01a12ee8-5511-778f-8dc5-ab27f024b0de` retains its separately assigned V2/adapter slice. Controller `01a1067b-3df5-738c-86c7-5f20c98200dc` retains application/source/serving-route reconciliation.
+
+**Return one pinned artifact packet through the existing route, using retained source/captures only:**
+
+1. Provide an accessible immutable copy/reference of the existing sealed interpreter matching asserted live SHA-256 **`b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e`**, or correct the linkage with evidence. Delivered pipeline interpreter is still **`e4f347860ef976ab15b6edb5fc66db1e781cbc427b1a5629de2a09d9323e862d`**; do not silently call these the same source. Other three ACK helper-source hashes already match and need no repeated review.
+2. Supply the pinned **machine-readable snapshot schema and actual retained healthy plus failed/stale envelopes**, each with identity/hash and declared producer pin. These must reveal complete failure/missing/null semantics as emitted, not prose values assembled into an invented response. If raw bytes were never retained, mark them unavailable; do not reconstruct bytes to match a quoted hash or call a synthetic fixture a captured market sample.
+3. Map symbol/config binding, price/status/provenance and **producer-build, first-known-consumer-receipt and evaluation clocks** separately. Identify any source/event clock or explicitly absent one; do not label build/collector receipt as exchange/bar-close time. Declare ordering, duplicate/same-time conflict, corrections and continuity/gaps. Keep option volume distinct from share volume. Volume, completed OHLCV, calendar identity and bar finality may be unavailable; do not fabricate them or delay this price-only contract for a new bar producer.
+
+**Finite handoff acceptance:**
+
+| Requirement | Pass/fail evidence |
+| --- | --- |
+| Exact source/schema/sample identity | Supplied immutable artifacts hash to declared pins; live versus repository source linkage is explicit. Missing artifact is marked missing and remains a binding blocker. |
+| Healthy and failure envelopes | Actual retained machine-readable samples conform to their declared schema variants; unknown/null/absent fields and failure status stay honest. No credential/provider operation is needed. |
+| Clocks and sequence | Field-by-field clock/ordering/duplicate/correction/continuity contract is explicit, including absent event time and the distinct consumer receipt stage; no guessed bar time or volume. |
+| Consumer seam | Original consumer owner can determine an explicit guarded quote adapter mapping from supplied fields. Its receipt successor and predecessor completed-OHLCV `window.gexPaceCompanion.update(frame)` are not treated as interchangeable. No claim of integration acceptance until that mapping is independently checked. |
+| Scope | Evidence/source linkage only: no app merge/deploy, new backend writer, live/provider poll, authentication/schedule change, financial action or held evaluation. |
+
+After that packet is received, review its new artifacts and let the retained consumer owner continue only its assigned mapping checks. Full options/GEX recovery and self-hosted serving-route readiness remain separate and **unverified by this C07 closure**. No unrelated next application-code task is introduced; STRESS-P1 remains its separate owner decision.
 
 ## 2026-10-20 — C07 evidence delivery 1509ec2a verified; MAIN capability ACK received, coherence follow-up still open
 
