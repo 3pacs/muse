@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: ADOPT-C07 VERIFIED/CLOSED for finite acceptance at 29817f05: independent exact-source 15/15, package 160 files / 158 checksums clean. Raw-row timestamp/key/payload coherence failure is fixed; C06/C06-R1 and C1-R1 remain closed. Next bounded handoff: finish the existing MAIN producer source/schema/retained healthy+failed/stale sample linkage through PR2. MAIN ownership/capability ACK is received; completed OHLCV is unavailable. Quote-only work and C07 closure do not establish options/GEX recovery or serving-route readiness. Full local owner stack/hosted replay UNRUN.**
+**Current status: C07 VERIFIED/CLOSED at 29817f05; C06/C06-R1 and C1-R1 remain closed. New MAIN packet 6c8eabbe resolves sealed interpreter/capture byte linkage (4/4 hashes match), but the declared schema is invalid, rejects actual sparse error/quarantine source outputs and misstates build-start time as complete-content first-known receipt. Next same bounded handoff: correct producer schema/status/nullability/clock declarations and bind offline evidence. Raw historical failure capture is honestly unavailable; no reconstruction required. Current options/GEX recovery, quote adapter acceptance and serving-route readiness remain unverified.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,53 @@
 
 
 
+
+## 2026-10-21 — MAIN packet 6c8eabbe: source/capture hashes verified; schema and clock contract need correction
+
+Reviewed synchronize webhook **`b567c8c0-cce9-11f1-9c56-f6e04a8300ab`**, current draft head **[`6c8eabbee034699b8c58cfb9e697c9460cf47edf`](https://github.com/3pacs/muse/commit/6c8eabbee034699b8c58cfb9e697c9460cf47edf)**, the unchanged index and original six-file producer packet at [`docs/muse-main-producer-20261020/`](muse-main-producer-20261020/README.md). This is substantive new evidence, not our earlier docs-only push. No new issue comment accompanies it. Implementation remains **29817f05**, so **C07 stays VERIFIED/CLOSED** and its identical source was not re-tested. No competing review or application writer is started.
+
+**Progress accepted:** all **4/4** declared source/schema/capture file hashes match. The supplied sealed interpreter is exactly **`b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e`**, resolving the previously missing artifact/source-hash linkage to MAIN's ACK. The captured after-close envelope matches the previously asserted **`53f0f4c6e5a91ac7592b7338fbef353e7ec06e90914d82f247c478009d173380`**. The stored market-open row and schema also match their manifest hashes. This verifies supplied bytes and linkage to the asserted pins, **not current live deployment or current market health**. The external seal-manifest hash itself is an owner reference; its file was not supplied or independently inspected.
+
+The market-open sample is accurately labeled a **storage row**, not a complete original feed envelope. The raw failed envelope is explicitly **UNAVAILABLE**; neither this review nor the next task reconstructs it. The after-close capture has `status:ok` with `market_open:false`; it is useful contract evidence, not an in-session/current-success proof. The ownership route remains existing MAIN / **3pacs through PR2 and this folder**, separately from the held serving route.
+
+### Reproduced contract findings
+
+| Check | Independent observation |
+| --- | --- |
+| Declared Draft 2020-12 schema | **FAIL** — `Draft202012Validator.check_schema` rejects `/properties/gamma/properties/put_wall/type`: `["null","null"]` has duplicate elements. It is not a valid schema of the declared dialect. |
+| Supplied after-close data against the unchecked schema | Diagnostic match only; this does **not** make an invalid schema acceptable. |
+| Timeout branch from exact pinned source | Returns the sparse object `{"status":"error","error":"OFFLINE_TIMEOUT","updated_at":"2026-10-20T21:29:16.142252+00:00"}`; the unchecked schema rejects it for 13 missing required properties. The source does not emit a full all-null success-shaped envelope here. |
+| No-quote error from exact source | Contains status/error/time plus market_open:false, spot 0 and expiry; rejected by the same schema. |
+| Future-quote quarantine from exact source | Contains `status:quarantined`, quarantine_reason/time/market_open/quote_as_of; rejected by the same schema. |
+| Other documented healthy types | Synthetic single-field `gamma.put_wall=768` is rejected, despite the source's number-or-null wall output. The capture-inferred null-only type cannot represent that branch. |
+| Status discrimination | A copy of the captured populated envelope with `status:"not-a-producer-status"` is diagnostically accepted because status is unrestricted string. Schema acceptance must not replace an exact consumer `status==ok` gate. |
+| Complete-content first-known clock | README calls updated_at a producer first-known/receipt time. **Source assigns it at build start before its fetches**. In the retained capture, updated_at is `21:29:16.142252Z`, while Nasdaq acquisition as_of is `21:29:31.443624Z`, **15.301372s later**. Updated_at cannot substitute for receipt of the completed response/content. |
+
+The source stores `now` at [`interpreter.py:562`](muse-main-producer-20261020/interpreter.py#L562), sets Nasdaq as_of at acquisition, and the poll exception path at lines 1019–1021 replaces the snapshot with a sparse error object. The full `/feed/all` handler sends that snapshot as-is. README's broad “all data fields null” description must distinguish **absent fields from explicit nulls**; schemas and consumer gates need the real variants.
+
+This is a **source/schema contract review only**, not a new numerical model audit. The proof compiles only four exact selected function source segments into a private dictionary, replaces fetch_json with in-memory stubs, freezes the clock and stops the poll function after one iteration. It never imports the producer module or invokes original fetch helpers, HTTP servers, background threads, real storage or providers. Timeout, zero-quote and future-quote outputs are **labeled synthetic replay outputs**, not historical captures. Native provider calls: **0**. Installed jsonschema 4.19.2 was used; no dependencies were installed. The ten narrow checks record **3 pass / 7 open**, separating matching artifacts/honest missing capture/diagnostic captured shape from the failing contract properties.
+
+Runnable proof: [`prove-contract.py`](muse-main-review-6c8eabbe/prove-contract.py); bound machine results: [`contract-receipt.json`](muse-main-review-6c8eabbe/contract-receipt.json). Helper SHA-256 **`2ea663f04a53c5567743cebfd4f55a551f1319bc7c6487d7a23e7e63cf9f02ec`**. It refuses changed source/schema bytes rather than reattributing a later packet to this pin.
+
+```sh
+mkdir -p main-packet-source main-packet-results
+git archive 6c8eabbee034699b8c58cfb9e697c9460cf47edf docs/muse-main-producer-20261020 | tar -x -C main-packet-source
+python3 docs/muse-main-review-6c8eabbe/prove-contract.py main-packet-source/docs/muse-main-producer-20261020 main-packet-results/contract-receipt.json
+# Expected exit 1: schema/branch/clock findings remain; the declared file hashes match.
+```
+
+### Same next bounded handoff — correct the producer schema/status/clock contract
+
+MAIN retains this **existing** packet task; source linkage is now resolved and must not be requested again. Return one immutable **evidence/docs-only** revision through the same route:
+
+1. Make the schema valid for its declared dialect. Define source-backed **ok / error / quarantined / starting** envelope variants or explicitly pin a minimal **price-only** contract with that scope. Preserve null versus absent and actual number-or-null fields; do not freeze optional/nested types from one after-close example or silently call a subset a full analytical schema. Unknown statuses must fail the consumer's admission gate even if extra producer fields are allowed.
+2. Include finite offline checks for meta-schema validity, supplied captured ok data, actual source-derived sparse timeout/no-quote/quarantine shapes, numeric/null walls and non-ok interpretation withholding. Retain explicit UNAVAILABLE labels for missing historical raw captures; **do not request or manufacture an unavailable historical failure capture again**. Clearly labeled offline source-derived outputs can test failure mapping without pretending they are market evidence.
+3. Correct clock declarations: updated_at is **producer build-start time**, quote_as_of is the forwarded source clock, Nasdaq as_of is the cache acquisition timestamp with its separate delay declaration, and actual completed-response consumer receipt/evaluation clocks belong to the consumer. Event/bar-close time remains unavailable. Do not require changing/redeploying producer code merely to make the documentation agree with the existing source.
+4. Bind the corrected schema, existing captures and the new offline receipt in the manifest. Preserve immutable source b95d1c3c, C07 closure, source/status ordering declarations, raw storage/capture bytes and separate option/share-volume meanings. No new historical samples, bars, backend writer or provider polls.
+
+**Finite acceptance:** valid schema; correct source-backed status/missing/null variants; actual retained ok sample hash preserved; synthetic failure fixtures explicitly labeled and admitted only as failure/no-data; no interpretation from unknown/non-ok status; distinct source/build-start/consumer-receipt/evaluation clocks; all artifact hashes/receipt inputs match. The existing GEX consumer owner `01a12ee8-5511-778f-8dc5-ab27f024b0de` can use the now supplied immutable source/capture identities for its assigned offline work, but **the guarded quote adapter mapping is not yet accepted**. Its successor observation hook is distinct from the predecessor completed-OHLCV update(frame). Controller `01a1067b-3df5-738c-86c7-5f20c98200dc` retains serving-route/source reconciliation.
+
+C07/C06/C1-R1 remain closed. Quote-only work and this source-reference packet do not establish current options/GEX recovery or `/gex/` route readiness. No application merge/deployment, provider/financial action, authentication/schedule change or held evaluation occurs; persistent webhook remains enabled and unchanged.
 
 ## 2026-10-21 — C07 coherence 29817f05 VERIFIED/CLOSED; next existing producer snapshot-binding handoff
 
