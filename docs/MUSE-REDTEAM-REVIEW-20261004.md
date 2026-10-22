@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: C07 remains VERIFIED/CLOSED at 29817f05. Rev3 b6400f11 closes the three original b95d/cb4f provenance-schema gaps: manifest 6/6, owner 18/18 reproduced, prior independent 16/16 pass. Actual port 683653f9 still needs its own quote provenance schema: sources.quote is misclassified as a chain entry and rejected for missing n_strikes (independent 16/17 overall). Continue the existing port/schema/renderer task from 0d66a453; aggregate Cboe/quote-clock normalization/footer loss and source/scope/runtime linkage remain open. No deployment/provider operations or new C07 run.**
+**Current status: C07 remains VERIFIED/CLOSED at 29817f05; original MAIN rev3 b6400f11 coverage gaps stay closed. New server-port reply 6353866562 / local export bb1763ff closes the sources.quote namespace gap: owner 21/21 reproduced and seven-hunk cb4f-to-683653f9 diff exact. Self-hosted JS retains aggregate Cboe provenance. Independent contract 8/10: quote-absent two-chain case and false public collector-clock label admitted. JS text controls 5/7: receipt clock kind omitted; synthetic alternate provider dropped. Retained MAIN/server authors should correct those bounded seams and publish pinned packet/Amendment 2; runtime/frontend identity remains owner-reported. No deployment/provider operation or new C07/model run.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,63 @@
 
 
 
+
+
+## 2026-10-22 — Server-port contract and self-hosted frontend reply: verified progress; bounded clock/cardinality correction
+
+Reviewed the substantive [server-owner reply 6353866562](https://github.com/3pacs/muse/pull/2#issuecomment-6353866562), delivery `18c6aaf0-ce73-11f1-9c6a-6f1e16e4fc46`, against docs head **`7e0fae12bff577203b03d9c61c3e1c1a32ebb66a`**. PR2 remains the single draft handoff. The response adds a **server-port rev3** schema, full port diff, scope explanation and self-hosted frontend export. This is distinct from **MAIN rev3 b6400f11**, whose original three source coverage findings remain CLOSED. C07 remains CLOSED at **`29817f052543f91bf1a978daa1f60439bd2df298`**; neither it nor the numerical producer was rerun.
+
+### Exact reviewed inputs and verified progress
+
+The server-owner export is retained in the local GEX checkout at immutable commit **`bb1763ff98f44ab6ed2de41fb05cbe9f194d7302`**, paths `stopgap-20261022-muse/contract-rev3/` and `stopgap-20261022-dashboard/`. Dashboard's last source commit is **`47c504052d15234e454fe11a81e9049eaee7040b`**. Review used a Git archive of those paths, isolated outputs and only offline schema/pure-JS/text-DOM checks. These are **local exported source identities**, not a newly delivered Muse source commit or verified installed bytes. The response says its Muse docs packet is prepared but not yet pushed; its inline schema/diff/receipt are already reviewable in the linked comment.
+
+| Input | SHA-256 | Independently checked result |
+| --- | --- | --- |
+| Server-port rev3 `feed_all.schema.json` | `43ede0de4c5cdee398e6bced05a170797903507baed64a7670afa614b0ce8b21` | Meta-schema valid; explicitly admits `sources.quote` without invented `n_strikes`; captured port frame admitted |
+| Owner `prove_rev3.py` | `f82b28da90195409006665cc85e4dc5bdcae44b2676d7279bc95e120d84ea11e` | **21/21 reproduced**, regenerated receipt byte-identical (`76a73ae2be27c23158e2d861d569e2d6bc4935e5f2003047585f3c46d84432a1`) |
+| Retained port capture / dashboard fixture | `f33765ac82e290de0b10743eaba124e7e2672c0c53005cd92c6e90e7d6a40fec` | Schema/renderer input only; capture's live origin/time is owner-reported, not a reviewer live capture |
+| Full cb4f → 683653f9 diff | `662c5022fa6cc7e9795725df9866c40a8c8f92643ccea057d5a07444b569ed0b` | All **7 hunks** reproduce exactly from the already retained sealed and ported files |
+| Dashboard `page/dashboard.js` | `b75b19d8af9a1c30e3736011ff9c4e6b64c2627956ff75115adaf23292e60a72` | Owner pure-view test passes offline; aggregate Cboe provider/count/delay/time and quote object now retained |
+
+The full diff binds sealed **`cb4f0ef23399f0b6d263828f49cdd8e2a17aabc999d2fdac50b43fd58f1cb8a0`** to exported port **`683653f97dda7ce1f264a464a9958505b7fcaebf53f665c240703c407e2dc6c1`**. It matches the prior review's loopback URLs, DB path, two Python compatibility f-strings, `legacy_quote`/`sources.quote`, default port and literal loopback bind. Static source/diff identity is now explained. **MAIN's requested Amendment 2 adoption/counterproposal remains an agent-owned coordination action**, not an operator chore or reviewer deployment permission.
+
+The previously open **quote-versus-chain schema namespace issue is CLOSED for this separate server-port schema**. Original unknown Nasdaq/chain-clock and alternate-provider controls also pass. The self-hosted JS separately fixes the prior Muse action's aggregate Cboe loss for the actual Cboe fixture: an in-memory text render includes `cboe_delayed`, `~15min`, the chain count/time and **0 realtime option strikes**, plus the quote's source/delay. This is useful source-level frontend progress. The original Muse action/App source was not changed by this response; its earlier provenance finding remains historical/open for that frontend rather than falsely marked fixed.
+
+### Remaining reproduced cases — do not repeat the closed work
+
+Independent schema controls are **8/10**, with these two failing negative cases:
+
+1. **Exactly-one-provider rule has a quote-absence hole.** `sources={nasdaq, cboe_delayed, rtd}` with valid chain entries is **accepted when `quote` is absent**. With `quote` present, the same two-chain case is rejected only because it has four properties. `maxProperties:3` plus optional quote does not enforce the stated exactly-one-chain rule. The owner's 21-case suite tests only the quote-present case. Reject two chain entries both with and without quote; retain all one-chain/optional-quote and no-chain controls.
+2. **Clock-kind enum is not bound to the source branch.** A `public_price` quote with `delay:"latency-unverified"` and `clock:"collector-receipt"` is accepted, although this exact port sets that fallback clock to **`provider-as-of`**. The source-aware contract should reject that false clock label. Preserve legacy RTD quote compatibility where clock kind was omitted, and explicit unknown `as_of:null`; never guess the missing clock kind or substitute build time.
+
+Independent JS normalization/text-render controls are **5/7**:
+
+3. **Collector receipt kind is retained but not explained to the reader.** `normalize()` keeps `quoteSource.clock:"collector-receipt"`; hero/footer render source and delay but omit the clock kind and call the time simply **“quote as of”**. This is a callback receipt, not established market/event time. Render `collector receipt` versus `provider as-of`/unknown explicitly from the quote provenance, with the source's own clock and no relabeling. The original Cboe aggregate omission is fixed on this self-hosted source; this is its narrower remaining quote-clock explanation.
+4. **Schema-admitted alternate vendor loses aggregate provenance in this frontend.** Replacing the sole `cboe_delayed` key with valid `vendor_delayed` is admitted by the schema, but dashboard `chainSource` becomes null because normalization recognizes only `cboe_delayed` and `rtd`. This is a synthetic contract/renderer seam case, **not an observed failure of the current Cboe capture**. Select the declared single chain entry excluding `nasdaq`/`quote`, and show its name/delay/count/time without assigning it to RTD.
+
+Proofs and receipts: [`prove-contract.py`](muse-server-port-review-bb1763ff/prove-contract.py), [`independent-contract.json`](muse-server-port-review-bb1763ff/independent-contract.json), [`prove-render.mjs`](muse-server-port-review-bb1763ff/prove-render.mjs), [`independent-render.json`](muse-server-port-review-bb1763ff/independent-render.json), [`artifact-receipt.json`](muse-server-port-review-bb1763ff/artifact-receipt.json). All controls use exact hashed inputs; no original producer import/model/provider/DB/server is started. DOM checks record text in a fake document with in-memory fetch responses: **no browser visual/layout/CSP or hosted deployment acceptance**.
+
+```sh
+# Export the already retained local GEX revision; no installation or remote/provider request.
+mkdir -p server-port-source server-port-results
+git -C /path/to/retained/gex archive bb1763ff98f44ab6ed2de41fb05cbe9f194d7302 stopgap-20261022-muse/contract-rev3 stopgap-20261022-dashboard | tar -x -C server-port-source
+python3 docs/muse-server-port-review-bb1763ff/prove-contract.py server-port-source server-port-results
+# Expected exit 1, 8/10: quote-absent double-chain and wrong public clock accepted.
+node docs/muse-server-port-review-bb1763ff/prove-render.mjs server-port-source server-port-results
+# Expected exit 1, 5/7: receipt clock label omitted and alternate provider dropped.
+```
+
+### Continue the retained MAIN/server authors; staged acceptance
+
+**Next bounded producer correction:** update the already supplied server-port contract to enforce one chain provider independently of optional quote, and bind public fallback clock kind to its actual branch. Preserve owner 21/21 and the now-closed quote namespace case; add the two failing independent negatives above. Deliver the pinned port/schema/diff/checker/receipt packet through the existing PR2 docs route; do not ask the user to reconstruct agent-owned artifacts. MAIN should record Amendment 2 or a precise counterproposal for the already documented port; this review does not retroactively authorize or undo runtime changes.
+
+**Next frontend correction in its retained owner slice:** keep the now-working Cboe/quote provenance, display quote clock kind honestly, and select a generic declared chain provider. Require all **7/7** JS controls, existing pure-view suite, and a narrow actual-browser text/render receipt from its owner before claiming visible frontend completion. No new frontend writer, chain acquisition or redesign is needed for these corrections.
+
+**Consumer step genuinely available now:** the guarded price-only quote owner can use this pinned, quote-aware server-port contract and retained capture for **offline** mapping/validation of `sources.quote` (`collector-receipt` is a receipt clock; `provider-as-of` has latency unverified). Keep failing contract negatives and missing/unknown clock withholding explicit. This does not establish live options/GEX recovery or authorize connecting the old completed-OHLCV `update(frame)` seam. Original GEX V2/adapter owner **`01a12ee8-5511-778f-8dc5-ab27f024b0de`** retains that integration; controller **`01a1067b-3df5-738c-86c7-5f20c98200dc`** retains serving/source coordination.
+
+The response now explicitly identifies `https://gex.stepdad.finance/dashboard/` and its same-origin `/feed/all` + `/feed/signals` as the self-hosted path, with hosted Muse outside its asserted serving path. Static HTML links `/dashboard.js` and `/dashboard.css`; JS fetches those same-origin feeds. Its installed file/socket, public/auth routing, timers/jobs, serving content identity, unavailable hosted share and operator directions remain **owner-reported**. Neither public nor gated endpoints were checked. Do not equate this revised route/job scope with the historical feed-only order until the retained owners reconcile it; do not deploy, remove routes/jobs, inspect credentials or poll providers to close documentation gaps.
+
+No app merge, deployment, provider/financial action, credential/config/schedule change, held evaluation or repeated C07/model test. Existing historical handoff and owner packets are preserved; persistent webhook unchanged.
 
 ## 2026-10-22 — Rev3 provenance coverage VERIFIED/CLOSED for b95d/cb4f; port-specific quote entry remains
 
