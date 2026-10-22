@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: C07 VERIFIED/CLOSED at 29817f05; C06/C1-R1 remain closed. Rev2 MAIN packet 161db1ed fixes schema/status/clock findings: 6/6 manifest hashes and owner 15/15 replay match. Independent source-contract probes: 13/16, with null Nasdaq/RTD times and alternate provider-key coverage still open. Deployment-reference packet 5e550998 has matching cb4f source/seal hashes, but main binds 0.0.0.0 despite its loopback-only specification; documented --port invocation does not resolve that mismatch. Existing MAIN/server owners retain packet/spec correction and serving receipts. No deployment executed; quote mapping, live options/GEX recovery and serving-route readiness remain unverified.**
+**Current status: C07 VERIFIED/CLOSED at 29817f05, unchanged. New server receipt and bind amendment reviewed: local port source 683653f9 reproduces all 20 pipeline files; exported bind is 127.0.0.1:8788, resolving the old static bind mechanism. Actual port changes exceed Amendment 1's two-diff rule and reported routes/jobs differ from the retained order. New offline port output fails rev2 schema (Cboe provider / null Nasdaq clock); published Muse normalization accepts it but drops aggregate Cboe and quote-clock provenance while App attribution stays RTD+Nasdaq. Next retained-author task: pin/reconcile the port source/scope, complete its schema and preserve provenance through the Muse consumer. Installed runtime/public routes/frontend recovery remain owner-reported or unverified; no live operations in this review.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,71 @@
 
 
 
+
+## 2026-10-22 — Server receipt and bind amendment reviewed; port reproducible, Cboe/schema/renderer linkage remains open
+
+Consolidated [server-agent receipt 6353489702](https://github.com/3pacs/muse/pull/2#issuecomment-6353489702), webhook `3a25e610-ce6f-11f1-9bea-82140b548604`, with the later synchronize `e95109d0-ce6f-11f1-999a-bc593a4777e3` and exact new draft head **[`a3b0b17747d0c69d0f0d085d393f7f024ad030b2`](https://github.com/3pacs/muse/commit/a3b0b17747d0c69d0f0d085d393f7f024ad030b2)**. The new commit adds [`DEPLOY-AMENDMENT-1.md`](muse-gex-deploy-20261020/DEPLOY-AMENDMENT-1.md); it does not change the existing schema or C07 implementation. This is one review of substantive new receipt/source/spec evidence, with no second author or routine webhook acknowledgment comment.
+
+**C07 remains VERIFIED/CLOSED at 29817f05**, unchanged and not re-tested. The new server receipt describes a different cb4f-derived port, not an update of the published C07 dashboard action. Its reported live process, operator actions, active timers, public responses and authentication changes are **owner assertions**, not independently observed runtime facts in this source-only pass. No live feed, socket, service, credentials, public URL or server filesystem was contacted.
+
+### New source evidence verified from the available export
+
+The referenced `stopgap-20261022-muse/` export was found in the local gex repository at commit **`b4dfd3e7bdb306fc56949381cf5ecc7348655bac`**. Reviewed tracked export files are unchanged. Unrelated untracked work appeared during the pass and was preserved without inspection or modification; no parallel dashboard work was started here.
+
+The exported interpreter's full SHA-256 is **`683653f97dda7ce1f264a464a9958505b7fcaebf53f665c240703c407e2dc6c1`**, matching the receipt's abbreviated installed hash. The existing `build_pipeline.py` was copied into an isolated review directory and executed with **local git reads only**. At the observed immutable input refs (`origin/implementation/0dte-source-20261015` = 29817f05, `pr2` = 6e22de7), **all 20 generated pipeline files are byte-identical to the export**. Original repositories were not modified. See [export reproduction receipt](muse-selfhost-review-b4dfd3e7/export-reproduction-receipt.json). This verifies reproducible exported source; it does not hash or inspect the actual running server installation.
+
+The port adds more than path substitutions: loopback collector input URLs, a new `legacy_quote` adapter, `sources.quote`, bind/default-port changes and Python 3.10 f-string compatibility edits. Its Cboe mapper pin is **`99c8f40f257a7ea5f8bb8ef5c019b727ecc113730f9103b32892c4c392814617`**. These source identities must stay distinct from original b95d, sealed cb4f and the published dashboard pin.
+
+### Bind finding: amendment fixes the old allowance; actual port scope still needs reconciliation
+
+Amendment 1 acknowledges the original unsatisfiable bind specification and explicitly permits the bind literal change to 127.0.0.1 alongside TAPE_DB. The supplied port indeed hardcodes **127.0.0.1 with default 8788**. The earlier **static bind-mechanism finding is resolved for this exported source and amended mechanism**; an installed-process bind remains owner-reported.
+
+However, the amendment still requires **exactly those two changes and no others**, whereas the supplied/reported 683653f9 port necessarily contains the additional adapter, input URL, port-default and Python compatibility changes. The receipt also reports public feeds at **gex.stepdad.finance/feed/all|signals**, rather than the retained order's **stepdadfi.com/gex/feed/all|signals**, and enabled watch/EOD jobs where the retained feed-only order excluded them. The runtime receipt describes expanded scope; the retained MAIN/server owner must align the source/spec/route/job manifest with that actual port. This review does not infer operational authorization or execute the amendment's rollback instruction. No bind, service, timer, auth or proxy change was made here.
+
+### Relevant new offline replay
+
+Only the new quote/contract bridge and its existing published consumer were exercised. Native sockets/provider access, databases and thread startup were denied before loading the exported modules; source fetches and optional Nasdaq wings were replaced by in-memory stubs. A small retained Cboe fixture subset plus explicitly synthetic quote/clock inputs produced one source snapshot. This is a contract/provenance test, **not a current feed capture, model validation, alpha claim or held evaluation**.
+
+| Check | Verified result |
+| --- | --- |
+| RTD receipt quote mapping | PASS — `sources.quote` says rtd/realtime with **collector-receipt** clock |
+| Public fallback | PASS — public_price / **latency-unverified** / provider-as-of, never relabeled realtime |
+| No available quote | PASS — zero sentinel/no source/no timestamp, not fabricated data |
+| Delayed option-chain provenance | PASS — **cboe_delayed / ~15min**, **n_strikes_rtd_live:0**; realtime quote is not realtime option-chain evidence |
+| Exported bind / no native operations | PASS / PASS — static 127.0.0.1; zero provider/DB/service/thread operations |
+| Ported output against rev2 schema eac803a2 | **FAIL** — sources.nasdaq.as_of:null is rejected, and sources requires a literal rtd entry despite the actual **cboe_delayed** chain. Two previously open coverage gaps are now exercised by this ported source. The third RTD-null clock policy remains open in the unchanged schema. |
+
+The new port proof is **6/7** for those focused expectations. The exported source has not supplied a corrected rev3 contract. The good quote-label controls and the honest all-delayed chain are useful progress; schema compatibility is not established by a status:ok curl prose sample.
+
+**Published Muse consumer mapping:** exact source normalization at 29817f05 still accepts the generated status:ok snapshot; the schema mismatch does **not** prove the dashboard is blank. But normalization drops aggregate Cboe provider/as_of/delay and `sources.quote` source/clock, leaving only generic quoteAsOf, rtdStrikes:0 and nasdaqStrikes:0. Per-strike `src:cboe_delayed` **does survive**. The unchanged App footer still hardcodes RTD+Nasdaq attribution and has no Cboe branch. Thus a populated snapshot can render without an accurate aggregate chain/quote clock explanation. The actual hosted artifact version and render were not independently observed.
+
+This is a **new integration/provenance gap**, not a regression of C07's saved-fallback coherence. Preserve the distinction between real-time quote receipt, delayed option chain, provider acquisition/as-of, build-start and consumer receipt/evaluation clocks. Price-only quote work remains distinct from current options/GEX recovery and from completed-OHLCV update(frame).
+
+### Runnable bound evidence
+
+- [Port/source proof](muse-selfhost-review-b4dfd3e7/prove-port.py), SHA-256 **`63ce2361a3210d654fa21c845cc2ef0724c52eca9d06cb4c15504a0c5e575d3e`**; [ported-source receipt](muse-selfhost-review-b4dfd3e7/ported-source-receipt.json).
+- [Published normalizer proof](muse-selfhost-review-b4dfd3e7/prove-normalizer.mjs), SHA-256 **`8f606d3a398c4516823619d9b406d7600a958714cd83252d0878a4309d5f7554`**; [normalizer receipt](muse-selfhost-review-b4dfd3e7/normalizer-receipt.json).
+
+The port proof takes the retained gex checkout/export, not a remote service. Its generated snapshot is labeled synthetic and supplies the normalizer proof input; no model numbers are offered as recommendations. With the exported source available and the published dashboard archive separately extracted:
+
+```sh
+mkdir -p port-review-results muse-dashboard-source
+git archive 29817f052543f91bf1a978daa1f60439bd2df298 implementation | tar -x -C muse-dashboard-source
+python3 docs/muse-selfhost-review-b4dfd3e7/prove-port.py /path/to/gex-checkout docs/muse-main-producer-20261020-rev2/feed_all.schema.json port-review-results
+node docs/muse-selfhost-review-b4dfd3e7/prove-normalizer.mjs muse-dashboard-source/implementation/dashboard-streaming port-review-results/synthetic-source-snapshot.json port-review-results/normalizer-receipt.json
+# Expected exit 1 for schema coverage and aggregate-provenance mapping respectively.
+# No deployment/install/rollback script is part of this replay.
+```
+
+### Next bounded integration response — retained MAIN/server/Muse authors
+
+**Can proceed now offline against these pinned sources; no provider collection or user chore is required.** Return one reviewable immutable revision/packet for the **683653f9 port integration**, preserving the C07 closure:
+
+1. Publish/link the exact ported source/export and full input/output hashes through the established packet route. Reconcile Amendment 1's two-diff rule with the actual declared port changes, and record the current agreed serving/job scope and intended frontend/backend source linkage. Keep installed/runtime claims separate from exported-source verification; attach only retained operational evidence available from the existing server owner, without this reviewer re-running it.
+2. Complete the same schema task for actual **cboe_delayed**, optional/unknown RTD/Nasdaq clocks and the new **sources.quote** provenance. Keep chain delay/clock separate from quote receipt/provider clock. Preserve unknown timestamps; document any intentionally unsupported provider/clock policy and demonstrate honest withholding. No new RTD-chain merge, bar producer, fabricated share volume or data acquisition belongs in this slice.
+3. Have the retained Muse frontend/action author preserve those aggregate provenance fields through normalization and render the actual provider/count/delay/clock in its source explanation. Use finite Cboe-only, original RTD+Nasdaq, public-fallback and missing-clock fixtures; retain per-strike provenance, zero/null meanings, status/freshness gates and C06/C07 behavior. Return exact source/schema/UI bindings plus the narrow render/evidence receipt. This stages a focused existing-author provenance correction, not a second dashboard or a competing V2 writer.
+
+Original GEX owner `01a12ee8-5511-778f-8dc5-ab27f024b0de` keeps its V2/adapter slice; controller `01a1067b-3df5-738c-86c7-5f20c98200dc` keeps application/serving-route reconciliation. The receipt says no self-hosted Muse dashboard page is deployed; no hosted/frontend recovery is accepted here. Current options/GEX recovery remains unverified. No application merge/deploy, live provider/trading, credential/auth/schedule action or held evaluation in this review; the persistent webhook is unchanged.
 
 ## 2026-10-21 — Rev2 contract fixes verified; three provenance coverage gaps and deploy-reference bind mismatch
 

@@ -1,0 +1,120 @@
+{
+  "local_repo_commit": "b4dfd3e7bdb306fc56949381cf5ecc7348655bac",
+  "source_sha256": "683653f97dda7ce1f264a464a9958505b7fcaebf53f665c240703c407e2dc6c1",
+  "schema_sha256": "eac803a2562efb74fb1126ee8ef02c2492fce2c537ec09d3e9ada6839f3e44a0",
+  "chain_mapper_sha256": "99c8f40f257a7ea5f8bb8ef5c019b727ecc113730f9103b32892c4c392814617",
+  "fixture_sha256": "2ffeb373f78894e34d1338c9fd9fb41186977da2f9222441670ed809da26c389",
+  "generated_fixture_snapshot_sha256": "9222c85f4cec9e9debbc86d7af80bca01b30e3f1584e0bfd9c95a0f1112335e6",
+  "helper_sha256": "63ce2361a3210d654fa21c845cc2ef0724c52eca9d06cb4c15504a0c5e575d3e",
+  "mode": "Read-only supplied export; native sockets/provider/DB/thread operations denied; new quote adapter controls and one fixture-based snapshot build with two source strikes. Model values are not validation or recommendations. No old C07 suite re-run.",
+  "native_provider_calls": 0,
+  "runtime_or_route_verification": "UNRUN; prose server receipt remains owner assertion",
+  "passed": 6,
+  "total": 7,
+  "checks": [
+    {
+      "name": "rtd-quote-collector-receipt-label",
+      "pass": true,
+      "actual": {
+        "source": "rtd",
+        "clock": "collector-receipt",
+        "delay": "realtime"
+      }
+    },
+    {
+      "name": "public-fallback-never-realtime",
+      "pass": true,
+      "actual": {
+        "source": "public_price",
+        "clock": "provider-as-of",
+        "delay": "latency-unverified"
+      }
+    },
+    {
+      "name": "no-available-quote-stays-unavailable",
+      "pass": true,
+      "actual": {
+        "quote": {
+          "price": 0,
+          "as_of": null
+        },
+        "provenance": {
+          "source": null,
+          "delay": null,
+          "as_of": null
+        }
+      }
+    },
+    {
+      "name": "delayed-chain-not-realtime",
+      "pass": true,
+      "actual": {
+        "provider": "cboe_delayed",
+        "delay": "~15min",
+        "rtd_strikes": 0,
+        "nasdaq_strikes": 0,
+        "quote_clock": "collector-receipt"
+      }
+    },
+    {
+      "name": "ported-output-admitted-by-current-rev2-schema",
+      "pass": false,
+      "actual": {
+        "ok_variant_errors": [
+          {
+            "path": [
+              "sources",
+              "nasdaq",
+              "as_of"
+            ],
+            "message": "None is not of type 'string'"
+          },
+          {
+            "path": [
+              "sources"
+            ],
+            "message": "'rtd' is a required property"
+          }
+        ],
+        "sources": {
+          "cboe_delayed": {
+            "as_of": "2026-10-22T22:59:59+00:00",
+            "delay": "~15min",
+            "n_strikes": 2
+          },
+          "quote": {
+            "source": "rtd",
+            "delay": "realtime",
+            "as_of": "2026-10-22T23:00:01+00:00",
+            "clock": "collector-receipt"
+          },
+          "nasdaq": {
+            "as_of": null,
+            "delay": "~15min",
+            "n_strikes": 0,
+            "stale": false
+          }
+        },
+        "qualification": "Generated from controlled in-memory quote plus small retained Cboe fixture subset; not a live/captured feed response."
+      }
+    },
+    {
+      "name": "ported-source-loopback-bind",
+      "pass": true,
+      "actual": {
+        "host": "127.0.0.1",
+        "qualification": "Static exported source only; actual installed process/socket not observed."
+      }
+    },
+    {
+      "name": "no-native-operations",
+      "pass": true,
+      "actual": {
+        "blocked_attempts": 0,
+        "in_memory_feed_calls": 2,
+        "native_provider_calls": 0,
+        "database_or_service_operations": 0
+      }
+    }
+  ]
+}
