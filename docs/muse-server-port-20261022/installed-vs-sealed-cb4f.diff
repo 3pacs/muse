@@ -1,0 +1,104 @@
+--- sealed cb4f0ef2 interpreter.py
++++ installed 683653f9 interpreter.py
+@@ -32,8 +32,8 @@
+ 
+ # ---------------------------------------------------------------- config
+ 
+-STATE_URL = "http://gex.stepdad.finance/api/state"
+-CONTRACTS_URL = "http://gex.stepdad.finance/api/contracts"
++STATE_URL = "http://127.0.0.1:8769/api/state"
++CONTRACTS_URL = "http://127.0.0.1:8769/api/contracts"
+ 
+ RISK_FREE = 0.043      # ~ current T-bill; documented assumption
+ DIV_YIELD = 0.013      # SPY trailing div yield; documented assumption
+@@ -45,8 +45,7 @@
+ SNAPSHOT = {"status": "starting", "updated_at": None}
+ LOCK = threading.Lock()
+ 
+-TAPE_DB = ("/home/hatch/workspace/goals/0dte-tape-alert-watch/"
+-           "hidden_files/tape.db")
++TAPE_DB = "/data/agent-home/anikdang/muse-0dte-data/tape.db"
+ EXTREME_TYPES = ("rsi_extreme", "vwap_stretch", "vol_ignition",
+                  "vix_spike", "vix_rollover", "vix_divergence",
+                  "vix_term_stress", "yield_spike", "yield_rollover")
+@@ -168,11 +167,11 @@
+         if flip_gap < 0 and gex < 0:
+             parts.append(f"Dealers are positioned so drops get sold harder "
+                          f"(negative gamma): price is ${abs(flip_gap):.2f} below "
+-                         f"the flip point ({flip:.0f}), net GEX {"-" if gex < 0 else ""}${abs(gex):,.0f}M.")
++                         f"the flip point ({flip:.0f}), net GEX {'-' if gex < 0 else ''}${abs(gex):,.0f}M.")
+         elif flip_gap > 0 and gex > 0:
+             parts.append(f"Dealers are positioned to cushion moves "
+                          f"(positive gamma): price is ${flip_gap:.2f} above "
+-                         f"the flip point ({flip:.0f}), net GEX {"-" if gex < 0 else ""}${abs(gex):,.0f}M.")
++                         f"the flip point ({flip:.0f}), net GEX {'-' if gex < 0 else ''}${abs(gex):,.0f}M.")
+     if iv_trend == "rising":
+         parts.append(f"Volatility rose from {iv_first * 100:.1f}% to "
+                      f"{iv_last * 100:.1f}% — stress still building, not fading.")
+@@ -641,12 +640,39 @@
+ 
+ # ---------------------------------------------------------------- interpret
+ 
++def legacy_quote(state):
++    """Server port (2026-10-22): map the collector's state to the legacy {price, as_of} quote.
++
++    Legacy `quote` first (old server), else the gex-screen/2 frame: the live RTD receipt when present, else the
++    public price context. The second return value is recorded under sources.quote so the snapshot says which clock
++    it used; a public fallback is never labelled realtime.
++    """
++    q = state.get("quote")
++    if isinstance(q, dict) and q.get("price"):
++        return {"price": q.get("price"), "as_of": q.get("as_of")}, {"source": "rtd", "delay": "realtime", "as_of": q.get("as_of")}
++
++    def iso(t):
++        try:
++            return datetime.fromtimestamp(float(t), timezone.utc).isoformat()
++        except (TypeError, ValueError, OverflowError, OSError):
++            return None
++    bq = state.get("brokerage_quote") or {}
++    if bq.get("status") == "receipt-only" and bq.get("price"):
++        t = iso(bq.get("callback_received_at"))
++        return {"price": bq["price"], "as_of": t}, {"source": "rtd", "delay": "realtime", "as_of": t, "clock": "collector-receipt"}
++    pp = state.get("public_price") or {}
++    if pp.get("values_available") and pp.get("price"):
++        t = iso(pp.get("source_time"))
++        return {"price": pp["price"], "as_of": t}, {"source": "public_price", "delay": "latency-unverified", "as_of": t, "clock": "provider-as-of"}
++    return {"price": 0, "as_of": None}, {"source": None, "delay": None, "as_of": None}
++
++
+ def build_snapshot():
+     now = datetime.now(timezone.utc)
+     state = fetch_json(STATE_URL)
+     contracts = fetch_json(CONTRACTS_URL)
+ 
+-    quote = state.get("quote", {}) or {}
++    quote, quote_src = legacy_quote(state)  # server port: gex-screen/2 or legacy state
+     spot = float(quote.get("price") or 0)
+     quote_as_of = quote.get("as_of")
+ 
+@@ -785,6 +811,7 @@
+         # R7: keyed by the chain's own provider; a delayed chain is never
+         # presented as realtime, and its age is its own, not the quote's.
+         chain_provider: chain_src,
++        "quote": quote_src,
+         "nasdaq": {"as_of": nq_prov["as_of"], "delay": nq_prov["delay"],
+                    "n_strikes": n_nasdaq, "stale": nq_prov["stale"]},
+     }
+@@ -1186,7 +1213,7 @@
+ 
+ def main():
+     ap = argparse.ArgumentParser()
+-    ap.add_argument("--port", type=int, default=8787)
++    ap.add_argument("--port", type=int, default=8788)
+     ap.add_argument("--poll", type=int, default=30, help="poll interval seconds")
+     args = ap.parse_args()
+ 
+@@ -1199,7 +1226,7 @@
+                 break
+         time.sleep(1)
+ 
+-    srv = ThreadingHTTPServer(("0.0.0.0", args.port), Handler)
++    srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+     print(f"0dte interpreter on :{args.port} (poll {args.poll}s)", flush=True)
+     srv.serve_forever()
+ 

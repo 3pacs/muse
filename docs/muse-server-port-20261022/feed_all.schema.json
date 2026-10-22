@@ -1,0 +1,151 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "0DTE interpreter — GET /feed/all envelope contract (rev3: provider-keyed chain, unknown clocks, quote provenance)",
+ "description": "Supersedes rev2 (eac803a2) for the server-ported interpreter (cb4f-derived, installed 683653f97dda7ce1…). Changes vs rev2, each answering a reviewed coverage gap: (1) `sources` carries EXACTLY ONE chain-provider entry whose KEY is the chain's own declared provider (`rtd`, `cboe_delayed`, or another vendor key), plus `nasdaq` (wings) and the new `quote` provenance; the literal key `rtd` is no longer required. (2) Every source clock (`as_of`) is string|null: null means UNKNOWN and is never inferred, substituted or relabelled; consumers must show unknown as unknown. (3) `sources.quote` states which quote fed `spot` (`rtd` live receipt, `public_price` fallback, or null when none) with its own delay label and clock kind; a public fallback is never labelled realtime; `delay` is descriptive text, not a measured age. Unchanged from rev2: status discrimination (ok/error/quarantined/starting), CONSUMER GATE interpret only when status == 'ok', `updated_at` is build-start time, `n_strikes_rtd_live` counts strikes whose row provider is literally `rtd` (0 for an all-delayed chain), top level + gamma block binding, flow/vanna_charm/iv/positioning descriptive objects. A realtime QUOTE is not realtime OPTION-CHAIN evidence: the chain's age is its own entry's clock and delay.",
+ "oneOf": [
+  { "$ref": "#/$defs/ok" },
+  { "$ref": "#/$defs/error" },
+  { "$ref": "#/$defs/quarantined" },
+  { "$ref": "#/$defs/starting" }
+ ],
+ "$defs": {
+  "clock": {
+   "description": "ISO-8601 timestamp with explicit zone, or null = unknown (never inferred).",
+   "type": ["string", "null"],
+   "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:?\\d{2})$"
+  },
+  "chain_source": {
+   "type": "object",
+   "properties": {
+    "as_of": { "$ref": "#/$defs/clock" },
+    "delay": { "type": "string", "description": "Descriptive delay label from the provider branch: 'realtime', '~15min', 'unknown'. Not a measured age." },
+    "n_strikes": { "type": "integer", "minimum": 0 },
+    "stale": { "type": "boolean" },
+    "time_note": { "type": "string" }
+   },
+   "required": ["as_of", "delay", "n_strikes"],
+   "additionalProperties": false
+  },
+  "quote_source": {
+   "type": "object",
+   "description": "Which quote fed `spot` this build. source null => no quote available (spot 0 would then be an error variant, not ok).",
+   "properties": {
+    "source": { "enum": ["rtd", "public_price", null] },
+    "delay": { "enum": ["realtime", "latency-unverified", null] },
+    "as_of": { "$ref": "#/$defs/clock" },
+    "clock": { "enum": ["collector-receipt", "provider-as-of"] }
+   },
+   "required": ["source", "delay", "as_of"],
+   "additionalProperties": false,
+   "allOf": [
+    { "if": { "properties": { "source": { "const": "public_price" } }, "required": ["source"] }, "then": { "properties": { "delay": { "const": "latency-unverified" } } } },
+    { "if": { "properties": { "source": { "const": "rtd" } }, "required": ["source"] }, "then": { "properties": { "delay": { "const": "realtime" } } } },
+    { "if": { "properties": { "source": { "const": null } }, "required": ["source"] }, "then": { "properties": { "delay": { "const": null }, "as_of": { "const": null } } } }
+   ]
+  },
+  "sources": {
+   "type": "object",
+   "description": "Exactly one chain-provider key (any lowercase identifier other than nasdaq/quote) + nasdaq + optional quote.",
+   "properties": {
+    "nasdaq": { "$ref": "#/$defs/chain_source" },
+    "quote": { "$ref": "#/$defs/quote_source" }
+   },
+   "required": ["nasdaq"],
+   "additionalProperties": { "$ref": "#/$defs/chain_source" },
+   "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
+   "minProperties": 2,
+   "maxProperties": 3,
+   "not": { "description": "nasdaq + quote alone (no chain provider) is not an ok snapshot", "required": ["nasdaq", "quote"], "maxProperties": 2 }
+  },
+  "strike_row": {
+   "type": "object",
+   "properties": {
+    "strike": { "type": "number" },
+    "src": { "type": "string", "description": "Per-row provider: literally the chain provider key, or 'nasdaq_delayed' for wings." },
+    "greeks": { "type": "string" },
+    "net_gex_m": { "type": ["number", "null"], "description": "null = unavailable (never a fabricated zero); 0 = reported zero." },
+    "call_gex_m": { "type": ["number", "null"] },
+    "put_gex_m": { "type": ["number", "null"] }
+   },
+   "required": ["strike", "net_gex_m"]
+  },
+  "ok": {
+   "type": "object",
+   "properties": {
+    "status": { "const": "ok" },
+    "updated_at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:?\\d{2})$" },
+    "market_open": { "type": "boolean" },
+    "quote_as_of": { "$ref": "#/$defs/clock" },
+    "spot": { "type": "number", "exclusiveMinimum": 0 },
+    "expiry": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "n_strikes": { "type": "integer", "minimum": 0 },
+    "n_strikes_rtd_live": { "type": "integer", "minimum": 0 },
+    "n_strikes_nasdaq_delayed": { "type": "integer", "minimum": 0 },
+    "sources": { "$ref": "#/$defs/sources" },
+    "gamma": {
+     "type": "object",
+     "properties": {
+      "spot": { "type": "number" },
+      "expiry": { "type": "string" },
+      "gex_formula": { "type": "string" },
+      "gex_units": { "type": "string" },
+      "net_gex_m": { "type": "number" },
+      "gamma_flip": { "type": ["number", "null"] },
+      "gamma_flip_method": { "type": "string" },
+      "gamma_flip_roots": { "type": "array" },
+      "gamma_flip_residuals": { "type": "array" },
+      "gamma_flip_scale": { "type": "number" },
+      "gamma_flip_underflow_samples": { "type": "integer" },
+      "speed_m_per_pt2": { "type": ["number", "null"] },
+      "speed_wide_m_per_pt2": { "type": ["number", "null"] },
+      "speed_note": { "type": "string" },
+      "gamma_flip_note": { "type": ["string", "null"] },
+      "call_wall": { "type": ["number", "null"] },
+      "put_wall": { "type": ["number", "null"] },
+      "regime": { "type": "string" },
+      "by_strike": { "type": "array", "items": { "$ref": "#/$defs/strike_row" } },
+      "top_strikes": { "type": "array", "items": { "$ref": "#/$defs/strike_row" } },
+      "max_pain": { "type": ["number", "null"] }
+     },
+     "required": ["spot", "expiry", "net_gex_m", "gamma_flip", "call_wall", "put_wall", "regime", "by_strike", "top_strikes", "max_pain"]
+    },
+    "flow": { "type": "object" },
+    "vanna_charm": { "type": "object" },
+    "iv": { "type": "object" },
+    "positioning": { "type": "object" }
+   },
+   "required": ["status", "updated_at", "market_open", "quote_as_of", "spot", "expiry", "n_strikes", "n_strikes_rtd_live", "n_strikes_nasdaq_delayed", "sources", "gamma", "flow", "vanna_charm", "iv", "positioning"]
+  },
+  "error": {
+   "type": "object",
+   "properties": {
+    "status": { "const": "error" },
+    "error": { "type": "string" },
+    "updated_at": { "type": "string" },
+    "market_open": { "type": "boolean" },
+    "spot": { "type": "number" },
+    "expiry": { "type": "string" }
+   },
+   "required": ["status", "error", "updated_at"]
+  },
+  "quarantined": {
+   "type": "object",
+   "properties": {
+    "status": { "const": "quarantined" },
+    "quarantine_reason": { "type": "string" },
+    "updated_at": { "type": "string" },
+    "market_open": { "const": false },
+    "quote_as_of": { "type": "string" }
+   },
+   "required": ["status", "quarantine_reason", "updated_at", "market_open", "quote_as_of"]
+  },
+  "starting": {
+   "type": "object",
+   "properties": {
+    "status": { "const": "starting" },
+    "updated_at": { "type": "null" }
+   },
+   "required": ["status", "updated_at"]
+  }
+ }
+}

@@ -1,0 +1,173 @@
+{
+ "schema": "feed_all.schema.json",
+ "schema_sha256": "43ede0de4c5cdee398e6bced05a170797903507baed64a7670afa614b0ce8b21",
+ "captured_snapshot_sha256": "f33765ac82e290de0b10743eaba124e7e2672c0c53005cd92c6e90e7d6a40fec",
+ "helper_sha256": "f82b28da90195409006665cc85e4dc5bdcae44b2676d7279bc95e120d84ea11e",
+ "mode": "offline; sockets denied; captured real ok snapshot + labelled synthetic variants; no producer import, no provider, no DB",
+ "passed": 21,
+ "total": 21,
+ "checks": [
+  {
+   "name": "meta-schema-valid",
+   "pass": true,
+   "detail": null
+  },
+  {
+   "name": "captured-real-ok-snapshot-admitted",
+   "pass": true,
+   "detail": {
+    "sources_keys": [
+     "cboe_delayed",
+     "nasdaq",
+     "quote"
+    ],
+    "errors": []
+   }
+  },
+  {
+   "name": "gap1-nasdaq-as_of-null-admitted",
+   "pass": true,
+   "detail": []
+  },
+  {
+   "name": "gap2-rtd-as_of-null-no-quote-block-admitted",
+   "pass": true,
+   "detail": []
+  },
+  {
+   "name": "gap3-alternate-provider-key-admitted",
+   "pass": true,
+   "detail": []
+  },
+  {
+   "name": "public-fallback-quote-admitted",
+   "pass": true,
+   "detail": []
+  },
+  {
+   "name": "no-quote-provenance-shape-admitted",
+   "pass": true,
+   "detail": []
+  },
+  {
+   "name": "variant-error-sparse-admitted",
+   "pass": true,
+   "detail": null
+  },
+  {
+   "name": "variant-error-no-quote-admitted",
+   "pass": true,
+   "detail": null
+  },
+  {
+   "name": "variant-quarantined-admitted",
+   "pass": true,
+   "detail": null
+  },
+  {
+   "name": "variant-starting-admitted",
+   "pass": true,
+   "detail": null
+  },
+  {
+   "name": "reject-unknown-status",
+   "pass": true,
+   "detail": [
+    {
+     "path": "status",
+     "message": "'ok' was expected"
+    }
+   ]
+  },
+  {
+   "name": "reject-missing-nasdaq",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources",
+     "message": "'nasdaq' is a required property"
+    }
+   ]
+  },
+  {
+   "name": "reject-no-chain-provider",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources",
+     "message": "{'quote': {'source': 'rtd', 'delay': 'realtime', 'as_of': '2026-10-22T23:28:19.585122+00:00', 'clock': 'collector-receipt'}, 'nasdaq': {'as_of': '2026-10-22T23:"
+    }
+   ]
+  },
+  {
+   "name": "reject-numeric-clock",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources/cboe_delayed/as_of",
+     "message": "1792700000 is not of type 'string', 'null'"
+    }
+   ]
+  },
+  {
+   "name": "reject-timezone-less-clock",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources/cboe_delayed/as_of",
+     "message": "'2026-10-22T23:28:01' does not match '^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}(:\\\\d{2}(\\\\.\\\\d+)?)?(Z|[+-]\\\\d{2}:?\\\\d{2})$'"
+    }
+   ]
+  },
+  {
+   "name": "reject-public-quote-labelled-realtime",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources/quote/delay",
+     "message": "'latency-unverified' was expected"
+    }
+   ]
+  },
+  {
+   "name": "reject-two-chain-providers",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources",
+     "message": "{'cboe_delayed': {'as_of': '2026-10-22T23:28:01+00:00', 'delay': '~15min', 'n_strikes': 146}, 'quote': {'source': 'rtd', 'delay': 'realtime', 'as_of': '2026-10-"
+    }
+   ]
+  },
+  {
+   "name": "reject-extra-key-in-chain-entry",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources/cboe_delayed",
+     "message": "Additional properties are not allowed ('fresh' was unexpected)"
+    }
+   ]
+  },
+  {
+   "name": "reject-spot-zero-in-ok",
+   "pass": true,
+   "detail": [
+    {
+     "path": "spot",
+     "message": "0 is less than or equal to the minimum of 0"
+    }
+   ]
+  },
+  {
+   "name": "reject-fabricated-string-net-gex",
+   "pass": true,
+   "detail": [
+    {
+     "path": "gamma/by_strike/0/net_gex_m",
+     "message": "'0' is not of type 'number', 'null'"
+    }
+   ]
+  }
+ ]
+}
