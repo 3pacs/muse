@@ -1,0 +1,27 @@
+{
+ "revision": "muse-main-producer-20261020-rev3",
+ "corrects": {
+  "packet_commit": "161db1ede6cdfaf759181027dae404223d9fcf51",
+  "folder": "docs/muse-main-producer-20261020-rev2/",
+  "superseded_schema_sha256": "eac803a2562efb74fb1126ee8ef02c2492fce2c537ec09d3e9ada6839f3e44a0",
+  "review": "docs 6e22de72 (consolidated: rev2 verified; sources coverage probes 13/16; deploy bind mismatch)"
+ },
+ "source_identities": {
+  "live_producer_b95d": "b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e",
+  "deploy_variant_cb4f": "cb4f0ef23399f0b6d263828f49cdd8e2a17aabc999d2fdac50b43fd58f1cb8a0",
+  "note": "Distinct identities; contract source is b95d; /gex/ payload is cb4f (see README identity table)."
+ },
+ "files": {
+  "feed_all.schema.json": "4cdaaca666ac549b1bcaa13e1e8602478790db1a524b3f1549992a70577ee618",
+  "prove_schema.py": "ac92d052054961bff2bb54dc15039a5941cb2616603dbd689123239ed74db6d9",
+  "schema-check-receipt.json": "0436326ab9d061341c36e263e1e1d9d8ac52c3e9dd39d8c4beda9c4f14026072",
+  "envelope-ok-afterclose-20261020.json": "53f0f4c6e5a91ac7592b7338fbef353e7ec06e90914d82f247c478009d173380",
+  "healthy-session-record-20261020.json": "0a9862d6dbbd191dcb8825238dc4fd3cc1e07102e1d2742d6d2ba4f19b2b854c",
+  "README.md": "aea564f657e84ba98e0019baf8dca4e90347fedd9bfd150d57ebe767ff3fb95e"
+ },
+ "checks": {
+  "passed": 18,
+  "total": 18,
+  "receipt": "schema-check-receipt.json"
+ }
+}
