@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: C07 VERIFIED/CLOSED at 29817f05, unchanged. New server receipt and bind amendment reviewed: local port source 683653f9 reproduces all 20 pipeline files; exported bind is 127.0.0.1:8788, resolving the old static bind mechanism. Actual port changes exceed Amendment 1's two-diff rule and reported routes/jobs differ from the retained order. New offline port output fails rev2 schema (Cboe provider / null Nasdaq clock); published Muse normalization accepts it but drops aggregate Cboe and quote-clock provenance while App attribution stays RTD+Nasdaq. Next retained-author task: pin/reconcile the port source/scope, complete its schema and preserve provenance through the Muse consumer. Installed runtime/public routes/frontend recovery remain owner-reported or unverified; no live operations in this review.**
+**Current status: C07 remains VERIFIED/CLOSED at 29817f05. Rev3 b6400f11 closes the three original b95d/cb4f provenance-schema gaps: manifest 6/6, owner 18/18 reproduced, prior independent 16/16 pass. Actual port 683653f9 still needs its own quote provenance schema: sources.quote is misclassified as a chain entry and rejected for missing n_strikes (independent 16/17 overall). Continue the existing port/schema/renderer task from 0d66a453; aggregate Cboe/quote-clock normalization/footer loss and source/scope/runtime linkage remain open. No deployment/provider operations or new C07 run.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -11,6 +11,49 @@
 
 
 
+
+## 2026-10-22 — Rev3 provenance coverage VERIFIED/CLOSED for b95d/cb4f; port-specific quote entry remains
+
+Reviewed substantive rev3 head **[`b6400f11d3011a9ece580850bf512ede172b4a15`](https://github.com/3pacs/muse/commit/b6400f11d3011a9ece580850bf512ede172b4a15)** and [delivery 6353733992](https://github.com/3pacs/muse/pull/2#issuecomment-6353733992). Synchronize `ae683fd0-ce71-11f1-869a-c635607ff1e0` and later issue-comment `b5fdc710-ce71-11f1-85d0-d0e471849c3b` refer to this same packet/response and were handled in one review. This is not our 0d66a453 handoff push; no duplicate review or webhook-acknowledgment comment was created.
+
+**The three original source-to-schema findings are VERIFIED/CLOSED for the declared b95d/cb4f contract.** Rev3 schema SHA-256 **`4cdaaca666ac549b1bcaa13e1e8602478790db1a524b3f1549992a70577ee618`** passes its declared meta-schema. **6/6** manifest file hashes match; both retained captures remain byte-identical. The owner checker was independently run in an isolated copy: **18/18**, regenerated receipt identical to the supplied JSON. The reviewer’s **16/16 prior checks** also pass against rev3, including exact-source provenance expressions for null Nasdaq time, null RTD/chain time and an alternate delayed provider key. No new numerical model, port snapshot or C07 run was needed.
+
+| Previously open case | Rev3 verified behavior |
+| --- | --- |
+| Nasdaq cache clock null / no wings | Admitted with null clock preserved; no timestamp guessed |
+| RTD/chain clock null | Admitted consistently with nullable top-level quote time |
+| Alternate provider key | Admitted using its own declared delay/provenance; no RTD reassignment |
+
+Rev3's explicit unknown-clock and delayed-provider policies are accepted at the contract/documentation level: unknown source age stays unavailable, source clocks are not replaced by receipt/build time, and a delayed option chain is not realtime because its quote is realtime. This closes the requested original coverage correction, **not** adoption of the separately ported interpreter or a current runtime/market claim. The packet's b95d and cb4f identity references remain distinct. **C07 stays closed at 29817f05** and unchanged.
+
+### Remaining actual-port boundary: sources.quote is not an option-chain entry
+
+The 683653f9 port reviewed at 0d66a453 adds a distinct `sources.quote` object:
+
+```json
+{"source":"rtd","delay":"realtime","as_of":"2026-10-20T21:28:59+00:00","clock":"collector-receipt"}
+```
+
+Rev3 defines every source key except nasdaq through `additionalProperties -> chain_entry`, which **requires n_strikes**. It therefore rejects this quote object at **`/sources/quote`**, with **“n_strikes is a required property.”** This is a distinct quote-versus-chain namespace case, beyond the now-closed original three findings. The new independent proof passes **16/17** overall: all 16 original checks, with only that port namespace probe open.
+
+The previously generated two-strike port fixture (SHA-256 `9222c85f4cec9e9debbc86d7af80bca01b30e3f1584e0bfd9c95a0f1112335e6`) was checked against the new schema **without regenerating its model/source output** and fails for the same single quote-entry requirement. The earlier literal-rtd and null-Nasdaq errors no longer occur. This is useful progress and a narrower next correction; no unavailable data or new provider request is needed.
+
+Proof: [`prove-rev3.py`](muse-main-review-b6400f11/prove-rev3.py), SHA-256 **`2feca4851a7c20c432d31109e3a9ddfc76ea7038f5a9ee7b53992f699bd0972c`**. Bound results: [`independent-receipt.json`](muse-main-review-b6400f11/independent-receipt.json). The proof asserts exact b95d source and rev3 schema hashes, uses selected source/error/provenance expressions with in-memory stubs, and performs the quote namespace check as an explicitly synthetic schema-only probe. No producer module/server, real DB, background task or provider is started. Native provider calls 0.
+
+```sh
+mkdir -p main-rev3-source main-rev3-results
+git archive b6400f11d3011a9ece580850bf512ede172b4a15 docs/muse-main-producer-20261020 docs/muse-main-producer-20261020-rev2 docs/muse-main-producer-20261020-rev3 | tar -x -C main-rev3-source
+python3 docs/muse-main-review-b6400f11/prove-rev3.py main-rev3-source main-rev3-results/independent-receipt.json
+# Expected exit 1: 16/17, with only the port-specific sources.quote namespace case open.
+```
+
+### Continue the existing port-integration task; do not re-fix the closed findings
+
+Retained MAIN/server author should add an **explicit source-backed quote provenance schema** alongside dynamic option-chain entries for the 683653f9 port: source, delay, as_of and clock/absence semantics from `legacy_quote`, **without inventing an option strike count for a quote**. Preserve all 18 passing original checks, all three now-closed source coverage probes, raw capture bytes and non-ok/unknown-clock withholding. Add RTD collector-receipt, public-price latency-unverified and absent/unknown quote-clock controls plus the existing generated port fixture, and bind the actual port's full source identity in the manifest.
+
+The already verified 0d66a453 **Muse normalization/footer provenance loss remains open**, with no new consumer/action/UI source supplied by this packet. The same retained-author slice must carry aggregate Cboe delay/count/as_of and quote source/clock through the action and honest source explanation. Existing source/scope reconciliation, Amendment 1 versus the broader actual port, and runtime/frontend receipts also remain pending from the prior handoff; this packet does not resolve them. The new comment's “no deployment executed” wording does not override the earlier server receipt; live state remains owner-reported and was not independently checked here.
+
+Original GEX owner `01a12ee8-5511-778f-8dc5-ab27f024b0de` retains V2/adapter work; controller `01a1067b-3df5-738c-86c7-5f20c98200dc` retains serving/source reconciliation. Guarded quote observation is distinct from completed-OHLCV update(frame). No competing author, deployment, provider/financial action, credential/config/schedule change or held evaluation. Existing draft workflow and persistent webhook remain unchanged.
 
 ## 2026-10-22 — Server receipt and bind amendment reviewed; port reproducible, Cboe/schema/renderer linkage remains open
 
