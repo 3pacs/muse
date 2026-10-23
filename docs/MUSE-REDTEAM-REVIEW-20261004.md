@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: C07 remains VERIFIED/CLOSED at 29817f05; original MAIN rev3 b6400f11 coverage gaps stay closed. New server-port reply 6353866562 / local export bb1763ff closes the sources.quote namespace gap: owner 21/21 reproduced and seven-hunk cb4f-to-683653f9 diff exact. Self-hosted JS retains aggregate Cboe provenance. Independent contract 8/10: quote-absent two-chain case and false public collector-clock label admitted. JS text controls 5/7: receipt clock kind omitted; synthetic alternate provider dropped. Retained MAIN/server authors should correct those bounded seams and publish pinned packet/Amendment 2; runtime/frontend identity remains owner-reported. No deployment/provider operation or new C07/model run.**
+**Current status: Server-port e407fbde rev3b source corrections VERIFIED/CLOSED: manifest9/9, owner schema28/28 reproduced byte-exact, independent contract10/10 and frontend normalization/text12/12. All four d60eeb7e findings fixed in uploaded schema5a93b50a/JS4f98536f. C07 remains CLOSED29817f05; original MAIN rev3 coverage stays closed. Retained MAIN action is Amendment2/source-scope disposition; corrected self-hosted JS deployment/serving identity remains pending and unverified. No runtime/provider operation or new C07/model run.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -12,6 +12,51 @@
 
 
 
+
+
+## 2026-10-23 — Server-port rev3b source corrections VERIFIED/CLOSED at e407fbde
+
+Reviewed [response 6354032137](https://github.com/3pacs/muse/pull/2#issuecomment-6354032137), delivery `d9258900-ce74-11f1-98c7-597269a9fd30`, against the prior **d60eeb7e** handoff. The substantive packet is now uploaded on `docs/muse-server-port-20261022` at immutable **[`e407fbde8cbb51147e5104863e9dd80a44ead747`](https://github.com/3pacs/muse/tree/e407fbde8cbb51147e5104863e9dd80a44ead747/docs/muse-server-port-20261022)**. It is a separate owner packet, reviewed through this single existing draft PR2 workflow; no second review/implementation owner or competing application branch was created.
+
+**All four bounded d60eeb7e findings are VERIFIED/CLOSED at the source/contract/text-render level.** Manifest **9/9** hashes match. Owner schema suite **28/28** reproduced offline with a byte-identical regenerated receipt. The prior independent contract controls improve **8/10 → 10/10**. The prior seven frontend controls all pass, and five focused provenance/fail-closed additions also pass: **12/12** total. The owner's extended pure-view test also passes on the matching local Git source archive. No C07, original MAIN schema or numerical producer/model test was rerun.
+
+| d60eeb7e finding | Exact corrected input | Independently verified acceptance |
+| --- | --- | --- |
+| Two chain providers admitted without quote | Schema SHA-256 `5a93b50ad13c34d3c9edd922df31e119ae37ae40f773fe15f4479cb92466092d` | Rejects two chain entries both with/without quote; keeps one-chain and optional-quote controls |
+| Public fallback admits false collector clock kind | Same schema | Rejects public `collector-receipt`; preserves `provider-as-of`, null time, legacy RTD clock omission, status/unknown-clock controls; owner additionally tests missing public clock, false RTD provider clock and null-source clock |
+| Quote receipt clock explanation omitted | Uploaded JS SHA-256 `4f98536fe82b6ffa350da06741f29124e9fb5259bf277c97741767a69423f65f` | Actual in-memory hero/footer text states `collector receipt` or `provider as-of (latency unverified)`; legacy omission stays `clock kind not stated`; null quote time is not converted to epoch |
+| Alternate declared chain loses aggregate provenance | Same uploaded JS | `vendor_delayed` name/delay/count/time survives normalization and footer; two/no chain entries return null, never reassigned to RTD; original Cboe controls remain passing |
+
+The server owner's correction note and uploaded code are consistent with these finite cases. Quote metadata and option-chain metadata stay distinct: a realtime quote does not turn delayed Cboe options into realtime options. The schema's `sources.quote` namespace correction and MAIN rev3 **b6400f11** original coverage closure stay closed. **C07 stays CLOSED at `29817f052543f91bf1a978daa1f60439bd2df298`**.
+
+### Independent evidence and reproduction
+
+Packet checker SHA-256 **`4dde4840d419f58f703ef01caddbafaa66803b55f30c12328e5c2e318789a910`**; supplied/reproduced 28/28 receipt **`3a5e70207e692e6466ed2082ed6cde09fb19e6c1af04b353c21adf85c10b4300`**. Retained capture input remains **`f33765ac82e290de0b10743eaba124e7e2672c0c53005cd92c6e90e7d6a40fec`**; reused historical bytes, not a reviewer market/provider acquisition. The matching local owner test archive is commit **`5c861f477aa4a7a0b1cb74d3af73885bb6a348ac`**. Uploaded JS is byte-identical to that archive's tested page source. The extended owner test itself is retained locally; it is not falsely represented as a file delivered in the remote packet.
+
+The packet's full port diff remains **`662c5022fa6cc7e9795725df9866c40a8c8f92643ccea057d5a07444b569ed0b`**, identical to the seven hunks previously reproduced from sealed cb4f to port **`683653f97dda7ce1f264a464a9958505b7fcaebf53f665c240703c407e2dc6c1`**. Builder and Cboe mapper hashes also match their prior reviewed exports. The formerly missing remote packet delivery is now complete for the files listed in its 9-entry manifest.
+
+New runnable review proofs: [`prove-contract.py`](muse-server-port-review-e407fbde/prove-contract.py) and [`prove-render.mjs`](muse-server-port-review-e407fbde/prove-render.mjs). Bound results: [`independent-contract.json`](muse-server-port-review-e407fbde/independent-contract.json), [`independent-render.json`](muse-server-port-review-e407fbde/independent-render.json), [`artifact-receipt.json`](muse-server-port-review-e407fbde/artifact-receipt.json).
+
+```sh
+mkdir -p server-port-source server-port-results
+git archive e407fbde8cbb51147e5104863e9dd80a44ead747 docs/muse-server-port-20261022 | tar -x -C server-port-source
+# CAPTURE is the already retained input with SHA-256 f33765ac...; do not fetch providers.
+python3 docs/muse-server-port-review-e407fbde/prove-contract.py server-port-source/docs/muse-server-port-20261022 "$CAPTURE" server-port-results
+node docs/muse-server-port-review-e407fbde/prove-render.mjs server-port-source/docs/muse-server-port-20261022 "$CAPTURE" server-port-results
+# Expected exit 0: contract 10/10; normalization/text rendering 12/12.
+```
+
+Schema controls use retained bytes and labelled synthetic mutations only. Frontend controls execute exact uploaded source in a fake DOM with in-memory fetch responses; they establish text/normalization behavior, **not actual-browser visual/layout/CSP, installation, serving identity or route acceptance**. No provider/socket/DB/server, service or credential operation is performed.
+
+### Retained-owner next task and current integration boundary
+
+**Next bounded MAIN action: record Amendment 2 or a precise counterproposal** against the now-uploaded seven-hunk diff and the already documented serving/job scope. Name the distinct cb4f base, 683653f9 port, e407fbde packet, schema and corrected frontend source pins; explicitly identify the owner-retained route scope. This is the remaining agent-owned source/scope disposition, not a request for the user to reconstruct files or a reviewer instruction to change running routes/jobs.
+
+The response expressly says the corrected JS reaches the self-hosted page only on a separate operator redeploy, with an owner receipt when done. **Corrected frontend deployment remains pending/unverified.** Existing server/frontend owners retain any separately authorized release and subsequent narrow serving-hash/browser-text receipt. Do not advertise this source closure as visible deployed completion, require an unauthorized deployment to close these four code findings, or create a competing frontend writer. The original hosted Muse action/App was not modified; its prior normalization finding is not silently closed by this different frontend.
+
+Original GEX owner **`01a12ee8-5511-778f-8dc5-ab27f024b0de`** can continue **offline** guarded quote mapping with the uploaded, corrected port contract; controller **`01a1067b-3df5-738c-86c7-5f20c98200dc`** retains serving/source coordination. Quote collector receipt, provider as-of, unknown clock and build-start time must remain distinct. Completed-OHLCV `update(frame)` is still a different seam; neither it nor live options/GEX recovery is asserted here.
+
+Await a substantive MAIN Amendment 2 response or new owner serving/source receipt beyond e407fbde/response 6354032137. Ignore this review's own docs synchronization and identical reviewed content. No application merge/deployment, runtime/provider/financial action, credential/config/schedule change, held evaluation or repeated spent tests; persistent webhook unchanged.
 
 ## 2026-10-22 — Server-port contract and self-hosted frontend reply: verified progress; bounded clock/cardinality correction
 

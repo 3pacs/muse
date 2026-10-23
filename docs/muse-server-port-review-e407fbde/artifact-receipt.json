@@ -1,0 +1,65 @@
+{
+  "packet_commit": "e407fbde8cbb51147e5104863e9dd80a44ead747",
+  "local_owner_source_commit": "5c861f477aa4a7a0b1cb74d3af73885bb6a348ac",
+  "manifest_passed": 9,
+  "manifest_total": 9,
+  "bindings": [
+    {
+      "path": "CORRECTIONS-20261022b.md",
+      "sha256": "44f1263ce1067a7db3df7871d7a7aa1a19de5263bfe435990cef068a1e148162",
+      "matches": true
+    },
+    {
+      "path": "SCOPE-RECONCILIATION-20261022.md",
+      "sha256": "528246bb4d7e182a2073a77a8e122ddfccab885eb78565a2f9f45cf5d3b8c185",
+      "matches": true
+    },
+    {
+      "path": "build_pipeline.py",
+      "sha256": "63d71e3039d8d2376c8de9142b304cbf849f64a0f79444467f99aa51af419640",
+      "matches": true
+    },
+    {
+      "path": "cboe_chain.py",
+      "sha256": "99c8f40f257a7ea5f8bb8ef5c019b727ecc113730f9103b32892c4c392814617",
+      "matches": true
+    },
+    {
+      "path": "dashboard.js",
+      "sha256": "4f98536fe82b6ffa350da06741f29124e9fb5259bf277c97741767a69423f65f",
+      "matches": true
+    },
+    {
+      "path": "feed_all.schema.json",
+      "sha256": "5a93b50ad13c34d3c9edd922df31e119ae37ae40f773fe15f4479cb92466092d",
+      "matches": true
+    },
+    {
+      "path": "installed-vs-sealed-cb4f.diff",
+      "sha256": "662c5022fa6cc7e9795725df9866c40a8c8f92643ccea057d5a07444b569ed0b",
+      "matches": true
+    },
+    {
+      "path": "prove_rev3.py",
+      "sha256": "4dde4840d419f58f703ef01caddbafaa66803b55f30c12328e5c2e318789a910",
+      "matches": true
+    },
+    {
+      "path": "rev3-receipt.json",
+      "sha256": "3a5e70207e692e6466ed2082ed6cde09fb19e6c1af04b353c21adf85c10b4300",
+      "matches": true
+    }
+  ],
+  "owner_schema_passed": 28,
+  "owner_schema_total": 28,
+  "owner_receipt_sha256": "3a5e70207e692e6466ed2082ed6cde09fb19e6c1af04b353c21adf85c10b4300",
+  "owner_receipt_byte_exact": true,
+  "dashboard_js_matches_local_owner_test_source": true,
+  "owner_dashboard_test_sha256": "d35b0d2ee46e5251fb2236a3f3458ad6e27b7f3417f99ee9d57f5964dabdc612",
+  "owner_dashboard_pure_suite": "PASS offline; code test source retained in local owner Git archive, not delivered in this packet",
+  "retained_capture_sha256": "f33765ac82e290de0b10743eaba124e7e2672c0c53005cd92c6e90e7d6a40fec",
+  "port_diff_unchanged_from_previously_reproduced_seven_hunks": true,
+  "ported_interpreter_sha256": "683653f97dda7ce1f264a464a9958505b7fcaebf53f665c240703c407e2dc6c1",
+  "C07": "CLOSED29817f05; no new implementation or test",
+  "runtime": "UNRUN. Corrected frontend deployment is expressly pending in owner comment; no installed-source/browser/CSP/route/service/provider claim."
+}
