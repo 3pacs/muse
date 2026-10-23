@@ -38,9 +38,9 @@
    "required": ["source", "delay", "as_of"],
    "additionalProperties": false,
    "allOf": [
-    { "if": { "properties": { "source": { "const": "public_price" } }, "required": ["source"] }, "then": { "properties": { "delay": { "const": "latency-unverified" } } } },
-    { "if": { "properties": { "source": { "const": "rtd" } }, "required": ["source"] }, "then": { "properties": { "delay": { "const": "realtime" } } } },
-    { "if": { "properties": { "source": { "const": null } }, "required": ["source"] }, "then": { "properties": { "delay": { "const": null }, "as_of": { "const": null } } } }
+    { "description": "public fallback: latency unverified and its clock is the provider's as-of (never a collector receipt)", "if": { "properties": { "source": { "const": "public_price" } }, "required": ["source"] }, "then": { "properties": { "delay": { "const": "latency-unverified" }, "clock": { "const": "provider-as-of" } }, "required": ["clock"] } },
+    { "description": "RTD receipt: realtime; clock kind is collector-receipt when stated (legacy RTD quotes omit it — never guessed)", "if": { "properties": { "source": { "const": "rtd" } }, "required": ["source"] }, "then": { "properties": { "delay": { "const": "realtime" }, "clock": { "const": "collector-receipt" } } } },
+    { "description": "no quote: no delay, no clock, no clock kind", "if": { "properties": { "source": { "const": null } }, "required": ["source"] }, "then": { "properties": { "delay": { "const": null }, "as_of": { "const": null }, "clock": false } } }
    ]
   },
   "sources": {
@@ -54,7 +54,9 @@
    "additionalProperties": { "$ref": "#/$defs/chain_source" },
    "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
    "minProperties": 2,
-   "maxProperties": 3,
+   "allOf": [
+    { "description": "exactly one chain provider, whether or not the optional quote block is present", "if": { "required": ["quote"] }, "then": { "maxProperties": 3 }, "else": { "maxProperties": 2 } }
+   ],
    "not": { "description": "nasdaq + quote alone (no chain provider) is not an ok snapshot", "required": ["nasdaq", "quote"], "maxProperties": 2 }
   },
   "strike_row": {

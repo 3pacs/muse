@@ -1,11 +1,11 @@
 {
  "schema": "feed_all.schema.json",
- "schema_sha256": "43ede0de4c5cdee398e6bced05a170797903507baed64a7670afa614b0ce8b21",
+ "schema_sha256": "5a93b50ad13c34d3c9edd922df31e119ae37ae40f773fe15f4479cb92466092d",
  "captured_snapshot_sha256": "f33765ac82e290de0b10743eaba124e7e2672c0c53005cd92c6e90e7d6a40fec",
- "helper_sha256": "f82b28da90195409006665cc85e4dc5bdcae44b2676d7279bc95e120d84ea11e",
+ "helper_sha256": "4dde4840d419f58f703ef01caddbafaa66803b55f30c12328e5c2e318789a910",
  "mode": "offline; sockets denied; captured real ok snapshot + labelled synthetic variants; no producer import, no provider, no DB",
- "passed": 21,
- "total": 21,
+ "passed": 28,
+ "total": 28,
  "checks": [
   {
    "name": "meta-schema-valid",
@@ -138,6 +138,66 @@
      "message": "{'cboe_delayed': {'as_of': '2026-10-22T23:28:01+00:00', 'delay': '~15min', 'n_strikes': 146}, 'quote': {'source': 'rtd', 'delay': 'realtime', 'as_of': '2026-10-"
     }
    ]
+  },
+  {
+   "name": "reject-two-chain-providers-without-quote",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources",
+     "message": "{'cboe_delayed': {'as_of': '2026-10-22T23:28:01+00:00', 'delay': '~15min', 'n_strikes': 146}, 'nasdaq': {'as_of': '2026-10-22T23:24:51.376828+00:00', 'delay': '"
+    }
+   ]
+  },
+  {
+   "name": "reject-public-quote-with-collector-receipt-clock",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources/quote/clock",
+     "message": "'provider-as-of' was expected"
+    }
+   ]
+  },
+  {
+   "name": "reject-public-quote-without-clock-kind",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources/quote",
+     "message": "'clock' is a required property"
+    }
+   ]
+  },
+  {
+   "name": "reject-rtd-quote-with-provider-clock",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources/quote/clock",
+     "message": "'collector-receipt' was expected"
+    }
+   ]
+  },
+  {
+   "name": "reject-no-quote-with-clock-kind",
+   "pass": true,
+   "detail": [
+    {
+     "path": "sources/quote",
+     "message": "False schema does not allow 'collector-receipt'"
+    }
+   ]
+  },
+  {
+   "name": "legacy-rtd-quote-without-clock-kind-admitted",
+   "pass": true,
+   "detail": []
+  },
+  {
+   "name": "one-chain-without-quote-admitted",
+   "pass": true,
+   "detail": []
   },
   {
    "name": "reject-extra-key-in-chain-entry",

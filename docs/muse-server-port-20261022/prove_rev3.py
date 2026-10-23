@@ -63,6 +63,16 @@ reject('numeric-clock', lambda d: d['sources']['cboe_delayed'].update(as_of=1792
 reject('timezone-less-clock', lambda d: d['sources']['cboe_delayed'].update(as_of='2026-10-22T23:28:01'))
 reject('public-quote-labelled-realtime', lambda d: d['sources'].update(quote={'source': 'public_price', 'delay': 'realtime', 'as_of': d['quote_as_of'], 'clock': 'provider-as-of'}))
 reject('two-chain-providers', lambda d: d['sources'].update(rtd={'as_of': None, 'delay': 'realtime', 'n_strikes': 3}))
+def two_chain_no_quote(d): d['sources'].pop('quote'); d['sources']['rtd'] = {'as_of': None, 'delay': 'realtime', 'n_strikes': 3}
+reject('two-chain-providers-without-quote', two_chain_no_quote)
+reject('public-quote-with-collector-receipt-clock', lambda d: d['sources'].update(quote={'source': 'public_price', 'delay': 'latency-unverified', 'as_of': d['quote_as_of'], 'clock': 'collector-receipt'}))
+reject('public-quote-without-clock-kind', lambda d: d['sources'].update(quote={'source': 'public_price', 'delay': 'latency-unverified', 'as_of': d['quote_as_of']}))
+reject('rtd-quote-with-provider-clock', lambda d: d['sources'].update(quote={'source': 'rtd', 'delay': 'realtime', 'as_of': d['quote_as_of'], 'clock': 'provider-as-of'}))
+reject('no-quote-with-clock-kind', lambda d: d['sources'].update(quote={'source': None, 'delay': None, 'as_of': None, 'clock': 'collector-receipt'}))
+lg = copy.deepcopy(cap); lg['sources']['quote'] = {'source': 'rtd', 'delay': 'realtime', 'as_of': cap['quote_as_of']}
+rec('legacy-rtd-quote-without-clock-kind-admitted', V.is_valid(lg), errs(lg))
+one_chain_no_quote = copy.deepcopy(cap); one_chain_no_quote['sources'].pop('quote')
+rec('one-chain-without-quote-admitted', V.is_valid(one_chain_no_quote), errs(one_chain_no_quote))
 reject('extra-key-in-chain-entry', lambda d: d['sources']['cboe_delayed'].update(fresh=True))
 reject('spot-zero-in-ok', lambda d: d.update(spot=0))
 reject('fabricated-string-net-gex', lambda d: d['gamma']['by_strike'][0].update(net_gex_m='0'))
