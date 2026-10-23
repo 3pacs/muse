@@ -1,0 +1,47 @@
+{
+  "source_commit": "29817f052543f91bf1a978daa1f60439bd2df298",
+  "actions_sha256": "247b3ecaa8d8d4107868c7407271bf4c46bc9a9c22013fc2c388d420fccddd55",
+  "app_sha256": "2203fbd2dd4593ac5f8e22a7eb79919ad4520c8a3e731b3d8586c86753e46fbe",
+  "input_sha256": "9222c85f4cec9e9debbc86d7af80bca01b30e3f1584e0bfd9c95a0f1112335e6",
+  "helper_sha256": "8f606d3a398c4516823619d9b406d7600a958714cd83252d0878a4309d5f7554",
+  "mode": "Exact published pure normalization source with disclosed type erasure; generated offline port snapshot input. No fetch, DB, React render, RPC, provider or server operation.",
+  "normalized_exists": true,
+  "raw_provenance": {
+    "sources": {
+      "cboe_delayed": {
+        "as_of": "2026-10-22T22:59:59+00:00",
+        "delay": "~15min",
+        "n_strikes": 2
+      },
+      "quote": {
+        "source": "rtd",
+        "delay": "realtime",
+        "as_of": "2026-10-22T23:00:01+00:00",
+        "clock": "collector-receipt"
+      },
+      "nasdaq": {
+        "as_of": null,
+        "delay": "~15min",
+        "n_strikes": 0,
+        "stale": false
+      }
+    },
+    "rtdStrikes": 0,
+    "nasdaqStrikes": 0
+  },
+  "normalized_provenance": {
+    "rtdStrikes": 0,
+    "nasdaqStrikes": 0,
+    "quoteAsOf": "2026-10-22T23:00:01+00:00",
+    "nasdaqAsOf": null,
+    "perStrikeSources": [
+      "cboe_delayed"
+    ]
+  },
+  "aggregate_provider_quote_clock_mapping_preserved": false,
+  "footer_source_has_cboe": false,
+  "footer_source_hardcodes_rtd_nasdaq": true,
+  "pass": false,
+  "qualification": "Per-strike src survives, but aggregate Cboe provider/as_of/delay and sources.quote clock/source do not. Published footer remains RTD+Nasdaq; actual hosted artifact version/runtime rendering unverified.",
+  "native_provider_calls": 0
+}

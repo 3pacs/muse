@@ -1,0 +1,15 @@
+{
+  "local_export_commit": "bb1763ff98f44ab6ed2de41fb05cbe9f194d7302",
+  "sealed_sha256": "cb4f0ef23399f0b6d263828f49cdd8e2a17aabc999d2fdac50b43fd58f1cb8a0",
+  "ported_sha256": "683653f97dda7ce1f264a464a9958505b7fcaebf53f665c240703c407e2dc6c1",
+  "diff_sha256": "662c5022fa6cc7e9795725df9866c40a8c8f92643ccea057d5a07444b569ed0b",
+  "diff_exactly_reproduced": true,
+  "hunks": 7,
+  "scope_note_sha256": "528246bb4d7e182a2073a77a8e122ddfccab885eb78565a2f9f45cf5d3b8c185",
+  "owner_schema_checks": 21,
+  "owner_receipt_sha256": "76a73ae2be27c23158e2d861d569e2d6bc4935e5f2003047585f3c46d84432a1",
+  "regenerated_receipt_byte_equal": true,
+  "runtime": "UNRUN; socket/service/route/job/operator authorization and hosted identity remain owner-reported",
+  "C07": "CLOSED29817f05; implementation unchanged; no rerun",
+  "source_qualification": "Local git export at bb1763ff; owner promises future Muse docs packet. No remote source delivery assumed."
+}

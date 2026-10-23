@@ -1,0 +1,90 @@
+{
+  "packet_commit": "e407fbde8cbb51147e5104863e9dd80a44ead747",
+  "local_source_commit": "5c861f477aa4a7a0b1cb74d3af73885bb6a348ac",
+  "dashboard_js_sha256": "4f98536fe82b6ffa350da06741f29124e9fb5259bf277c97741767a69423f65f",
+  "fixture_sha256": "f33765ac82e290de0b10743eaba124e7e2672c0c53005cd92c6e90e7d6a40fec",
+  "helper_sha256": "7920898a4d884e54be6235133077efa9671f57acd82db91dba4d2dcb6c025006",
+  "mode": "Exact-source pure exports and in-memory fake-DOM text rendering. Native fetch/provider/database/server/browser UNRUN.",
+  "passed": 12,
+  "total": 12,
+  "checks": [
+    {
+      "name": "normalizer-retains-cboe-provenance",
+      "passed": true,
+      "actual": {
+        "name": "cboe_delayed",
+        "delay": "~15min",
+        "asOf": "2026-10-22T23:28:01+00:00",
+        "n": 146
+      }
+    },
+    {
+      "name": "normalizer-retains-quote-clock-kind",
+      "passed": true,
+      "actual": {
+        "source": "rtd",
+        "delay": "realtime",
+        "as_of": "2026-10-22T23:28:19.585122+00:00",
+        "clock": "collector-receipt"
+      }
+    },
+    {
+      "name": "renderer-shows-delayed-chain-and-zero-live-option-strikes",
+      "passed": true,
+      "actual": "Source: interpreter on this host (/feed/all + /feed/signals, loopback :8788), snapshot every ~30 s. Quote: rtd · realtime · collector receipt 4:28:19 PM PT. Chain: cboe_delayed · ~15min · 146 strikes · provider as-of 4:28:01 PM PT · 0 strikes real-time. Nasdaq wings: 0 strikes, ~15 min delayed, as of 4:24:51 PM PT. This page polls every 15 s while open and stores one snapshot per minute for the trail. GEX convention: dealers long calls / short puts — an assumption, not observed positioning. Nothing here predicts direction."
+    },
+    {
+      "name": "renderer-labels-collector-receipt-clock-kind",
+      "passed": true,
+      "actual": {
+        "hero": "Net GEX −$2,697M per 1% · flip 769.34 · quote collector receipt 4:28:19 PM PT (rtd, realtime)",
+        "reason": "RTD callback receipt must remain distinct from market/provider time"
+      }
+    },
+    {
+      "name": "renderer-labels-public-fallback-latency",
+      "passed": true,
+      "actual": "Net GEX −$2,697M per 1% · flip 769.34 · quote provider as-of (latency unverified) 4:28:19 PM PT (public_price, latency-unverified)"
+    },
+    {
+      "name": "renderer-unknown-clock-is-not-epoch",
+      "passed": true,
+      "actual": "Net GEX −$2,697M per 1% · flip 769.34 · quote collector receipt — PT (rtd, realtime)"
+    },
+    {
+      "name": "normalizer-retains-declared-alternate-chain-provider",
+      "passed": true,
+      "actual": {
+        "name": "vendor_delayed",
+        "delay": "~15min",
+        "asOf": "2026-10-22T23:28:01+00:00",
+        "n": 146
+      }
+    },
+    {
+      "name": "renderer-labels-public-provider-clock",
+      "passed": true,
+      "actual": "Net GEX −$2,697M per 1% · flip 769.34 · quote provider as-of (latency unverified) 4:28:19 PM PT (public_price, latency-unverified)"
+    },
+    {
+      "name": "renderer-legacy-clock-kind-remains-unknown",
+      "passed": true,
+      "actual": "Net GEX −$2,697M per 1% · flip 769.34 · quote clock kind not stated 4:28:19 PM PT (rtd, realtime)"
+    },
+    {
+      "name": "normalizer-two-chain-providers-fail-closed",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "normalizer-no-chain-provider-fail-closed",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "renderer-shows-alternate-provider-without-rtd-reassignment",
+      "passed": true,
+      "actual": "Source: interpreter on this host (/feed/all + /feed/signals, loopback :8788), snapshot every ~30 s. Quote: rtd · realtime · collector receipt 4:28:19 PM PT. Chain: vendor_delayed · ~15min · 146 strikes · provider as-of 4:28:01 PM PT · 0 strikes real-time. Nasdaq wings: 0 strikes, ~15 min delayed, as of 4:24:51 PM PT. This page polls every 15 s while open and stores one snapshot per minute for the trail. GEX convention: dealers long calls / short puts — an assumption, not observed positioning. Nothing here predicts direction."
+    }
+  ]
+}

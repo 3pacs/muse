@@ -1,0 +1,276 @@
+{
+  "packet_commit": "e407fbde8cbb51147e5104863e9dd80a44ead747",
+  "schema_sha256": "5a93b50ad13c34d3c9edd922df31e119ae37ae40f773fe15f4479cb92466092d",
+  "capture_sha256": "f33765ac82e290de0b10743eaba124e7e2672c0c53005cd92c6e90e7d6a40fec",
+  "helper_sha256": "82979a6091fb339264c48fccd29c65b92aee58598bedff14e7196df2c3e0a3ce",
+  "mode": "Offline schema checks on retained capture and labelled mutations; no producer/model/runtime execution.",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "captured-server-port-envelope",
+      "expected_valid": true,
+      "actual_valid": true,
+      "passed": true,
+      "sources": {
+        "cboe_delayed": {
+          "as_of": "2026-10-22T23:28:01+00:00",
+          "delay": "~15min",
+          "n_strikes": 146
+        },
+        "quote": {
+          "source": "rtd",
+          "delay": "realtime",
+          "as_of": "2026-10-22T23:28:19.585122+00:00",
+          "clock": "collector-receipt"
+        },
+        "nasdaq": {
+          "as_of": "2026-10-22T23:24:51.376828+00:00",
+          "delay": "~15min",
+          "n_strikes": 0,
+          "stale": false
+        }
+      },
+      "errors": []
+    },
+    {
+      "name": "unknown-nasdaq-clock",
+      "expected_valid": true,
+      "actual_valid": true,
+      "passed": true,
+      "sources": {
+        "cboe_delayed": {
+          "as_of": "2026-10-22T23:28:01+00:00",
+          "delay": "~15min",
+          "n_strikes": 146
+        },
+        "quote": {
+          "source": "rtd",
+          "delay": "realtime",
+          "as_of": "2026-10-22T23:28:19.585122+00:00",
+          "clock": "collector-receipt"
+        },
+        "nasdaq": {
+          "as_of": null,
+          "delay": "~15min",
+          "n_strikes": 0,
+          "stale": false
+        }
+      },
+      "errors": []
+    },
+    {
+      "name": "alternate-chain-provider",
+      "expected_valid": true,
+      "actual_valid": true,
+      "passed": true,
+      "sources": {
+        "quote": {
+          "source": "rtd",
+          "delay": "realtime",
+          "as_of": "2026-10-22T23:28:19.585122+00:00",
+          "clock": "collector-receipt"
+        },
+        "nasdaq": {
+          "as_of": "2026-10-22T23:24:51.376828+00:00",
+          "delay": "~15min",
+          "n_strikes": 0,
+          "stale": false
+        },
+        "vendor_delayed": {
+          "as_of": "2026-10-22T23:28:01+00:00",
+          "delay": "~15min",
+          "n_strikes": 146
+        }
+      },
+      "errors": []
+    },
+    {
+      "name": "single-chain-without-quote",
+      "expected_valid": true,
+      "actual_valid": true,
+      "passed": true,
+      "sources": {
+        "cboe_delayed": {
+          "as_of": "2026-10-22T23:28:01+00:00",
+          "delay": "~15min",
+          "n_strikes": 146
+        },
+        "nasdaq": {
+          "as_of": "2026-10-22T23:24:51.376828+00:00",
+          "delay": "~15min",
+          "n_strikes": 0,
+          "stale": false
+        },
+        "rtd": {
+          "as_of": null,
+          "delay": "realtime",
+          "n_strikes": 3
+        }
+      },
+      "errors": []
+    },
+    {
+      "name": "reject-two-chain-providers-without-quote",
+      "expected_valid": false,
+      "actual_valid": false,
+      "passed": true,
+      "sources": {
+        "cboe_delayed": {
+          "as_of": "2026-10-22T23:28:01+00:00",
+          "delay": "~15min",
+          "n_strikes": 146
+        },
+        "nasdaq": {
+          "as_of": "2026-10-22T23:24:51.376828+00:00",
+          "delay": "~15min",
+          "n_strikes": 0,
+          "stale": false
+        },
+        "rtd": {
+          "as_of": null,
+          "delay": "realtime",
+          "n_strikes": 3
+        }
+      },
+      "errors": [
+        "{'status': 'ok', 'updated_at': '2026-10-22T23:28:21.625885+00:00', 'market_open': False, 'quote_as_of': '2026-10-22T23:2"
+      ]
+    },
+    {
+      "name": "reject-two-chain-providers-with-quote",
+      "expected_valid": false,
+      "actual_valid": false,
+      "passed": true,
+      "sources": {
+        "cboe_delayed": {
+          "as_of": "2026-10-22T23:28:01+00:00",
+          "delay": "~15min",
+          "n_strikes": 146
+        },
+        "quote": {
+          "source": "rtd",
+          "delay": "realtime",
+          "as_of": "2026-10-22T23:28:19.585122+00:00",
+          "clock": "collector-receipt"
+        },
+        "nasdaq": {
+          "as_of": "2026-10-22T23:24:51.376828+00:00",
+          "delay": "~15min",
+          "n_strikes": 0,
+          "stale": false
+        },
+        "rtd": {
+          "as_of": null,
+          "delay": "realtime",
+          "n_strikes": 3
+        }
+      },
+      "errors": [
+        "{'status': 'ok', 'updated_at': '2026-10-22T23:28:21.625885+00:00', 'market_open': False, 'quote_as_of': '2026-10-22T23:2"
+      ]
+    },
+    {
+      "name": "reject-no-chain-provider",
+      "expected_valid": false,
+      "actual_valid": false,
+      "passed": true,
+      "sources": {
+        "quote": {
+          "source": "rtd",
+          "delay": "realtime",
+          "as_of": "2026-10-22T23:28:19.585122+00:00",
+          "clock": "collector-receipt"
+        },
+        "nasdaq": {
+          "as_of": "2026-10-22T23:24:51.376828+00:00",
+          "delay": "~15min",
+          "n_strikes": 0,
+          "stale": false
+        }
+      },
+      "errors": [
+        "{'status': 'ok', 'updated_at': '2026-10-22T23:28:21.625885+00:00', 'market_open': False, 'quote_as_of': '2026-10-22T23:2"
+      ]
+    },
+    {
+      "name": "public-quote-provider-clock-unknown-time",
+      "expected_valid": true,
+      "actual_valid": true,
+      "passed": true,
+      "sources": {
+        "cboe_delayed": {
+          "as_of": "2026-10-22T23:28:01+00:00",
+          "delay": "~15min",
+          "n_strikes": 146
+        },
+        "quote": {
+          "source": "public_price",
+          "delay": "latency-unverified",
+          "as_of": null,
+          "clock": "provider-as-of"
+        },
+        "nasdaq": {
+          "as_of": "2026-10-22T23:24:51.376828+00:00",
+          "delay": "~15min",
+          "n_strikes": 0,
+          "stale": false
+        }
+      },
+      "errors": []
+    },
+    {
+      "name": "reject-public-quote-mislabelled-collector-clock",
+      "expected_valid": false,
+      "actual_valid": false,
+      "passed": true,
+      "sources": {
+        "cboe_delayed": {
+          "as_of": "2026-10-22T23:28:01+00:00",
+          "delay": "~15min",
+          "n_strikes": 146
+        },
+        "quote": {
+          "source": "public_price",
+          "delay": "latency-unverified",
+          "as_of": null,
+          "clock": "collector-receipt"
+        },
+        "nasdaq": {
+          "as_of": "2026-10-22T23:24:51.376828+00:00",
+          "delay": "~15min",
+          "n_strikes": 0,
+          "stale": false
+        }
+      },
+      "errors": [
+        "{'status': 'ok', 'updated_at': '2026-10-22T23:28:21.625885+00:00', 'market_open': False, 'quote_as_of': '2026-10-22T23:2"
+      ]
+    },
+    {
+      "name": "unknown-quote-provenance-shape-only",
+      "expected_valid": true,
+      "actual_valid": true,
+      "passed": true,
+      "sources": {
+        "cboe_delayed": {
+          "as_of": "2026-10-22T23:28:01+00:00",
+          "delay": "~15min",
+          "n_strikes": 146
+        },
+        "quote": {
+          "source": null,
+          "delay": null,
+          "as_of": null
+        },
+        "nasdaq": {
+          "as_of": "2026-10-22T23:24:51.376828+00:00",
+          "delay": "~15min",
+          "n_strikes": 0,
+          "stale": false
+        }
+      },
+      "errors": []
+    }
+  ]
+}

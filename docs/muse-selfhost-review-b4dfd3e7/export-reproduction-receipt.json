@@ -1,0 +1,132 @@
+{
+  "local_export_commit": "b4dfd3e7bdb306fc56949381cf5ecc7348655bac",
+  "local_export_clean": true,
+  "relative_export": "stopgap-20261022-muse",
+  "builder_sha256": "63d71e3039d8d2376c8de9142b304cbf849f64a0f79444467f99aa51af419640",
+  "read_only_builder_input_refs": {
+    "origin/implementation/0dte-source-20261015": "29817f052543f91bf1a978daa1f60439bd2df298",
+    "pr2": "6e22de72bfbe719fea88dcd305c903212c1d4502"
+  },
+  "base_sealed_source_sha256": "cb4f0ef23399f0b6d263828f49cdd8e2a17aabc999d2fdac50b43fd58f1cb8a0",
+  "ported_source_sha256": "683653f97dda7ce1f264a464a9958505b7fcaebf53f665c240703c407e2dc6c1",
+  "reproduced_files": 20,
+  "all_files_byte_equal": true,
+  "files": [
+    {
+      "path": "run_interpreter.sh",
+      "sha256": "75170f7af5bfbf2e538ab6a04ff266f9e7a9f192e67d0b65bfb293cf56aa9bb5",
+      "export_matches": true
+    },
+    {
+      "path": "test_watcher_windows.py",
+      "sha256": "d8207913c0c852d393a6fd93e9b1d63af8b33edb6d00198f408e52516db95653",
+      "export_matches": true
+    },
+    {
+      "path": "schwab_client.py",
+      "sha256": "cc6a3022633ed67817299007e18b51d0852f7b122b2353fb1b40979c06784730",
+      "export_matches": true
+    },
+    {
+      "path": "market_events.json",
+      "sha256": "80b88035524102f697ce46ad869f8404fdf1389ecc859750d0954c79e836f9f9",
+      "export_matches": true
+    },
+    {
+      "path": "test_data_keys.py",
+      "sha256": "8dc17fb2fcd3ed8a09841f90b4d5a7eac7053364500f1729f7c1b1e670dfd239",
+      "export_matches": true
+    },
+    {
+      "path": "flow_capture_patch.md",
+      "sha256": "9031607571148ef28292aded8183c87b7a3afebd35cb4e1d3e4c5ea1f2f3d165",
+      "export_matches": true
+    },
+    {
+      "path": "ranges_today.py",
+      "sha256": "0173b60dafeb02a43aad1014706ceba9d5851512067e91e551174eaba974a3e2",
+      "export_matches": true
+    },
+    {
+      "path": "maxpain_log.py",
+      "sha256": "426a3e17a3097054f8040d0b7660288475cf0cc8ebdfe95d8078ddcf07de3381",
+      "export_matches": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "cccf186bfb3704866f1b1bd4fad49a5c8fc41e43bd6a73ff4553dcb0fac3dcd3",
+      "export_matches": true
+    },
+    {
+      "path": "dashboard_build.py",
+      "sha256": "3800aa2a3359012fc6a55cdb6027502ff3ebd18cbd322434921f68b1aacb5ec9",
+      "export_matches": true
+    },
+    {
+      "path": "tape_db.py",
+      "sha256": "eba08d82331678fb7add16e581a98fff0280294d8f61023ed02de258aac17c15",
+      "export_matches": true
+    },
+    {
+      "path": "interpreter.py",
+      "sha256": "683653f97dda7ce1f264a464a9958505b7fcaebf53f665c240703c407e2dc6c1",
+      "export_matches": true
+    },
+    {
+      "path": "j1_replay_tests.py",
+      "sha256": "9377aa34e91c8afe6066b6d9472728f8345a021442587a721f6c7dd4cc77c851",
+      "export_matches": true
+    },
+    {
+      "path": "indicator_tracker.py",
+      "sha256": "1d434b38910fa027533d7aa2936795ed28a3a68e805ddbc8d2900493c8f96967",
+      "export_matches": true
+    },
+    {
+      "path": "wall_tests.py",
+      "sha256": "499357fa941ef01419ab29f6051e5fd586a87aa3d00ede6326552f9cc2d530ab",
+      "export_matches": true
+    },
+    {
+      "path": "state_alerts.py",
+      "sha256": "99ea8df7251746ac760a622e2d12919131a3c202a3903bc227b615edcf92bb26",
+      "export_matches": true
+    },
+    {
+      "path": "watcher.py",
+      "sha256": "5545895323139c8f253c9e2aa2a3e793feb2973ef96f6a36291e6e06fc53cc1c",
+      "export_matches": true
+    },
+    {
+      "path": "maxpain_milestones.py",
+      "sha256": "21ba0d702fd8b4066385e7cfe920594c45a8ce40e49f4ca272fa06885c6b3259",
+      "export_matches": true
+    },
+    {
+      "path": "tests/j1_replay_tests.py",
+      "sha256": "244aca93e9c568d6e520cf94ef8a20bdc9d9281b3ab1b50ec32a86fde4ceacff",
+      "export_matches": true
+    },
+    {
+      "path": "docs/J1-EVENT-REPLAY-POLICY.md",
+      "sha256": "950645f316f6deb892b07064306b2197d246fe8abeece84212dc6499dc81d462",
+      "export_matches": true
+    }
+  ],
+  "source_delta": {
+    "constants_changed": [
+      "STATE_URL",
+      "CONTRACTS_URL",
+      "TAPE_DB"
+    ],
+    "new_function": "legacy_quote",
+    "snapshot_changes": "legacy_quote(state), sources.quote provenance",
+    "main_changes": "literal127.0.0.1 bind; default8788",
+    "compatibility": "two f-string inner quotes rewritten for Python3.10",
+    "more_than_amendment_two_diffs": true
+  },
+  "runtime_verification": "UNRUN; installed file/socket/service/route and operator decisions remain owner-reported",
+  "scope": "Copied existing builder to isolated review workspace and executed only local git reads + writes to that isolated output. No original worktree modification, service, endpoint, credential or provider calls.",
+  "reviewed_export_unchanged": true,
+  "local_repo_other_work": "Unrelated untracked work appeared during review; not inspected or modified. All reviewed export files remain unchanged and reproduce byte-for-byte."
+}

@@ -1,0 +1,251 @@
+{
+  "packet_commit": "161db1ede6cdfaf759181027dae404223d9fcf51",
+  "source_sha256": "b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e",
+  "schema_sha256": "eac803a2562efb74fb1126ee8ef02c2492fce2c537ec09d3e9ada6839f3e44a0",
+  "helper_sha256": "e57e1fd3f1f0c07a9668c89375b5d6cafdf6c62abdc25ae95dd84a5db1a6051f",
+  "jsonschema_version": "4.19.2",
+  "mode": "Artifact/schema checks; selected exact-source early/error and provenance expressions only. No producer module import, numerical model, native fetch, database, server or thread startup.",
+  "native_provider_calls": 0,
+  "in_memory_fetch_calls": 5,
+  "C07": "unchanged CLOSED at29817f05; not re-tested",
+  "passed": 13,
+  "total": 16,
+  "observations": [
+    {
+      "name": "manifest-six-bindings",
+      "pass": true,
+      "actual": [
+        {
+          "path": "feed_all.schema.json",
+          "match": true
+        },
+        {
+          "path": "prove_schema.py",
+          "match": true
+        },
+        {
+          "path": "schema-check-receipt.json",
+          "match": true
+        },
+        {
+          "path": "envelope-ok-afterclose-20261020.json",
+          "match": true
+        },
+        {
+          "path": "healthy-session-record-20261020.json",
+          "match": true
+        },
+        {
+          "path": "README.md",
+          "match": true
+        }
+      ]
+    },
+    {
+      "name": "retained-capture-bytes-preserved",
+      "pass": true,
+      "actual": {
+        "envelope-ok-afterclose-20261020.json": true,
+        "healthy-session-record-20261020.json": true
+      }
+    },
+    {
+      "name": "declared-schema-valid",
+      "pass": true,
+      "actual": {
+        "dialect": "https://json-schema.org/draft/2020-12/schema"
+      }
+    },
+    {
+      "name": "captured-afterclose-valid",
+      "pass": true,
+      "actual": {
+        "market_open": false,
+        "status": "ok",
+        "qualification": "Historical after-close data, not current/live readiness."
+      }
+    },
+    {
+      "name": "source-timeout-valid-and-withheld",
+      "pass": true,
+      "actual": {
+        "envelope": {
+          "status": "error",
+          "error": "OFFLINE_TIMEOUT",
+          "updated_at": "2026-10-20T21:29:16.142252+00:00"
+        },
+        "synthetic": true
+      }
+    },
+    {
+      "name": "source-noquote-valid-and-withheld",
+      "pass": true,
+      "actual": {
+        "envelope": {
+          "status": "error",
+          "error": "no quote in feed (spot=0)",
+          "updated_at": "2026-10-20T21:29:16.142252+00:00",
+          "market_open": false,
+          "spot": 0.0,
+          "expiry": "2026-10-20"
+        },
+        "synthetic": true
+      }
+    },
+    {
+      "name": "source-quarantine-valid-and-withheld",
+      "pass": true,
+      "actual": {
+        "envelope": {
+          "status": "quarantined",
+          "quarantine_reason": "quote_as_of 2026-10-20T22:00:00+00:00 is in the future",
+          "updated_at": "2026-10-20T21:29:16.142252+00:00",
+          "market_open": false,
+          "quote_as_of": "2026-10-20T22:00:00+00:00"
+        },
+        "synthetic": true
+      }
+    },
+    {
+      "name": "source-starting-valid-and-withheld",
+      "pass": true,
+      "actual": {
+        "envelope": {
+          "status": "starting",
+          "updated_at": null
+        },
+        "synthetic": true
+      }
+    },
+    {
+      "name": "walls-numeric",
+      "pass": true,
+      "actual": {
+        "value": 768.0,
+        "synthetic": true
+      }
+    },
+    {
+      "name": "walls-null",
+      "pass": true,
+      "actual": {
+        "value": null,
+        "synthetic": true
+      }
+    },
+    {
+      "name": "unknown-status-rejected",
+      "pass": true,
+      "actual": {
+        "status": "unknown-status"
+      }
+    },
+    {
+      "name": "populated-error-withheld",
+      "pass": true,
+      "actual": {
+        "schema_valid": true,
+        "admitted": false
+      }
+    },
+    {
+      "name": "clock-declaration-corrected",
+      "pass": true,
+      "actual": {
+        "qualification": "Corrected documentation inspected; no new runtime clock measurement."
+      }
+    },
+    {
+      "name": "source-null-nasdaq-clock-admitted",
+      "pass": false,
+      "actual": {
+        "sources": {
+          "rtd": {
+            "as_of": "2026-10-20T21:28:59+00:00",
+            "delay": "realtime",
+            "n_strikes": 3
+          },
+          "nasdaq": {
+            "as_of": null,
+            "delay": "~15min",
+            "n_strikes": 0,
+            "stale": false
+          }
+        },
+        "ok_variant_errors": [
+          {
+            "path": [
+              "sources",
+              "nasdaq",
+              "as_of"
+            ],
+            "validator": "type",
+            "message": "None is not of type 'string'"
+          }
+        ],
+        "synthetic": "Exact source provenance expressions with initial empty Nasdaq cache, embedded in retained envelope for schema isolation."
+      }
+    },
+    {
+      "name": "source-null-rtd-clock-admitted",
+      "pass": false,
+      "actual": {
+        "quote_as_of": null,
+        "sources": {
+          "rtd": {
+            "as_of": null,
+            "delay": "realtime",
+            "n_strikes": 3
+          },
+          "nasdaq": {
+            "as_of": "2026-10-20T21:29:31.443624+00:00",
+            "delay": "~15min",
+            "n_strikes": 143,
+            "stale": false
+          }
+        },
+        "ok_variant_errors": [
+          {
+            "path": [
+              "sources",
+              "rtd",
+              "as_of"
+            ],
+            "validator": "type",
+            "message": "None is not of type 'string'"
+          }
+        ],
+        "synthetic": "Exact source provenance expressions with absent quote/chain clocks; no timestamp invented."
+      }
+    },
+    {
+      "name": "source-declared-alternate-provider-admitted",
+      "pass": false,
+      "actual": {
+        "sources": {
+          "vendor_delayed": {
+            "as_of": "2026-10-20T21:28:59+00:00",
+            "delay": "delayed",
+            "n_strikes": 3
+          },
+          "nasdaq": {
+            "as_of": "2026-10-20T21:29:31.443624+00:00",
+            "delay": "~15min",
+            "n_strikes": 143,
+            "stale": false
+          }
+        },
+        "ok_variant_errors": [
+          {
+            "path": [
+              "sources"
+            ],
+            "validator": "required",
+            "message": "'rtd' is a required property"
+          }
+        ],
+        "synthetic": "Exact source dynamic chain-provider key; contract can instead explicitly declare this source branch unsupported."
+      }
+    }
+  ]
+}
