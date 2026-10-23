@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: Server-port e407fbde rev3b source corrections VERIFIED/CLOSED: manifest9/9, owner schema28/28 reproduced byte-exact, independent contract10/10 and frontend normalization/text12/12. All four d60eeb7e findings fixed in uploaded schema5a93b50a/JS4f98536f. C07 remains CLOSED29817f05; original MAIN rev3 coverage stays closed. Retained MAIN action is Amendment2/source-scope disposition; corrected self-hosted JS deployment/serving identity remains pending and unverified. No runtime/provider operation or new C07/model run.**
+**Current status: All four server-port e407fbde source corrections and C07 remain VERIFIED/CLOSED. New owner response6354178550 reports corrected JS4f98536f installed and gex-watch restarted2026-10-23T00:10:57Z; this replaces deployment-pending status with OWNER-REPORTED INSTALLED, not independently verified serving identity. Prior manifest9/9, schema28/28, independent contract10/10/text12/12 remain carried, not rerun. MAIN Amendment2/source-scope disposition and retained serving/browser evidence remain open with existing owners. No reviewer runtime/provider operation.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -13,6 +13,21 @@
 
 
 
+
+
+## 2026-10-23 — Corrected frontend reported installed; serving identity remains owner-reported
+
+Read [operator response 6354178550](https://github.com/3pacs/muse/pull/2#issuecomment-6354178550), webhook `4daa8680-ce76-11f1-9825-004797781616`, against verified handoff **1035315a1051fe7b246262b2284ff09d1082c37a**. PR2 head is unchanged; this is a substantive deployment-status response, not new implementation or a second source review.
+
+The server owner reports the corrected `dashboard.js` from packet **e407fbde** is installed, references installed SHA-256 prefix **`4f98536fe82b6ffa`** and the full packet manifest hash **`4f98536fe82b6ffa350da06741f29124e9fb5259bf277c97741767a69423f65f`**, reports gex-watch restart **2026-10-23 00:10:57 UTC**, and states `/dashboard/` returns 401 without credentials / 200 with, feeds remain public, and no other file changed. These are explicitly **owner-reported observations**. No serving-body bytes/digest tied to a response, browser render receipt, or new Amendment 2 response accompanies the comment.
+
+**Recorded state changes from deployment pending to OWNER-REPORTED INSTALLED. Independent serving identity/browser acceptance remains UNVERIFIED.** The referenced hash is consistent with the already verified uploaded corrected JS; it does not itself establish what the route served. The restart, route/auth results and unchanged-other-files assertion were not independently checked. No endpoint, provider, service, credential or authentication operation was performed by this review.
+
+All four e407fbde source/contract/text-render closures are preserved, as are original MAIN rev3 coverage and **C07 CLOSED at 29817f052543f91bf1a978daa1f60439bd2df298**. Prior manifest9/9, owner schema28/28, independent contract10/10 and normalization/text12/12 evidence is carried from the immediately following closure; **no tests were rerun and no deployment was requested or performed**.
+
+**Next retained MAIN action is unchanged:** record Amendment 2 or a precise source/scope counterproposal against the uploaded seven-hunk cb4f-to-683653f9 diff, e407fbde schema/frontend pins and documented route/job scope. **Minimal remaining frontend evidence:** the existing server/frontend owner should attach its retained serving-JS response digest/capture tied to route/time and a narrow browser text receipt showing collector-receipt versus provider-as-of and delayed Cboe chain provenance. The reviewer can cross-check supplied bytes against the pinned JS offline; acquisition/runtime origin remains owner-reported unless independently observed within separately authorized scope. This is an agent-owned evidence gap, not a user reconstruction or credential chore, and does not request another deployment.
+
+Original GEX quote/adapter owner and serving controller retain their integration slices. Offline guarded quote mapping remains available; completed-OHLCV `update(frame)` remains a different seam. No live options/GEX recovery, visible frontend completion or independent serving acceptance is claimed. Existing single draft handoff/owner route and persistent webhook remain unchanged; no merge, provider polling, live trading, credential/config/schedule action or duplicate review.
 
 ## 2026-10-23 — Server-port rev3b source corrections VERIFIED/CLOSED at e407fbde
 
