@@ -1,6 +1,6 @@
 # Muse second red-team handoff — 2026-10-04
 
-**Current status: All four server-port e407fbde source corrections and C07 remain VERIFIED/CLOSED. New owner response6354178550 reports corrected JS4f98536f installed and gex-watch restarted2026-10-23T00:10:57Z; this replaces deployment-pending status with OWNER-REPORTED INSTALLED, not independently verified serving identity. Prior manifest9/9, schema28/28, independent contract10/10/text12/12 remain carried, not rerun. MAIN Amendment2/source-scope disposition and retained serving/browser evidence remain open with existing owners. No reviewer runtime/provider operation.**
+**Current status: MAIN Amendment2/source-scope reconciliation is RECORDED/CLOSED in docs/muse-gex-deploy-20261020/DEPLOY-AMENDMENT-2.md. The identified seven-hunk cb4f-to-683653f9 port and documented self-hosted scope are reconciled additively with the October20 order; prior publications remain intact. User-reported sole serving path is gex.stepdad.finance/dashboard/. All four e407fbde source corrections and C07 remain VERIFIED/CLOSED. Corrected JS installation is operator-attested; independent serving/browser identity remains unverified. No MAIN takeover/search, new deployment, runtime/provider operation or test rerun is pending for this record.**
 
 **Historical 2026-10-04 verdict: PROVISIONAL; Stage 1/2 acceptance remains blocked.** The patch makes useful changes, but the offline fixtures below still violate the first challenge. This document publishes review evidence and acceptance requirements only. It does not change application source, authorize activation, merge, deployment, trading, or establish predictive value.
 
@@ -14,6 +14,21 @@
 
 
 
+
+
+## 2026-10-23 — MAIN Amendment 2 RECORDED/CLOSED; retain source and operator-evidence distinctions
+
+At **MAIN's explicit coordination decision**, recorded [DEPLOY-AMENDMENT-2.md](muse-gex-deploy-20261020/DEPLOY-AMENDMENT-2.md) as an additive amendment in the established deployment-docs folder. MAIN is the order/coordination owner; there is no other MAIN owner to locate or take over this decision. Earlier pending-Amendment-2/takeover requests below are historical and superseded by this record.
+
+MAIN reconciles the already independently reproduced **seven-hunk cb4f-to-683653f9 diff**, the [e407fbde deviation table and corrected packet](https://github.com/3pacs/muse/tree/e407fbde8cbb51147e5104863e9dd80a44ead747/docs/muse-server-port-20261022), loopback source guarantee plus operator socket report, actual reported feed/dashboard routes, delayed-chain/quote distinction and already reported job scope against the October 20 order/Amendment 1. The original order, Amendment 1, sealed artifacts and historical publications are preserved unchanged. This named baseline supersedes only their conflicting one-/two-change and feed-only lane provisions; no unspecified future source changes or fresh runtime operations are authorized.
+
+**User-reported sole serving path is the self-hosted `https://gex.stepdad.finance/dashboard/`.** No hosted Muse takeover/republish, replacement frontend owner or apex migration remains active work for this reconciliation. Existing owner/adapter slices stay retained. MAIN scope/source disposition is CLOSED, not waiting on an independent serving check or another coordination response.
+
+Folded synchronize `8686f3d0-ce76-11f1-8cd9-83da7cd87fc6` and issue-comment `c2310010-ce76-11f1-9944-fc41b8cc4f7c` into this same pass. Current PR head281b0927 is our own installation-status handoff. New [server coordination note6354225107](https://github.com/3pacs/muse/pull/2#issuecomment-6354225107) confirms completed server integration/no takeover and requests MAIN's Amendment2 record; this publication completes that item. No new implementation or independent runtime proof was supplied and no separate review/tests were started.
+
+The four e407fbde code/contract/text findings and C07 remain VERIFIED/CLOSED, carrying manifest9/9, owner schema28/28, independent contract10/10 and text12/12 from 1035315a without reruns. Source/diff/loopback-literal evidence is independently reproduced. Installation/restart/routes/jobs and live socket observations remain operator-attested, including report6354178550 at 2026-10-23T00:10:57Z. **Independent serving-body/browser identity remains UNVERIFIED**; the existing server/frontend owner's narrow retained evidence item stays separate from the completed MAIN decision. No live market/recovery/alpha claim follows from these source results.
+
+No amendment provision needs a new consequential decision to finish this additive scope/closure record. No deployment, rollback, credentials, authentication, provider polling, trading, job/schedule change, application merge, repeated test or automation action was performed or requested. The persistent webhook and single existing draft handoff remain unchanged.
 
 ## 2026-10-23 — Corrected frontend reported installed; serving identity remains owner-reported
 
