@@ -7,6 +7,7 @@
 - **Scope boundary:** No GRID source audit (Codex owns PR903/904 exact-source review). No production data, no provider/network lookup, no application edits, no rescoring, no learned-weight update. All assets, prices, and clocks below are invented fixtures. Nothing here asserts what the current product does or does not implement.
 - **Amendment 1 — 2026-10-26:** Controller clarifications (PR #2 comment `6410046097`) incorporated. Q1 resolved: no collapsed headline — invalidation and terminal return are two explicit headline legs (§4). Q2 resolved: production policy values are unverified and must not be invented — dependent behaviour is `POLICY_UNCONFIGURED`, production headline rates/eligibility claims requiring those values are withheld, and the exact production bindings still required are listed as a separate acceptance gate (§4). The original contract, the nine cases, and the negative findings are preserved; Case 6's headline expectation is updated per Q1, and the former `SYN-INV-1` governing-leg assumption is retired.
 - **Amendment 2 (R1) — 2026-10-26:** Bounded docs correction answering the independent review at `ac3d33c48a` (`docs/MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-REVIEW.md`), which found two documentation gaps in the `406c67a9` text. **R1 change map:** (1) Numeric-return invariant `NUM-CLASS-1` added (§0) — one rule distinguishing admitted/scored returns from labelled provisional/candidate arithmetic; contract 2.2, 2.7, 3.2, risks R2/R3, Cases 1/4 and conformance assertion 2 aligned to it (the blanket ban that contradicted Cases 1/4 is replaced). (2) Fixed inputs completed: §(c) fixture table added in machine-readable CSV for all nine groups plus the grace-boundary subcase 3b (equality at 21:10:00Z specified); Case 7 gains `E2` evaluated_at; Case 8 pins W2 learned_at and an exact evaluation clock; Case 9 pins its evaluation clock, C2/C3 fixed inputs, and metric-specific denominators. Original response (`73bb69de`) and Amendment 1 (`406c67a9`) remain in history; nothing else is changed.
+- **R1-B cleanup — 2026-10-26:** Fixture-table alignment only, per the task note at `1757d2468`. Six records (3a/3b/3c/3d/9-C2/9-C3) carried 19 fields under 18 headers; the extra empty field is removed without shifting any declared binding. Case 8's expected state is now its actual maturity state (`MATURED`); the unchanged-weight effect is retained in the reason field. No values, clocks, numeric classes, grace rule, or policy gates changed.
 
 ---
 
@@ -145,19 +146,19 @@ All cases use C1 and the §0 fixture unless a case restates a field. "Eval" = th
 case,call,issued_at,baseline,baseline_obs,baseline_known,src,horizon_at,eval_at,endpoint,endpoint_obs,endpoint_known,endpoint_src,vintage,weights_issue,weights_current,expected_state,expected_reason
 1,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-06T21:01Z,PROVISIONAL:101,2026-01-06T21:00Z,2026-01-06T21:00:30Z,SRC_A,V1,W1,W1,OPEN,window_open
 2,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:20Z,102,2026-01-07T21:00Z,2026-01-07T21:00:30Z,SRC_A,V1,W1,W1,MATURED,eligible_return_leg_only+partial_coverage
-3a,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:01Z,ABSENT,,,,,V1,W1,W1,PENDING-PUBLICATION,endpoint_missing
-3b,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:10:00Z,ABSENT,,,,,V1,W1,W1,PENDING-PUBLICATION,endpoint_missing+grace_boundary_inclusive
-3c,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:10:01Z,ABSENT,,,,,V1,W1,W1,MATURED-UNAVAILABLE,endpoint_missing
-3d,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:20Z,ABSENT,,,,,V1,W1,W1,MATURED-UNAVAILABLE,endpoint_missing
+3a,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:01Z,ABSENT,,,,V1,W1,W1,PENDING-PUBLICATION,endpoint_missing
+3b,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:10:00Z,ABSENT,,,,V1,W1,W1,PENDING-PUBLICATION,endpoint_missing+grace_boundary_inclusive
+3c,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:10:01Z,ABSENT,,,,V1,W1,W1,MATURED-UNAVAILABLE,endpoint_missing
+3d,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:20Z,ABSENT,,,,V1,W1,W1,MATURED-UNAVAILABLE,endpoint_missing
 4,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:20Z,"A:102|B:98",2026-01-07T21:00Z,2026-01-07T21:00:30Z,"SRC_A|SRC_B",V1,W1,W1,CONFLICT,source_conflict
 5,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:20Z,STALE:102,2026-01-06T21:00Z,2026-01-06T21:00:30Z,SRC_A,V1,W1,W1,MATURED-UNAVAILABLE,endpoint_missing(stale_only)
 6,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:20Z,"102+PATH:97@2026-01-06T21:00Z",2026-01-07T21:00Z,2026-01-07T21:00:30Z,SRC_A,V1,W1,W1,MATURED,eligible_two_leg
 7-E1,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:20Z,102,2026-01-07T21:00Z,2026-01-07T21:00:30Z,SRC_A,V1,W1,W1,MATURED,evaluation_E1_eligible
 7-E2,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-08T12:05Z,99,2026-01-07T21:00Z,2026-01-08T12:00Z,SRC_A,V2,W1,W1,MATURED,evaluation_E2_revised_current
-8,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-08T12:30Z,102,2026-01-07T21:00Z,2026-01-07T21:00:30Z,SRC_A,V1,W1,W2@2026-01-08T12:00Z,UNCHANGED,original_W1_score_only
+8,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-08T12:30Z,102,2026-01-07T21:00Z,2026-01-07T21:00:30Z,SRC_A,V1,W1,W2@2026-01-08T12:00Z,MATURED,original_W1_score_only+weights_unchanged_by_W2
 9-C1,C1,2026-01-05T21:01Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:20Z,102,2026-01-07T21:00Z,2026-01-07T21:00:30Z,SRC_A,V1,W1,W1,MATURED,eligible_return_leg_only+partial_coverage
-9-C2,C2,2026-01-05T21:02Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-08T21:00Z,2026-01-07T21:20Z,NONE_YET,,,,,V1,W1,W1,OPEN,window_open
-9-C3,C3,2026-01-05T21:03Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:20Z,ABSENT,,,,,V1,W1,W1,MATURED-UNAVAILABLE,endpoint_missing
+9-C2,C2,2026-01-05T21:02Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-08T21:00Z,2026-01-07T21:20Z,NONE_YET,,,,V1,W1,W1,OPEN,window_open
+9-C3,C3,2026-01-05T21:03Z,100,2026-01-05T21:00Z,2026-01-05T21:00:30Z,SRC_A,2026-01-07T21:00Z,2026-01-07T21:20Z,ABSENT,,,,V1,W1,W1,MATURED-UNAVAILABLE,endpoint_missing
 ```
 
 ### Case 1 — Open window
@@ -286,4 +287,4 @@ An implementation conforms only if all of the following hold under the §0 fixtu
 
 ---
 
-*End of response. ACK and critique delivered as one document, per task terms; Amendment 1 incorporated 2026-10-26 per controller comment `6410046097`; Amendment 2 (R1) incorporated 2026-10-26 per the independent review at `ac3d33c48a`. No GRID source was read, no production data was used, and no GitHub publication is made by this document itself — the parent route posts it.*
+*End of response. ACK and critique delivered as one document, per task terms; Amendment 1 incorporated 2026-10-26 per controller comment `6410046097`; Amendment 2 (R1) incorporated 2026-10-26 per the independent review at `ac3d33c48a`; R1-B cleanup incorporated 2026-10-26 per the task note at `1757d2468`. No GRID source was read, no production data was used, and no GitHub publication is made by this document itself — the parent route posts it.*
