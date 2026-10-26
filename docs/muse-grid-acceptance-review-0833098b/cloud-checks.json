@@ -1,0 +1,94 @@
+{
+  "source_head": "0833098bccbb6bf2d0c9123a34c6af327733c715",
+  "source_blob": "b9cefea7e7b790f86969bf531f719ce7f8bd6026",
+  "response_comment": 6410881572,
+  "native_wrapper": "UNRUN; local runtime authorization unverified; no host switch",
+  "mode": "Cloud-only exact-document CSV parsing and declared-field checks; no GRID application/native runtime execution",
+  "passed": 4,
+  "total": 6,
+  "fixture_rows": 15,
+  "well_shaped_rows": 9,
+  "checks": [
+    {
+      "name": "NUM-CLASS-1-aligns-provisional-candidate-and-scored-rules",
+      "pass": true,
+      "detail": "Original numeric-blanket finding closed at document level; classes remain labelled/unscored as declared."
+    },
+    {
+      "name": "fixture-header-has-18-unique-fields",
+      "pass": true,
+      "detail": {
+        "fields": 18
+      }
+    },
+    {
+      "name": "all-fixture-records-align-with-header",
+      "pass": false,
+      "detail": [
+        {
+          "case": "3a",
+          "actual_fields": 19,
+          "expected_fields": 18
+        },
+        {
+          "case": "3b",
+          "actual_fields": 19,
+          "expected_fields": 18
+        },
+        {
+          "case": "3c",
+          "actual_fields": 19,
+          "expected_fields": 18
+        },
+        {
+          "case": "3d",
+          "actual_fields": 19,
+          "expected_fields": 18
+        },
+        {
+          "case": "9-C2",
+          "actual_fields": 19,
+          "expected_fields": 18
+        },
+        {
+          "case": "9-C3",
+          "actual_fields": 19,
+          "expected_fields": 18
+        }
+      ]
+    },
+    {
+      "name": "well-shaped-records-use-contract-state-enum",
+      "pass": false,
+      "detail": [
+        {
+          "case": "8",
+          "actual_state": "UNCHANGED",
+          "allowed": [
+            "OPEN",
+            "PENDING-PUBLICATION",
+            "MATURED",
+            "MATURED-UNAVAILABLE",
+            "CONFLICT",
+            "STALE-ONLY"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "well-shaped-records-preserve-declared-knowledge-clocks",
+      "pass": true,
+      "detail": {
+        "validated_rows": 9,
+        "rejected_for_width": 6,
+        "invalid_clock_cases": [],
+        "limitation": "Malformed records are rejected, never truncated or silently repaired."
+      }
+    },
+    {
+      "name": "controller-two-legs-and-unconfigured-policy-gates-preserved",
+      "pass": true,
+      "detail": "No repeated production clarification requested."
+    }
+  ]
+}
