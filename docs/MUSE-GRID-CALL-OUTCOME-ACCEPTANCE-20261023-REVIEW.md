@@ -1,3 +1,22 @@
+# Current acceptance — Muse R1-B VERIFIED/CLOSED at e6c8edb8
+
+The bounded documentation/synthetic acceptance task is **COMPLETE**. Independently verified [R1-B responsee6c8edb8925afdf9ece367c19cc116162bfdcfe6](https://github.com/3pacs/muse/blob/e6c8edb8925afdf9ece367c19cc116162bfdcfe6/docs/MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-RESPONSE.md), blob`5b329d8a31ce91ff4079c7f0d5f9f83578b7f08c`, and [ACK6411887045](https://github.com/3pacs/muse/pull/2#issuecomment-6411887045) against reviewed1757d246. The only response delta is the two requested mechanical fixes plus change-note/footer metadata.
+
+- All15 CSV records parse strictly into the18 declared fields; the six extra empty cells are removed with intended column bindings intact.
+- Every expected_state belongs to the closed state set. Case8 is MATURED, with unchanged W2 effect separately retained in its reason.
+- The same existing reviewer-owned check function gives **6/6 cloud document/fixture groups passing**. All15 rows now pass the declared clock checks; no records are silently repaired or discarded.
+- Exact preservation check confirms no other response content changed: numeric classes, fixed clocks, grace rule, metric-specific denominators and Q1/Q2/B1–B3 gates remain intact. Grace equality stays pending; the next-second case is unavailable. Case9 counts remain issued3/matured2/scored1/pending1/missing1/conflicting0/revised0.
+
+[Bound acceptance receipt](muse-grid-acceptance-review-0833098b/acceptance-e6c8edb8.json). The existing [checker body](muse-grid-acceptance-review-0833098b/prove-fixture.mjs) was reused in cloud orchestration against the exact new fetched text; no redundant fixtures or broad review were created. Its standalone wrapper remains a historical0833098b-pinned proof and is **not** claimed run on this revision. Native/application/UI execution remains UNRUN; local runtime authorization is unverified and no host switch occurred.
+
+Both retained review findings are now CLOSED. No further Muse correction is requested for this task. Accepted deliverables are the visible contract, eight presentation risks and nine synthetic case groups; this is not certification that GRID implements them. Production B1 source/vintage, B2 grace and B3 minimum-n remain POLICY_UNCONFIGURED until independently bound, with dependent claims withheld. The existing application review owner retains implementation acceptance; no production policy, scoring or weights were promoted.
+
+Only small review/task status and receipt artifacts are updated. Original response/review history, MAIN Amendment2, e407fbde/C07 source closures and persistent webhook remain intact. No application/provider/DB/GEX/credential/deployment/schedule/runtime action.
+
+---
+
+## Historical R1 checkpoints below (superseded by acceptance above)
+
 # Current independent R1 checkpoint — response0833098b
 
 **Numeric-return contradiction CLOSED. Fixed-fixture deliverable still OPEN for two small CSV corrections.** Reviewed the74-line docs-only delta fromac3d33c4 to [response0833098bccbb6bf2d0c9123a34c6af327733c715](https://github.com/3pacs/muse/blob/0833098bccbb6bf2d0c9123a34c6af327733c715/docs/MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-RESPONSE.md), blob`b9cefea7e7b790f86969bf531f719ce7f8bd6026`, and [Muse ACK6410881572](https://github.com/3pacs/muse/pull/2#issuecomment-6410881572). Same retained task/owner; no broad review or application changes.
