@@ -5,6 +5,7 @@
 - **Date:** 2026-10-25
 - **Source pin:** 3pacs/muse PR #2 head `7191ef8748d015aa5f4b3e67cce839b8c53ed6b3` (task text as dispatched in `docs/MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023.md`).
 - **Scope boundary:** No GRID source audit (Codex owns PR903/904 exact-source review). No production data, no provider/network lookup, no application edits, no rescoring, no learned-weight update. All assets, prices, and clocks below are invented fixtures. Nothing here asserts what the current product does or does not implement.
+- **Amendment 1 — 2026-10-26:** Controller clarifications (PR #2 comment `6410046097`) incorporated. Q1 resolved: no collapsed headline — invalidation and terminal return are two explicit headline legs (§4). Q2 resolved: production policy values are unverified and must not be invented — dependent behaviour is `POLICY_UNCONFIGURED`, production headline rates/eligibility claims requiring those values are withheld, and the exact production bindings still required are listed as a separate acceptance gate (§4). The original contract, the nine cases, and the negative findings are preserved; Case 6's headline expectation is updated per Q1, and the former `SYN-INV-1` governing-leg assumption is retired.
 
 ---
 
@@ -30,10 +31,10 @@
 
 **Labelled synthetic assumptions** (test scaffolding — *not* claims about the product):
 
-- `SYN-GRACE-10` — publication grace is **10 minutes** after horizon. Before horizon+grace with no endpoint: `PENDING-PUBLICATION`. After: `MATURED-UNAVAILABLE`. (The seed mandates the 10-minute value for Case 3; this response applies it fixture-wide for determinism.)
+- `SYN-GRACE-10` — publication grace is **10 minutes** after horizon. Before horizon+grace with no endpoint: `PENDING-PUBLICATION`. After: `MATURED-UNAVAILABLE`. (The seed mandates the 10-minute value for Case 3; this response applies it fixture-wide for determinism.) *Production grace is unbound — `POLICY_UNCONFIGURED` (§4 gate, item B2).*
 - `SYN-RULE-1` — the scoring rule under test in the arithmetic cases: at horizon, raw return = endpoint/baseline − 1; benchmark return likewise; excess = raw − benchmark; the **return leg** is "correct" iff the sign of raw return matches the declared direction. Invalidation is a **separate leg**, never merged into the return leg.
-- `SYN-INV-1` — where a headline classification is unavoidable, a breached invalidation governs the headline and the return leg is reported alongside. (Product policy not supplied — see §4, Q1.)
-- `SYN-SRC-1` — an unresolved equal-standing source conflict blocks scoring entirely (status `CONFLICT`). No averaging, no favourable pick. (Product policy not supplied — see §4, Q2.)
+- `SYN-INV-1` — **RETIRED by controller clarification (comment `6410046097`, §4 Q1).** The former assumption (a breached invalidation governs a single headline) is withdrawn: this contract has no single headline classification. Invalidation and terminal return are two explicit headline legs — never collapsed into one win/loss, never selectively hidden, neither leg governing the other. This is presentation guidance for the bounded proposal, **not** a production scoring policy.
+- `SYN-SRC-1` — an unresolved equal-standing source conflict blocks scoring entirely (status `CONFLICT`). No averaging, no favourable pick. (Fixture rule; the production source-resolution policy is unbound — `POLICY_UNCONFIGURED`, §4 gate item B1.)
 - Fixture completions, flagged where used: Case 1 provisional mark 101; Case 6 benchmark endpoint 202.
 
 **Counting rules (fixture-wide, deterministic):**
@@ -89,7 +90,7 @@ Three linked views. A field not recorded at the relevant time renders as `NOT RE
 | 3.2 | Eligibility: `ELIGIBLE` / `INELIGIBLE` + machine-readable reason (e.g. `endpoint_missing`, `source_conflict`, `window_open`) | Ineligible → reason shown, no score-shaped numbers |
 | 3.3 | Raw return, benchmark identity + benchmark return, excess — each with its formula inputs (endpoint, baseline, clocks) | Raw and excess are separate lines; excess is never relabelled as raw |
 | 3.4 | Instrument convention: index close vs ETF fill vs other, named exactly | An index close labelled as an ETF fill (or vice versa) is a contract violation |
-| 3.5 | Two-leg verdict: return leg and invalidation leg rendered side by side + the headline-classification rule (ID/version) if a single headline exists | Legs must not be collapsed silently; if no headline policy exists, no headline is shown |
+| 3.5 | Two-leg headline: the return leg and the invalidation leg rendered side by side **are** the headline (controller clarification, §4 Q1). No collapsed single verdict exists in this contract | A collapsed win/loss headline, or hiding either leg, is a contract violation |
 | 3.6 | Evaluation ID + vintage + evaluated-at + supersedes link to any prior evaluation | Corrections create a new evaluation; the prior one remains reachable and unchanged |
 | 3.7 | Cohort context: counts — issued / matured / eligible-scored / pending / missing / conflicting / revised — plus the exact denominator used for any rate | Rate without visible denominator and counts → contract violation |
 | 3.8 | Weight provenance: original-call weight version (from View 1) vs current learned-weight version, displayed as distinct roles with their learned-from vintages | Any rescoring under newer weights is labelled `COUNTERFACTUAL — NOT THE ORIGINAL SCORE` |
@@ -183,8 +184,8 @@ All cases use C1 and the §0 fixture unless a case restates a field. "Eval" = th
 ### Case 6 — Known invalidation
 
 - **Inputs:** Eval 2026-01-07T21:20Z. Admitted path observation: ASSET_X 97, observed 2026-01-06T21:00Z, known 21:00:30Z (97 ≤ 98, inside window → breach). Horizon endpoints: ASSET_X 102, BENCH_Y 202 *(benchmark is a fixture completion)*, observed 2026-01-07T21:00Z, known 21:00:30Z.
-- **Expected status/labels:** State `MATURED`. Invalidation leg: `BREACHED @ 2026-01-06T21:00Z (97 ≤ 98)` — permanent on the call record. Return leg: `CORRECT` — raw **+2.00%**, benchmark **+1.00%**, excess **+1.00pp**. Headline (under `SYN-INV-1`, flagged as assumption): `INVALIDATED` with the return leg rendered alongside, never instead.
-- **Score eligibility:** `ELIGIBLE`, counted **once** in the scored denominator, classified per the declared rule version (`SYN-RULE-1` + `SYN-INV-1`). The governing-leg policy is a missing product policy — see §4, Q1; under any other declared policy the two legs and both figures must still appear identically.
+- **Expected status/labels:** State `MATURED`. Invalidation leg: `BREACHED @ 2026-01-06T21:00Z (97 ≤ 98)` — permanent on the call record. Return leg: `CORRECT` — raw **+2.00%**, benchmark **+1.00%**, excess **+1.00pp**. Headline (per controller clarification, §4 Q1): there is **no single headline** — the two legs are the headline, both rendered in headline position: `INVALIDATION: BREACHED` + `RETURN: CORRECT (+2.00% / +1.00pp)`. Neither leg governs, neither is hidden.
+- **Score eligibility:** `ELIGIBLE`, counted **once** in the scored denominator, classified per the declared rule version (`SYN-RULE-1`) with the two-leg headline per §4 Q1.
 - **Display:** Original invalidation rule verbatim; breaching observation with value and clocks; both legs side by side; rule IDs.
 - **Withhold:** A lone "WIN +2%" (breach erased); a lone "INVALIDATED — LOSS" (return leg erased); any merged single number.
 - **FAIL example:** Card renders only "+2% — WIN", with the Jan 6 breach nowhere on the call page.
@@ -210,7 +211,7 @@ All cases use C1 and the §0 fixture unless a case restates a field. "Eval" = th
 ### Case 9 — Zero / partial sample
 
 - **Inputs:** Cohort of 3 calls, eval after 2026-01-07T21:20Z: `C1` = Case 2 control (matured, eligible, scored — return leg only, flagged partial coverage); `C2` = a call still inside its window (`OPEN`); `C3` = a matured call with no endpoint past grace (`MATURED-UNAVAILABLE`).
-- **Expected status/labels:** Counts displayed exactly: **issued 3 · matured 2 · eligible/scored 1 · pending 1 · missing 1 · conflicting 0 · revised 0**. Denominator for any return-leg rate = **1** (eligible/scored), shown adjacent to any figure. Headline rate: **suppressed** — display reads "1 of 1 scored calls correct on the return leg — sample too small, no accuracy rate claimed" (minimum-n headline policy is undeclared in the seed; suppression is the safe default, §4 Q2 covers the related policy gap). Invalidation coverage across the cohort stated explicitly: established for 0 of 2 matured calls (C1 `UNKNOWN`, C3 `UNKNOWN`).
+- **Expected status/labels:** Counts displayed exactly: **issued 3 · matured 2 · eligible/scored 1 · pending 1 · missing 1 · conflicting 0 · revised 0**. Denominator for any return-leg rate = **1** (eligible/scored), shown adjacent to any figure. Headline rate: **suppressed** — display reads "1 of 1 scored calls correct on the return leg — sample too small, no accuracy rate claimed" (production minimum-n is unbound — `POLICY_UNCONFIGURED`, §4 gate B3; suppression is the fixture behaviour). Invalidation coverage across the cohort stated explicitly: established for 0 of 2 matured calls (C1 `UNKNOWN`, C3 `UNKNOWN`).
 - **Score eligibility:** Only C1 contributes to any scored statistic. A parallel cohort with **zero** eligible calls must render its aggregate as `UNAVAILABLE` — never 0% and never 100%.
 - **Display:** All seven counts; the denominator; the coverage statement; per-call states for C1/C2/C3.
 - **Withhold:** Any headline percentage; any rate over the issued denominator (e.g. "33%"); any disappearance of the pending or missing call from the counts.
@@ -218,13 +219,25 @@ All cases use C1 and the §0 fixture unless a case restates a field. "Eval" = th
 
 ---
 
-## (d) Next bounded product clarification
+## (d) Clarifications — RESOLVED 2026-10-26 (controller, PR #2 comment `6410046097`)
 
-Two questions block full determinism; everything above is testable without them, using the labelled synthetic assumptions.
+**Q1 — Governing leg: RESOLVED.** For this contract and its synthetic cases, invalidation and terminal return are retained as **two explicit headline legs**. Disagreement is never collapsed into one win/loss, the favourable leg is never chosen, and neither leg is hidden. Contract 3.5 and Case 6 are updated to this expectation, and `SYN-INV-1` is retired. The controller states this is presentation guidance for the bounded proposal, **not** adoption of a production scoring policy — no production headline rule is claimed anywhere in this document.
 
-**Q1 — Governing leg.** When the invalidation leg breaches but the terminal return leg agrees with the call (Case 6) — or the reverse — which leg governs the single headline classification, or is the two-leg display itself the permanent headline with no collapsed verdict? Fixtures currently assume `SYN-INV-1` (invalidation governs). A one-line policy + rule version ID closes this.
+**Q2 — Production policy values: RESOLVED as unconfigured.** Production source-resolution policy, publication grace, and minimum-n values **have not been verified and must not be invented**. Accordingly:
 
-**Q2 — Source and sample policy values.** What are the production values for (i) the source-resolution/vintage policy when admitted providers conflict (fixture assumes conflict blocks scoring, `SYN-SRC-1`), (ii) the publication-grace duration per asset class (fixture assumes 10 minutes, `SYN-GRACE-10`), and (iii) the minimum scored-n below which headline rates are suppressed (fixture assumes suppression at n = 1)? Declared values replace the synthetic assumptions without changing any case structure.
+- Any production behaviour depending on one of those values is marked **`POLICY_UNCONFIGURED`**.
+- Production headline rates and score-eligibility claims that require an unbound value are **withheld** — they are not computed from fixture values.
+- The `SYN-*` assumptions above continue to provide deterministic synthetic coverage only. They are fixtures, **not product defaults**, and must never be presented as such.
+
+**Production bindings still required — separate acceptance gate (does not block this synthetic deliverable):**
+
+| Gate | Binding required | Fixture stand-in (not a default) | Behaviour until bound |
+|---|---|---|---|
+| B1 | Source-resolution / vintage policy for admitted-provider conflicts | `SYN-SRC-1` (conflict blocks scoring) | `POLICY_UNCONFIGURED`; no production score from a conflicted endpoint |
+| B2 | Publication-grace duration per asset class | `SYN-GRACE-10` (10 minutes) | `POLICY_UNCONFIGURED`; no production maturity transition on grace expiry |
+| B3 | Minimum scored-n for headline rates | Suppression at n = 1 (Case 9) | `POLICY_UNCONFIGURED`; production headline rates withheld |
+
+Each binding, once declared with a policy ID/version, replaces its fixture stand-in without changing any case structure.
 
 ---
 
@@ -244,7 +257,9 @@ An implementation conforms only if all of the following hold under the §0 fixtu
 10. Every displayed price shows observed-at; fetch time, if shown, is labelled as fetch time.
 11. An index close is never rendered with an ETF/fill label, and the instrument-convention field (contract 3.4) is non-empty for every scored call.
 12. Deleting or expiring source data changes no historical evaluation: E1-class records render identically from their pinned inputs.
+13. No surface renders a single collapsed win/loss headline for a scored call: wherever both legs exist, the invalidation leg and the return leg both appear in headline position (Case 6 shape), and neither is reachable only via expansion or history.
+14. On any production surface where gate B1, B2, or B3 is unbound, the dependent behaviour displays `POLICY_UNCONFIGURED` and no headline rate or score-eligibility claim requiring that value is rendered; no `SYN-*` fixture value (10-minute grace, conflict-blocks-scoring, n = 1 suppression) appears as, or is indistinguishable from, a product default.
 
 ---
 
-*End of response. ACK and critique delivered as one document, per task terms. No GRID source was read, no production data was used, and no GitHub publication is made by this document itself — the parent route posts it.*
+*End of response. ACK and critique delivered as one document, per task terms; Amendment 1 incorporated 2026-10-26 per controller comment `6410046097`. No GRID source was read, no production data was used, and no GitHub publication is made by this document itself — the parent route posts it.*
