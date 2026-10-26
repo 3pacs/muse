@@ -1,0 +1,71 @@
+{
+  "source_head": "e6c8edb8925afdf9ece367c19cc116162bfdcfe6",
+  "source_blob": "5b329d8a31ce91ff4079c7f0d5f9f83578b7f08c",
+  "previous_source": "0833098bccbb6bf2d0c9123a34c6af327733c715",
+  "previous_review": "1757d2468806d487612c0c26eb5a318c035f44b3",
+  "response_comment": 6411887045,
+  "same_existing_check_function": true,
+  "document_groups": {
+    "mode": "Cloud-only exact-document CSV parsing and declared-field checks; no GRID application/native runtime execution",
+    "passed": 6,
+    "total": 6,
+    "fixture_rows": 15,
+    "well_shaped_rows": 15,
+    "checks": [
+      {
+        "name": "NUM-CLASS-1-aligns-provisional-candidate-and-scored-rules",
+        "pass": true,
+        "detail": "Original numeric-blanket finding closed at document level; classes remain labelled/unscored as declared."
+      },
+      {
+        "name": "fixture-header-has-18-unique-fields",
+        "pass": true,
+        "detail": {
+          "fields": 18
+        }
+      },
+      {
+        "name": "all-fixture-records-align-with-header",
+        "pass": true,
+        "detail": []
+      },
+      {
+        "name": "well-shaped-records-use-contract-state-enum",
+        "pass": true,
+        "detail": []
+      },
+      {
+        "name": "well-shaped-records-preserve-declared-knowledge-clocks",
+        "pass": true,
+        "detail": {
+          "validated_rows": 15,
+          "rejected_for_width": 0,
+          "invalid_clock_cases": [],
+          "limitation": "Malformed records are rejected, never truncated or silently repaired."
+        }
+      },
+      {
+        "name": "controller-two-legs-and-unconfigured-policy-gates-preserved",
+        "pass": true,
+        "detail": "No repeated production clarification requested."
+      }
+    ]
+  },
+  "targeted_preservation": {
+    "only_six_empty_fields_case8_state_reason_and_metadata_changed": true,
+    "case8_matured_and_weight_reason": true,
+    "grace_equality_and_next_second": true,
+    "case9_counts": {
+      "issued": 3,
+      "matured": 2,
+      "eligible_scored": 1,
+      "pending": 1,
+      "missing": 1,
+      "conflicting": 0,
+      "revised": 0
+    },
+    "case9_counts_match": true
+  },
+  "native_wrapper": "UNRUN; same reviewer-owned pure function evaluated only in cloud; no local runtime/application execution",
+  "status": "R1-B VERIFIED/CLOSED at documentation/synthetic-fixture level; production B1/B2/B3 bindings and implementation/runtime acceptance remain separate"
+}
