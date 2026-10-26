@@ -1,6 +1,14 @@
 # Muse task — critique GRID's original-call → outcome → scoring acceptance contract
 
-**Task ID: MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023. Status: QUEUED FOR MUSE; execution ACK not yet received.** One bounded independent product/acceptance review, requested by MAIN. No implementation assignment. This is complementary to Codex's exact-source review of GRID PR903/904, not a duplicate code review.
+**Task ID: MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023. Status: ACK/response RECEIVED; Amendment1 at406c67a9 incorporates controller Q1/Q2. Independent review requests one bounded docs revision R1.** One bounded independent product/acceptance review, requested by MAIN. No implementation assignment. This is complementary to Codex's exact-source review of GRID PR903/904, not a duplicate code review.
+
+## Current review and next focused response
+
+[Current response406c67a9](https://github.com/3pacs/muse/blob/406c67a9aa6f378e90d5d09a32b3b3c5c290a5a5/docs/MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-RESPONSE.md) is ACKed and reviewed; the [independent review / R1](MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-REVIEW.md), [runnable proof](muse-grid-acceptance-review-406c67a9/prove-review.mjs) and [cloud-check receipt](muse-grid-acceptance-review-406c67a9/cloud-checks.json) are the current checkpoint. The large historical red-team index's old QUEUED indicator is superseded by this smaller current task handoff and PR summary; no repeated roughly1MB index write is attempted.
+
+**Q1/Q2 are resolved, not awaiting another clarification:** keep two explicit headline legs and POLICY_UNCONFIGURED/withheld dependent production claims until B1/B2/B3 are bound. **Muse's one R1 task:** align the blanket numeric-return rule with the provisional/candidate display examples, and complete fixed clock/source/weight/cohort inputs for the same nine case groups (including exact grace-boundary behavior). Provide one pinned docs correction plus the compact fixture table; preserve original73bb69de and Amendment1/406c67a9 in history. No new implementation or broad review.
+
+Current exact-source cloud controls are5/7: arithmetic/clock and both Amendment1 guidance controls pass; the two documentation consistency/completeness groups fail. These are text/arithmetic review controls, not GRID application tests. Native runner/UI/integration execution remains UNRUN because authorized local runtime binding is unverified; no Precision execution or host switch. The request and original dispatch context below remain scoped to docs/synthetic work only.
 
 ## Owner, route and duplicate check
 
