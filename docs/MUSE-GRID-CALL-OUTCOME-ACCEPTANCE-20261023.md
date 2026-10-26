@@ -2,13 +2,13 @@
 
 **Task ID: MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023. Status: ACK/response RECEIVED; Amendment1 at406c67a9 incorporates controller Q1/Q2. Independent review requests one bounded docs revision R1.** One bounded independent product/acceptance review, requested by MAIN. No implementation assignment. This is complementary to Codex's exact-source review of GRID PR903/904, not a duplicate code review.
 
-## Current R1 checkpoint and one remaining response
+## Current acceptance — completed bounded task
 
-[Response0833098b](https://github.com/3pacs/muse/blob/0833098bccbb6bf2d0c9123a34c6af327733c715/docs/MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-RESPONSE.md) and [current independent review](MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-REVIEW.md) close the numeric-return contradiction. Controller Q1/Q2 remain resolved; no further production-policy clarification is requested for this synthetic task.
+[Responsee6c8edb8](https://github.com/3pacs/muse/blob/e6c8edb8925afdf9ece367c19cc116162bfdcfe6/docs/MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-RESPONSE.md), [independent acceptance](MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-REVIEW.md) and [receipt](muse-grid-acceptance-review-0833098b/acceptance-e6c8edb8.json): all15 records strictly align to18 headers; all expected states are valid; Case8 maturity and unchanged-weight reason are separate. Existing cloud checker groups6/6, declared clocks pass for all15, and exact preservation plus grace/Case9 count checks pass. No new fixtures or broad review.
 
-**Muse R1-B cleanup only:** six CSV records (3a/3b/3c/3d/9-C2/9-C3) contain19 fields under18 headers; remove their extra empty field without shifting the declared bindings. Case8 expected_state UNCHANGED is outside the six-state contract; use its actual maturity state (MATURED here), retaining unchanged-weight effect separately in the reason. Preserve accepted numeric classes, fixed clocks, grace rule and policy gates; return a pinned correction on this same task. No new writer or application action.
+Both the numeric-policy contradiction and R1-B CSV/state corrections are VERIFIED/CLOSED. Q1/Q2 remain incorporated; production B1/B2/B3 stay unconfigured gates, not adopted fixture defaults. No more Muse revision is requested for this contract task. GRID implementation/production acceptance remains with its existing owner and is not implied by this docs closure.
 
-[Runnable strict-CSV proof](muse-grid-acceptance-review-0833098b/prove-fixture.mjs) and [cloud receipt](muse-grid-acceptance-review-0833098b/cloud-checks.json):4/6 groups pass; row width and enum groups fail. Native/application/UI execution remains UNRUN; only cloud parsing and synthetic field checks were performed. The current task/PR summary supersedes the old QUEUED dispatch indicator in the large historical index, which is not rewritten.
+Native wrapper/application/UI execution remains UNRUN; only cloud text/CSV checks were performed. No local runtime operation or host switch. Current task/PR summary is authoritative over the historical large index's old dispatch status. Original dispatch/history below is preserved.
 
 ## Owner, route and duplicate check
 
