@@ -14,7 +14,7 @@ Output: ~/workspace/goals/0dte-tape-alert-watch/hidden_files/dashboard_data.json
 import json
 import os
 import sys
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 HIDDEN = os.path.expanduser("~/workspace/goals/0dte-tape-alert-watch/hidden_files")
@@ -57,6 +57,61 @@ def rng(recs, key):
             "last": round(vals[-1], 2)}
 
 
+ET = ZoneInfo("America/New_York")
+
+
+def _ts_utc_instant(ts):
+    """Parse a record timestamp to a UTC instant (R5).
+
+    Returns (utc_dt, problem): problem is None when clean, else one of
+    'unparseable' / 'naive' / 'future'. The original string is always
+    preserved on the record; this is only an ordering key. Ordering uses
+    the parsed instant whenever one exists — including future instants —
+    so synthetic or clock-skewed fixtures still sort correctly; only
+    unparseable/naive timestamps sort last."""
+    try:
+        dt = datetime.fromisoformat(ts)
+    except (ValueError, TypeError):
+        return None, "unparseable"
+    if dt.tzinfo is None:
+        return None, "naive"
+    dt = dt.astimezone(timezone.utc)
+    if dt > datetime.now(timezone.utc) + timedelta(minutes=5):
+        return dt, "future"
+    return dt, None
+
+
+def _order_key(r):
+    # R5: order by normalized UTC instant, never by raw string. Quarantined
+    # timestamps (bad/naive/future) sort last but stay in the dataset with
+    # their original string intact.
+    dt, prob = _ts_utc_instant(r.get("ts") or "")
+    if dt is None:
+        return (1, datetime.max.replace(tzinfo=timezone.utc))
+    return (0, dt)
+
+
+def ts_et_hhmm(ts):
+    """Render a record ts as ET HH:MM for axis labels (F11)."""
+    try:
+        return datetime.fromisoformat(ts).astimezone(ET).strftime("%H:%M")
+    except Exception:
+        return (ts or "")[11:16]
+
+
+def normalize_gex_value(raw, formula):
+    """R6: project a strike-history value to canonical v2 units
+    (USD millions per 1% spot move). v1 reads 100x larger and is divided
+    exactly once here. Untagged values pass through unscaled: no v1 strike
+    history exists anywhere (the per-strike log only started in the v2 era),
+    and the formula is never inferred from the record's date."""
+    if raw is None:
+        return None
+    if formula == "v1":
+        return round(raw / 100.0, 1)
+    return round(raw, 1)  # "v2" or untagged
+
+
 def main():
     day = sys.argv[1] if len(sys.argv) > 1 else date.today().isoformat()
     if "--force" not in sys.argv and not market_open_now_pt():
@@ -64,6 +119,11 @@ def main():
         return
     recs = [r for r in load_jsonl(LOG_PATH) if r.get("expiry") == day]
     snaps = [s for s in load_jsonl(GEX_PATH) if s.get("expiry") == day]
+    # R5: order by normalized UTC instant, never by raw string (mixed
+    # offsets like +00:00 vs -04:00 mis-sort lexicographically). Quarantined
+    # timestamps sort last with their original string preserved.
+    recs.sort(key=_order_key)
+    snaps.sort(key=_order_key)
 
     data = {
         "date": day,
@@ -147,7 +207,10 @@ def main():
              "direction": last.get("hedge_1pct_dir")},
         ]
 
-    # heatmap: strike x time matrix of per-strike net GEX ($m)
+    # heatmap: strike x time matrix of per-strike net GEX ($m).
+    # F11: missing cells are null (gaps), never 0 — 0.0 is a real reading.
+    # R6: each event's value is normalized by ITS OWN formula tag; v1 and
+    # v2 events for the same strike render identically in canonical units.
     if snaps:
         strikes = sorted({float(k) for s in snaps for k in s.get("gex_m", {})})
         # downsample time to <= 48 columns
@@ -156,18 +219,27 @@ def main():
         times, values = [], []
         for s in cols:
             gm = s.get("gex_m", {})
-            times.append(s["ts"][11:16])
-            values.append([round(gm.get(str(k), 0.0), 1) for k in strikes])
-        data["heatmap"] = {"strikes": strikes, "times": times, "values": values}
+            formula = s.get("gex_formula")
+            times.append(ts_et_hhmm(s.get("ts", "")))
+            values.append([normalize_gex_value(gm[str(k)], formula)
+                           if str(k) in gm else None
+                           for k in strikes])
+        data["heatmap"] = {"strikes": strikes, "times": times, "values": values,
+                           "time_zone": "America/New_York"}
     else:
         data["data_quality"].append(
             "GEX heatmap starts collecting Monday — per-strike snapshots "
             "were added after this session")
 
-    # honesty notes
-    n_rtd_note = ("3 live RTD strikes + Nasdaq-delayed wings (~15 min); "
-                  "walls/flip can flicker on mixed snapshots")
-    data["data_quality"].append(n_rtd_note)
+    # honesty notes (F11: source note derived from the record's src_mix)
+    src_mix = last.get("src_mix") or "source mix unknown"
+    data["data_quality"].append(
+        f"{src_mix}; Nasdaq wings ~15 min delayed; "
+        "walls/flip can flicker on mixed snapshots")
+    data["data_quality"].append(
+        "GEX $m units changed 2026-10-05 (v2 = USD per 1% move, canonical); "
+        "snapshot net-GEX before that date is v1 and reads 100x larger; "
+        "heatmap cells normalize each event by its own formula tag")
     data["data_quality"].append(
         "GEX/charm/vanna dollar magnitudes swing on feed mixing — "
         "treat levels as signal, dollar sizes as rough")
