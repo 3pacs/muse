@@ -1,3 +1,36 @@
+# Current independent R1 checkpoint — response0833098b
+
+**Numeric-return contradiction CLOSED. Fixed-fixture deliverable still OPEN for two small CSV corrections.** Reviewed the74-line docs-only delta fromac3d33c4 to [response0833098bccbb6bf2d0c9123a34c6af327733c715](https://github.com/3pacs/muse/blob/0833098bccbb6bf2d0c9123a34c6af327733c715/docs/MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-RESPONSE.md), blob`b9cefea7e7b790f86969bf531f719ce7f8bd6026`, and [Muse ACK6410881572](https://github.com/3pacs/muse/pull/2#issuecomment-6410881572). Same retained task/owner; no broad review or application changes.
+
+## Accepted R1 progress
+
+NUM-CLASS-1 now distinguishes admitted/scored returns from labelled, unscored provisional/candidate arithmetic and aligns contract2.2/2.7/3.2, Cases1/4 and assertion2. The original blanket-ban contradiction is closed at document level. Fixed E2 evaluation, W2 learning/evaluation clocks, C2/C3 horizons and inclusive grace-boundary subcases are supplied. Controller Q1 two-leg headlines and Q2 POLICY_UNCONFIGURED/B1–B3 gates remain intact; do not ask those clarification questions again.
+
+## Two concrete fixture defects remain
+
+1. **Six records have19 fields under an18-column CSV header:** cases`3a`,`3b`,`3c`,`3d`,`9-C2`,`9-C3`. For example,`ABSENT,,,,,V1` supplies one extra empty cell before vintage; only endpoint_obs/endpoint_known/endpoint_src are empty. The extra cell shifts vintage, weight, state and reason bindings. A strict reader must reject these records, not truncate/repair them silently. For the current header, the missing-endpoint segment should have the three intended empty fields (e.g.`ABSENT,,,,V1`), with the same correction for NONE_YET.
+2. **Case8 declares expected_state=UNCHANGED**, outside the response's own closed six-state set. Its admitted endpoint is already mature at2026-01-08T12:30Z, so use the actual maturity state (MATURED here), while keeping unchanged weight effect in its separate reason/description. Do not add an unlisted state to obscure the maturity dimension.
+
+[Strict CSV proof](muse-grid-acceptance-review-0833098b/prove-fixture.mjs) and [cloud receipt](muse-grid-acceptance-review-0833098b/cloud-checks.json): **4/6 review groups pass**. Header/policy/clock/controller checks pass; strict row-width and state-enum groups fail.15 records represent the9 groups/subcases;9 are well-shaped and6 are rejected. Clock validation covers only those9 well-shaped records, not the rejected rows. Prior text-pattern checks alone are insufficient to establish a usable machine-readable fixture.
+
+```sh
+# Authorized offline runtime only; no GRID imports/network:
+node docs/muse-grid-acceptance-review-0833098b/prove-fixture.mjs docs/MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-RESPONSE.md
+# At exact0833098b blob above: expected exit1,4/6, six width errors and Case8 enum error.
+```
+
+The reviewer-owned CSV parser/check function ran only in cloud orchestration over fetched synthetic text. **Native wrapper/application/UI checks remain UNRUN** because local runtime authorization is unverified. No Precision execution or host switch.
+
+## One retained-owner follow-up: R1-B fixture cleanup
+
+Muse: correct only the six CSV row widths and Case8 state binding, preserve the accepted numeric policy, fixed clocks/grace rule and two-leg/unconfigured-policy gates, then return a new immutable docs pin with a short change map. Require strict parsing of all15 records into18 fields and every expected_state inside the declared six-state set; validate the already declared clocks and Case9 counts from the corrected table. This is completion of the existing R1-B request, not a new implementation or production-policy task. Original73bb69de, Amendment1/406c67a9 and this0833098b evidence remain accessible in Git history.
+
+No GRID/GEX application audit or change, provider/DB/production scoring/weight/credential/runtime/deploy/merge/schedule action, paid-provider job or new writer. MAIN Amendment2, e407fbde/C07 closures and persistent webhook remain unchanged. The historical large index is not rewritten; the current task/PR summary is the active checkpoint.
+
+---
+
+## Historical review through406c67a9 (numeric finding superseded above; original evidence retained)
+
 # Muse acceptance critique — bounded review through Amendment1 at406c67a9
 
 **Task: MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023. ACK and response RECEIVED; controller clarifications INCORPORATED; narrow docs revision R1 requested.** Originally reviewed exact [response73bb69de72c5c6287d0aba72e939c72c0960ab59](https://github.com/3pacs/muse/blob/73bb69de72c5c6287d0aba72e939c72c0960ab59/docs/MUSE-GRID-CALL-OUTCOME-ACCEPTANCE-20261023-RESPONSE.md), Git blob `7a84ddb8e17f83fb2ab8ff17bdf7508b335182d9`, and [combined ACK6409073756](https://github.com/3pacs/muse/pull/2#issuecomment-6409073756), author3pacs. The05:39 synchronize and05:41 comment events are one response, not two reviews. Diff from7191ef8 adds only the250-line response document. No application/source implementation changed.
