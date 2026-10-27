@@ -4,6 +4,7 @@
 - **From:** Muse — response document. The pickup ACK was posted separately as PR #2 comment `6454794601`; this document is the response only and makes no acknowledgement claim of its own.
 - **Date:** 2026-10-27
 - **Source pin:** task doc `docs/MUSE-GRID-G4-MATERIALIZATION-FRESHNESS-20261027.md` at `8a54c944dcfc1b1d3c8861e01c901291b09ba027`, dispatched in PR #2 comment `6453712595`.
+- **Revision R1 — 2026-10-27:** Bounded correction answering the independent review at `5f3f1637` (`docs/MUSE-GRID-G4-MATERIALIZATION-FRESHNESS-20261027-REVIEW.md`; its checks are bound to the original response `2a507c59`, blob `a237b3f7`, which remains in history). **R1-A (F8):** the writer's loaded state is now explicitly bound (`V1` loaded, HOLD engaged) and evidenced by a `WRITER_LOADED_STATE` receipt, and zero-in-flight is receipted per producer path (writer, Hermes refresher, manual API, direct-flow) instead of writer-scope only; narrative, fixture, and barrier claims are aligned, and F8 remains the positive control on explicit evidence — the `SAFE-2BAR-1` contract is unchanged, not weakened. **R1-B (F5 / all cases):** every case now carries a uniform `version_clocks` collection pinning per-version observation and first-known clocks; F5's entry binds V2's clocks (`2026-01-20T10:00:00Z` / `2026-01-20T10:01:00Z`) in the machine fixture, not only in prose. No case count, seeded clocks, eligibility outcomes, barrier verdicts, or policy gaps changed.
 - **Scope boundary:** Synthetic/docs only. Every snapshot, version, consumer, path, receipt, and clock below is invented. Nothing here asserts anything about any production system: no production adoption, freshness, retirement, coverage, or behaviour is claimed anywhere in this document. The four-hour TTL appearing in the seeds is a challenge parameter of the fixtures, not a production freshness, grace, or default policy.
 
 ---
@@ -15,6 +16,7 @@
 - The string `"UNKNOWN"` means the fact was not supplied in the fixture. Each refresh object in §3 carries `expires_at_before` — the expiry in force immediately before that refresh — as `"UNKNOWN"` wherever the seed supplies no earlier expiry (F1's second refresh is the exception: its before-value is the first refresh's `2026-01-20T16:00:00Z` expiry). An absent receipt is `UNKNOWN` — it is never rendered as false, zero, "fenced", or "adopted".
 - JSON `null` appears **only** for an explicitly-null `expires_at` (Case F4, and nowhere else). A null expiry is a *known* fact — "no expiry was set" — and is never conflated with an unknown clock.
 - Every case object in §3 uses one identical field schema. Receipts appear in a `receipts` array (empty where a case has none).
+- Every case carries a `version_clocks` collection pinning `original_observed_at` and `first_known_at` **per version** (R1-B). In single-version cases its one entry mirrors the top-level clocks; in F5 it is what binds V2's clocks in machine-readable form, with identity carried by each entry's `version_id`.
 - Technical eligibility under a named unsafe rule (`eligible_under_named_rule`) is kept strictly separate from acceptance under the safe contract (`safe_contract_acceptance`). A row can be selector-eligible under an unsafe rule and still be `NOT_ACCEPTED` — that separation is the point of every case except F8.
 
 ### 0.2 Unsafe synthetic rules under challenge
@@ -99,7 +101,7 @@ All clocks are invented, UTC, synthetic January 2026, expanded to full ISO-8601.
 
 ### F5 — Overlapping versions
 
-- **Pinned inputs:** `SNAP_F5`, versions `V1` and `V2` of the same snapshot. `V1`: observed `2026-01-20T09:00:00Z`, known `2026-01-20T09:01:00Z`, refresh `2026-01-20T11:00:00Z` → expiry `2026-01-20T15:00:00Z`. `V2`: observed `2026-01-20T10:00:00Z`, known `2026-01-20T10:01:00Z`, refresh `2026-01-20T12:00:00Z` → expiry `2026-01-20T16:00:00Z`. Evaluated `2026-01-20T12:30:00Z`. Both versions are in the registry; a subscriber's cache holds `V1`.
+- **Pinned inputs:** `SNAP_F5`, versions `V1` and `V2` of the same snapshot. `V1`: observed `2026-01-20T09:00:00Z`, known `2026-01-20T09:01:00Z`, refresh `2026-01-20T11:00:00Z` → expiry `2026-01-20T15:00:00Z`. `V2`: observed `2026-01-20T10:00:00Z`, known `2026-01-20T10:01:00Z`, refresh `2026-01-20T12:00:00Z` → expiry `2026-01-20T16:00:00Z`. Evaluated `2026-01-20T12:30:00Z`. Both versions are in the registry; a subscriber's cache holds `V1`; each version's observation and first-known clocks are pinned per version in the fixture (`version_clocks`), so V2's clocks are machine-readable, not prose-only.
 - **Barrier states:** Barrier 1 `UNPROVEN` — the subscriber's cache holding `V1` is presence, not adoption or exclusion proof for either version. Barrier 2 `NOT_RETIRED` — both versions are selector-eligible at evaluation (12:30 < 15:00 and 12:30 < 16:00) and neither has an invalidation disposition.
 - **User-visible label:** `NOT RETIRED — V1 AND V2 BOTH ELIGIBLE; PRECEDENCE POLICY_UNCONFIGURED`.
 - **Safe disposition / withheld claims:** `NOT_ACCEPTED`. Withheld: "V1 superseded/removed", any precedence claim, and any adoption claim. Version precedence under overlap is `POLICY_UNCONFIGURED` (GAP-03).
@@ -127,8 +129,8 @@ All clocks are invented, UTC, synthetic January 2026, expanded to full ISO-8601.
 ### F8 — Positive proof / boundary control
 
 - **Pinned inputs:** `SNAP_F8` / `V1`. Observed `2026-01-20T10:00:00Z`, first known `2026-01-20T10:01:00Z`. Last refresh `2026-01-20T11:00:00Z` → expiry `2026-01-20T15:00:00Z`. Evaluated `2026-01-20T16:01:00Z`. No overlapping rows, no NULL-expiry rows. The consumer inventory is finite and closed: exactly two consumers, `CONSUMER_A` and `CONSUMER_B`.
-- **Invented receipts (all `2026-01-20`):** at `14:50:00Z`, fence receipts for **every** inventoried producer path (writer, Hermes refresher, manual API, direct-flow) plus a zero-in-flight receipt; registry invalidation receipt `14:51:00Z`; cache invalidation receipt `14:52:00Z`; per-consumer adoption receipts `14:53:00Z` for both `CONSUMER_A` and `CONSUMER_B`.
-- **Barrier states:** Barrier 1 `PROVEN_WITHIN_SYNTHETIC_INVENTORY` — writer path fenced, zero in-flight receipted, and both inventoried consumers have adoption receipts. Barrier 2 `RETIRED_WITHIN_SYNTHETIC_INVENTORY` — the sole registry row is invalidated, the cache is invalidated, and every inventoried renewal path was fenced before expiry, so no eligible renewal remains inside this universe.
+- **Invented receipts (all `2026-01-20`):** at `14:50:00Z`, a writer loaded-state receipt (loaded version `V1`, HOLD engaged), fence receipts for **every** inventoried producer path (writer, Hermes refresher, manual API, direct-flow), and a zero-in-flight receipt **for each of those four paths individually**; registry invalidation receipt `14:51:00Z`; cache invalidation receipt `14:52:00Z`; per-consumer adoption receipts `14:53:00Z` for both `CONSUMER_A` and `CONSUMER_B`.
+- **Barrier states:** Barrier 1 `PROVEN_WITHIN_SYNTHETIC_INVENTORY` — the writer's loaded state is known by receipt (`V1` loaded, HOLD engaged), zero-in-flight is receipted for every inventoried producer path individually, and both inventoried consumers have adoption receipts. Barrier 2 `RETIRED_WITHIN_SYNTHETIC_INVENTORY` — the sole registry row is invalidated, the cache is invalidated, and every inventoried renewal path was fenced before expiry, so no eligible renewal remains inside this universe.
 - **User-visible label:** `RETIRED — WITHIN THIS SYNTHETIC INVENTORY ONLY (RECEIPTS COMPLETE 14:53Z)`.
 - **Safe disposition / withheld claims:** `ACCEPTED_WITHIN_CLOSED_SYNTHETIC_INVENTORY_ONLY` under `SAFE-2BAR-1`. Withheld: any production retirement, coverage, or adoption claim — production inventory coverage remains `UNKNOWN`. Note the selector fact is recorded separately and proves nothing by itself: under `SYN-BOUNDARY-1` the row is not selector-eligible at evaluation (16:01 is not < 15:00), and that expiry-only fact is **not** the basis of acceptance.
 - **Minimal proof still missing:** none inside the closed synthetic inventory. (Any production claim would additionally need a production inventory-coverage attestation — GAP-07 — which is not supplied and not claimed.)
@@ -138,7 +140,7 @@ All clocks are invented, UTC, synthetic January 2026, expanded to full ISO-8601.
 
 ## 3. Machine-readable fixture table
 
-One schema across all eight objects. `eligible_under_named_rule` records technical eligibility under the named unsafe rule only; `safe_contract_acceptance` records the separate `SAFE-2BAR-1` verdict. `"UNKNOWN"` means the fact was not supplied; JSON `null` appears only for F4's explicitly-null expiry. F5 has two live versions, so its single `expires_at_at_evaluation` field lists both (`V1:...|V2:...`); the per-version values also appear in its `refreshes` array.
+One schema across all eight objects. `eligible_under_named_rule` records technical eligibility under the named unsafe rule only; `safe_contract_acceptance` records the separate `SAFE-2BAR-1` verdict. `"UNKNOWN"` means the fact was not supplied; JSON `null` appears only for F4's explicitly-null expiry. `version_clocks` pins each version's observation and first-known clocks (F5 carries both V1 and V2). F5 has two live versions, so its single `expires_at_at_evaluation` field lists both (`V1:...|V2:...`); the per-version values also appear in its `refreshes` array.
 
 ```json
 [
@@ -150,6 +152,7 @@ One schema across all eight objects. `eligible_under_named_rule` records technic
     "evaluated_at": "2026-01-20T16:01:00Z",
     "original_observed_at": "2026-01-19T08:00:00Z",
     "first_known_at": "2026-01-19T08:01:00Z",
+    "version_clocks": [{"version_id": "V1", "original_observed_at": "2026-01-19T08:00:00Z", "first_known_at": "2026-01-19T08:01:00Z"}],
     "refreshes": [
       {"version_id": "V1", "refreshed_at": "2026-01-20T12:00:00Z", "expires_at_before": "UNKNOWN", "expires_at": "2026-01-20T16:00:00Z"},
       {"version_id": "V1", "refreshed_at": "2026-01-20T15:59:00Z", "expires_at_before": "2026-01-20T16:00:00Z", "expires_at": "2026-01-20T19:59:00Z"}
@@ -182,6 +185,7 @@ One schema across all eight objects. `eligible_under_named_rule` records technic
     "evaluated_at": "2026-01-20T12:30:00Z",
     "original_observed_at": "2026-01-20T10:00:00Z",
     "first_known_at": "2026-01-20T10:01:00Z",
+    "version_clocks": [{"version_id": "V1", "original_observed_at": "2026-01-20T10:00:00Z", "first_known_at": "2026-01-20T10:01:00Z"}],
     "refreshes": [
       {"version_id": "V1", "refreshed_at": "2026-01-20T12:00:00Z", "expires_at_before": "UNKNOWN", "expires_at": "2026-01-20T16:00:00Z"}
     ],
@@ -213,6 +217,7 @@ One schema across all eight objects. `eligible_under_named_rule` records technic
     "evaluated_at": "2026-01-20T12:01:00Z",
     "original_observed_at": "2026-01-20T10:00:00Z",
     "first_known_at": "2026-01-20T10:01:00Z",
+    "version_clocks": [{"version_id": "V1", "original_observed_at": "2026-01-20T10:00:00Z", "first_known_at": "2026-01-20T10:01:00Z"}],
     "refreshes": [
       {"version_id": "V1", "refreshed_at": "2026-01-20T11:00:00Z", "expires_at_before": "UNKNOWN", "expires_at": "2026-01-20T15:00:00Z"}
     ],
@@ -244,6 +249,7 @@ One schema across all eight objects. `eligible_under_named_rule` records technic
     "evaluated_at": "2026-01-20T16:01:00Z",
     "original_observed_at": "2026-01-19T08:00:00Z",
     "first_known_at": "2026-01-19T08:01:00Z",
+    "version_clocks": [{"version_id": "V1", "original_observed_at": "2026-01-19T08:00:00Z", "first_known_at": "2026-01-19T08:01:00Z"}],
     "refreshes": [
       {"version_id": "V1", "refreshed_at": "2026-01-20T12:00:00Z", "expires_at_before": "UNKNOWN", "expires_at": null}
     ],
@@ -275,6 +281,7 @@ One schema across all eight objects. `eligible_under_named_rule` records technic
     "evaluated_at": "2026-01-20T12:30:00Z",
     "original_observed_at": "2026-01-20T09:00:00Z",
     "first_known_at": "2026-01-20T09:01:00Z",
+    "version_clocks": [{"version_id": "V1", "original_observed_at": "2026-01-20T09:00:00Z", "first_known_at": "2026-01-20T09:01:00Z"}, {"version_id": "V2", "original_observed_at": "2026-01-20T10:00:00Z", "first_known_at": "2026-01-20T10:01:00Z"}],
     "refreshes": [
       {"version_id": "V1", "refreshed_at": "2026-01-20T11:00:00Z", "expires_at_before": "UNKNOWN", "expires_at": "2026-01-20T15:00:00Z"},
       {"version_id": "V2", "refreshed_at": "2026-01-20T12:00:00Z", "expires_at_before": "UNKNOWN", "expires_at": "2026-01-20T16:00:00Z"}
@@ -307,6 +314,7 @@ One schema across all eight objects. `eligible_under_named_rule` records technic
     "evaluated_at": "2026-01-20T16:01:00Z",
     "original_observed_at": "2026-01-19T08:00:00Z",
     "first_known_at": "2026-01-19T08:01:00Z",
+    "version_clocks": [{"version_id": "V1", "original_observed_at": "2026-01-19T08:00:00Z", "first_known_at": "2026-01-19T08:01:00Z"}],
     "refreshes": [
       {"version_id": "V1", "refreshed_at": "2026-01-20T15:59:00Z", "expires_at_before": "UNKNOWN", "expires_at": "2026-01-20T19:59:00Z"}
     ],
@@ -338,6 +346,7 @@ One schema across all eight objects. `eligible_under_named_rule` records technic
     "evaluated_at": "2026-01-20T16:01:00Z",
     "original_observed_at": "2026-01-19T08:00:00Z",
     "first_known_at": "2026-01-19T08:01:00Z",
+    "version_clocks": [{"version_id": "V1", "original_observed_at": "2026-01-19T08:00:00Z", "first_known_at": "2026-01-19T08:01:00Z"}],
     "refreshes": [
       {"version_id": "V1", "refreshed_at": "2026-01-20T15:59:00Z", "expires_at_before": "UNKNOWN", "expires_at": "2026-01-20T19:59:00Z"}
     ],
@@ -369,11 +378,12 @@ One schema across all eight objects. `eligible_under_named_rule` records technic
     "evaluated_at": "2026-01-20T16:01:00Z",
     "original_observed_at": "2026-01-20T10:00:00Z",
     "first_known_at": "2026-01-20T10:01:00Z",
+    "version_clocks": [{"version_id": "V1", "original_observed_at": "2026-01-20T10:00:00Z", "first_known_at": "2026-01-20T10:01:00Z"}],
     "refreshes": [
       {"version_id": "V1", "refreshed_at": "2026-01-20T11:00:00Z", "expires_at_before": "UNKNOWN", "expires_at": "2026-01-20T15:00:00Z"}
     ],
     "expires_at_at_evaluation": "2026-01-20T15:00:00Z",
-    "writer": {"loaded_version_or_state": "UNKNOWN", "hold": "UNKNOWN"},
+    "writer": {"loaded_version_or_state": "V1", "hold": "HOLD"},
     "in_flight": "ZERO_BY_RECEIPT",
     "consumers": [
       {"id": "CONSUMER_A", "adoption_state": "ADOPTION_RECEIPT_2026-01-20T14:53:00Z", "cache_content": "INVALIDATED"},
@@ -396,7 +406,11 @@ One schema across all eight objects. `eligible_under_named_rule` records technic
       {"type": "FENCE", "scope": "hermes_refresher", "at": "2026-01-20T14:50:00Z"},
       {"type": "FENCE", "scope": "manual_api", "at": "2026-01-20T14:50:00Z"},
       {"type": "FENCE", "scope": "direct_flow", "at": "2026-01-20T14:50:00Z"},
+      {"type": "WRITER_LOADED_STATE", "scope": "writer", "at": "2026-01-20T14:50:00Z"},
       {"type": "ZERO_IN_FLIGHT", "scope": "writer", "at": "2026-01-20T14:50:00Z"},
+      {"type": "ZERO_IN_FLIGHT", "scope": "hermes_refresher", "at": "2026-01-20T14:50:00Z"},
+      {"type": "ZERO_IN_FLIGHT", "scope": "manual_api", "at": "2026-01-20T14:50:00Z"},
+      {"type": "ZERO_IN_FLIGHT", "scope": "direct_flow", "at": "2026-01-20T14:50:00Z"},
       {"type": "REGISTRY_INVALIDATION", "scope": "SNAP_F8_V1", "at": "2026-01-20T14:51:00Z"},
       {"type": "CACHE_INVALIDATION", "scope": "cache", "at": "2026-01-20T14:52:00Z"},
       {"type": "CONSUMER_ADOPTION", "scope": "CONSUMER_A", "at": "2026-01-20T14:53:00Z"},
@@ -440,6 +454,8 @@ Mapping of the task's Pass criteria to where this response satisfies each:
 | Concrete counterexample to four-hour-only retirement | F1: second refresh at 15:59 renews the row to 19:59; at 16:01 the row is eligible and the observation is 32h01m old |
 | Positive synthetic receipt control with finite coverage | F8: closed inventory (4 producer paths, exactly 2 named consumers), receipts complete 14:53 before the 15:00 expiry, acceptance scoped to the synthetic inventory only; expiry-only reasoning still rejected |
 | Concise missing-policy / proof list | §4, GAP-01–GAP-10, each naming the exact missing binding or proof and its retained owner category |
+| R1-A — F8 adoption barrier no longer overclaims (review `5f3f1637`) | §2 F8 and §3 F8: writer loaded state bound (`V1`, HOLD) with a `WRITER_LOADED_STATE` receipt at 14:50Z; `ZERO_IN_FLIGHT` receipts for writer, Hermes refresher, manual API, and direct-flow individually |
+| R1-B — per-version clocks machine-readable (review `5f3f1637`) | `version_clocks` in all eight §3 objects; F5 binds V2 observed `2026-01-20T10:00:00Z` / first-known `2026-01-20T10:01:00Z` alongside V1's |
 | No production claim | Header scope boundary; `withheld_claims` in every case; every unbound production decision recorded as `POLICY_UNCONFIGURED` with its missing binding named in §4 |
 
 ---
