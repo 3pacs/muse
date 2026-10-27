@@ -1,3 +1,29 @@
+# Muse G4 acceptance — both bounded findings CLOSED
+
+**Task MUSE-GRID-G4-MATERIALIZATION-FRESHNESS-20261027 is COMPLETE at documentation/synthetic-fixture level.** No further Muse correction is pending. Prior original-call/outcome R1-B, C07 and other source closures remain closed.
+
+Independently reviewed [corrected responsef80cca37](https://github.com/3pacs/muse/blob/f80cca3787c595cc2876665fc1e15a09d281ab80/docs/MUSE-GRID-G4-MATERIALIZATION-FRESHNESS-20261027-RESPONSE.md), Git blob **aa13cf3b4c83bd6ca69bc819041c0abc4f803e08**, and [R1 delivery6455299957](https://github.com/3pacs/muse/pull/2#issuecomment-6455299957), against review5f3f1637. Muse's availability/scope [ACK6454794601](https://github.com/3pacs/muse/pull/2#issuecomment-6454794601), original response and correction are separate records. Current source changes only the response document (21 additions/5 removals); no application paths.
+
+**Independent cloud checks:21/21 groups pass; both findings VERIFIED/CLOSED.**
+- **G4-R1-A:** F8 now records writer loaded V1 / HOLD plus a WRITER_LOADED_STATE receipt, and ZERO_IN_FLIGHT receipts individually covering writer, Hermes refresher, manual API and direct-flow. Both finite consumers retain adoption receipts. Full adoption and materialization predicates independently return true inside this invented inventory. Removing the loaded-state receipt or Hermes zero-in-flight receipt makes adoption fail; removing the manual fence or cache invalidation makes materialization fail.
+- **G4-R1-B:** all8 cases share26 fields, including version_clocks. Every refresh version has exactly one observation/known binding with coherent ordering; F5 explicitly binds V1 09:00/09:01Z and V2 10:00/10:01Z. Removing V2's clock entry fails the binding check.
+- **Preservation:** subtracting only the new version_clocks and F8 loaded/in-flight additions reconstructs the original eight JSON cases exactly. SAFE-2BAR-1, synthetic boundary and complete ten-item policy-gap text are byte-identical. No new case, changed seed clock, eligibility, verdict or production policy was introduced. F1's32h01m observation /4h01m first refresh /3h58m renewed remaining time and the four-hour-wait counterexample remain valid.
+
+[Bound acceptance checks](muse-grid-g4-review-2a507c59/acceptance-f80cca37.json) · [successor pinned checker](muse-grid-g4-review-2a507c59/acceptance-f80cca37.mjs). The original failing proof/checks below remain unchanged and pinned to2a507c59. The successor reuses those19 groups with the expected positive F8 adoption result and receipt requirement, plus2 targeted version/negative-control groups; it does not pretend the old blob gate accepted new bytes.
+
+```sh
+git show f80cca3787c595cc2876665fc1e15a09d281ab80:docs/MUSE-GRID-G4-MATERIALIZATION-FRESHNESS-20261027-RESPONSE.md > /tmp/muse-g4-response-f80cca37.md
+node docs/muse-grid-g4-review-2a507c59/acceptance-f80cca37.mjs /tmp/muse-g4-response-f80cca37.md
+```
+
+The reviewer-owned pure checker body ran only in cloud orchestration over fetched invented text. **Native wrapper/application/runtime execution remains UNRUN.** Acceptance validates this synthetic evidence contract, not any GRID implementation, live adoption, freshness, inventory coverage or retirement. Production GAP-01–GAP-10 remain unconfigured bindings with dependent claims withheld. Existing authors/source reviewer/ROOT release owner retain their separate scopes; this closure does not authorize runtime work.
+
+No additional Muse revision is needed for this task. The current review/PR summary supersedes the historical index's stale dispatch status while preserving dispatch, original response and review history. No dashboard work, application edits, merge/deploy, provider/DB, security, credential, schedule, scoring/weights/evaluation or automation action; persistent webhook unchanged.
+
+---
+
+## Historical independent review at5f3f1637 — superseded by acceptance above
+
 # Independent Muse G4 acceptance review — bounded R1 requested
 
 Task: **MUSE-GRID-G4-MATERIALIZATION-FRESHNESS-20261027**. **Response RECEIVED; docs/synthetic acceptance needs one bounded revision R1.** R1-B original-call/outcome remains CLOSED.
