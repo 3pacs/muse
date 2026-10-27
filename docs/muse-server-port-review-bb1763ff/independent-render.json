@@ -1,0 +1,60 @@
+{
+  "local_export_commit": "bb1763ff98f44ab6ed2de41fb05cbe9f194d7302",
+  "dashboard_source_commit": "47c504052d15234e454fe11a81e9049eaee7040b",
+  "dashboard_js_sha256": "b75b19d8af9a1c30e3736011ff9c4e6b64c2627956ff75115adaf23292e60a72",
+  "fixture_sha256": "f33765ac82e290de0b10743eaba124e7e2672c0c53005cd92c6e90e7d6a40fec",
+  "helper_sha256": "f0ea4b177531c5d468b39eb4e36b33302e61c37a6bee88313ef9f9d3567d5024",
+  "mode": "Exact-source pure exports and in-memory fake-DOM text rendering. Native fetch/provider/database/server/browser UNRUN.",
+  "passed": 5,
+  "total": 7,
+  "checks": [
+    {
+      "name": "normalizer-retains-cboe-provenance",
+      "passed": true,
+      "actual": {
+        "name": "cboe_delayed",
+        "delay": "~15min",
+        "asOf": "2026-10-22T23:28:01+00:00",
+        "n": 146
+      }
+    },
+    {
+      "name": "normalizer-retains-quote-clock-kind",
+      "passed": true,
+      "actual": {
+        "source": "rtd",
+        "delay": "realtime",
+        "as_of": "2026-10-22T23:28:19.585122+00:00",
+        "clock": "collector-receipt"
+      }
+    },
+    {
+      "name": "renderer-shows-delayed-chain-and-zero-live-option-strikes",
+      "passed": true,
+      "actual": "Source: interpreter on this host (/feed/all + /feed/signals, loopback :8788), snapshot every ~30 s. Quote: rtd · realtime. Chain: cboe_delayed · ~15min · 146 strikes · as of 4:28:01 PM PT · 0 strikes real-time. Nasdaq wings: 0 strikes, ~15 min delayed, as of 4:24:51 PM PT. This page polls every 15 s while open and stores one snapshot per minute for the trail. GEX convention: dealers long calls / short puts — an assumption, not observed positioning. Nothing here predicts direction."
+    },
+    {
+      "name": "renderer-labels-collector-receipt-clock-kind",
+      "passed": false,
+      "actual": {
+        "hero": "Net GEX −$2,697M per 1% · flip 769.34 · quote as of 4:28:19 PM PT (rtd, realtime)",
+        "reason": "RTD callback receipt must remain distinct from market/provider time"
+      }
+    },
+    {
+      "name": "renderer-labels-public-fallback-latency",
+      "passed": true,
+      "actual": "Net GEX −$2,697M per 1% · flip 769.34 · quote as of 4:28:19 PM PT (public_price, latency-unverified)"
+    },
+    {
+      "name": "renderer-unknown-clock-is-not-epoch",
+      "passed": true,
+      "actual": "Net GEX −$2,697M per 1% · flip 769.34 · quote as of — PT (rtd, realtime)"
+    },
+    {
+      "name": "normalizer-retains-declared-alternate-chain-provider",
+      "passed": false,
+      "actual": null
+    }
+  ]
+}

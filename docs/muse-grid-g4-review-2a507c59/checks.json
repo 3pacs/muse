@@ -1,0 +1,263 @@
+{
+  "task_id": "MUSE-GRID-G4-MATERIALIZATION-FRESHNESS-20261027",
+  "pickup_ack": "https://github.com/3pacs/muse/pull/2#issuecomment-6454794601",
+  "response_comment": "https://github.com/3pacs/muse/pull/2#issuecomment-6455167058",
+  "source_commit": "2a507c5906a674544068956aa41cab2e227b3a15",
+  "source_path": "docs/MUSE-GRID-G4-MATERIALIZATION-FRESHNESS-20261027-RESPONSE.md",
+  "source_git_blob": "a237b3f70b41143bcad2ccb13f246bc7076dc31d",
+  "verification_mode": "Cloud reviewer-authored pure JavaScript over fetched invented fixture text; native wrapper UNRUN",
+  "reviewer_results": {
+    "groups": 19,
+    "passed": 16,
+    "failed": 3,
+    "checks": [
+      {
+        "id": "G01-schema",
+        "pass": true,
+        "details": {
+          "cases": 8,
+          "fields": 25
+        }
+      },
+      {
+        "id": "G02-identities",
+        "pass": true,
+        "details": {
+          "snapshotIds": [
+            "SNAP_F1",
+            "SNAP_F2",
+            "SNAP_F3",
+            "SNAP_F4",
+            "SNAP_F5",
+            "SNAP_F6",
+            "SNAP_F7",
+            "SNAP_F8"
+          ]
+        }
+      },
+      {
+        "id": "G03-clocks",
+        "pass": true,
+        "details": "Top-level observation/knowledge/refresh/evaluation and all explicit receipt clocks; per-version coverage is checked separately."
+      },
+      {
+        "id": "G04-refresh-arithmetic",
+        "pass": true,
+        "details": "Every non-null expiry is exactly four synthetic hours after refresh."
+      },
+      {
+        "id": "G05-selector-eligibility",
+        "pass": true,
+        "details": [
+          {
+            "case": "F1",
+            "computed": [
+              {
+                "version": "V1",
+                "eligible": true
+              }
+            ],
+            "claimed": true
+          },
+          {
+            "case": "F2",
+            "computed": [
+              {
+                "version": "V1",
+                "eligible": true
+              }
+            ],
+            "claimed": true
+          },
+          {
+            "case": "F3",
+            "computed": [
+              {
+                "version": "V1",
+                "eligible": true
+              }
+            ],
+            "claimed": true
+          },
+          {
+            "case": "F4",
+            "computed": [
+              {
+                "version": "V1",
+                "eligible": true
+              }
+            ],
+            "claimed": true
+          },
+          {
+            "case": "F5",
+            "computed": [
+              {
+                "version": "V1",
+                "eligible": true
+              },
+              {
+                "version": "V2",
+                "eligible": true
+              }
+            ],
+            "claimed": true
+          },
+          {
+            "case": "F6",
+            "computed": [
+              {
+                "version": "V1",
+                "eligible": true
+              }
+            ],
+            "claimed": true
+          },
+          {
+            "case": "F7",
+            "computed": [
+              {
+                "version": "V1",
+                "eligible": true
+              }
+            ],
+            "claimed": true
+          },
+          {
+            "case": "F8",
+            "computed": [
+              {
+                "version": "V1",
+                "eligible": false
+              }
+            ],
+            "claimed": false
+          }
+        ]
+      },
+      {
+        "id": "G06-F1-ages",
+        "pass": true,
+        "details": {
+          "observationMinutes": 1921,
+          "firstRefreshMinutes": 241,
+          "renewedRemainingMinutes": 238
+        }
+      },
+      {
+        "id": "G07-renewal-negative-control",
+        "pass": true,
+        "details": {
+          "withRenewal": true,
+          "withoutRenewal": false,
+          "syntheticBoundaryAtExpiry": false
+        }
+      },
+      {
+        "id": "G08-manual-and-Hermes",
+        "pass": true,
+        "details": "Both renewal paths are separately enumerated; closing one cannot satisfy the complete fence."
+      },
+      {
+        "id": "G09-F8-receipt-order",
+        "pass": true,
+        "details": {
+          "completeAt": "2026-01-20T14:53:00Z",
+          "expiry": "2026-01-20T15:00:00Z"
+        }
+      },
+      {
+        "id": "G10-F8-consumers",
+        "pass": true,
+        "details": "Both finite named consumers have matching adoption receipts."
+      },
+      {
+        "id": "G11-F8-writer-loaded-state",
+        "pass": false,
+        "details": {
+          "writer": {
+            "loaded_version_or_state": "UNKNOWN",
+            "hold": "UNKNOWN"
+          },
+          "declaredBarrier1": "PROVEN_WITHIN_SYNTHETIC_INVENTORY",
+          "requiredBy": "SAFE-2BAR-1 §0.3: loaded version or state is known; renewal-path FENCE is a separate fact."
+        }
+      },
+      {
+        "id": "G12-F8-inflight-coverage",
+        "pass": false,
+        "details": {
+          "requiredInventory": [
+            "writer",
+            "hermes_refresher",
+            "manual_api",
+            "direct_flow"
+          ],
+          "receiptedZeroPaths": [
+            "writer"
+          ],
+          "globalClaim": "ZERO_BY_RECEIPT",
+          "unreceiptedPaths": [
+            "hermes_refresher",
+            "manual_api",
+            "direct_flow"
+          ]
+        }
+      },
+      {
+        "id": "G13-F5-per-version-observation",
+        "pass": false,
+        "details": {
+          "V2Observation": "2026-01-20T10:00:00Z",
+          "V2Known": "2026-01-20T10:01:00Z",
+          "presentInMachineFixture": false,
+          "narrativePresent": true
+        }
+      },
+      {
+        "id": "G14-retirement-proof-negative-controls",
+        "pass": true,
+        "details": {
+          "materializationReceipts": true,
+          "withoutManualFence": false,
+          "withoutCacheInvalidation": false,
+          "recomputedAdoptionBarrier": false,
+          "claimedRetirement": "ACCEPTED_WITHIN_CLOSED_SYNTHETIC_INVENTORY_ONLY"
+        }
+      },
+      {
+        "id": "G15-withholding",
+        "pass": true,
+        "details": "Production policy/retirement/coverage are withheld, with no production numeric policy adopted."
+      },
+      {
+        "id": "G16-null-versus-unknown",
+        "pass": true,
+        "details": {
+          "nullPaths": [
+            "F4.refreshes.0.expires_at",
+            "F4.expires_at_at_evaluation"
+          ]
+        }
+      },
+      {
+        "id": "G17-unsafe-mechanism-coverage",
+        "pass": true,
+        "details": "All five challenged mechanisms are named."
+      },
+      {
+        "id": "G18-policy-gap-list",
+        "pass": true,
+        "details": "Ten named missing production bindings; no fabricated production thresholds."
+      },
+      {
+        "id": "G19-independent-barrier-output",
+        "pass": true,
+        "details": "Separate labels and failing examples exist in all eight; positive proof sufficiency is independently checked above."
+      }
+    ],
+    "limits": "Cloud reviewer-authored document/fixture checks only. Native execution and GRID runtime/source/production claims are UNRUN/unverified."
+  },
+  "scope": "Docs/synthetic only; no GRID source/runtime/production assertion. No dashboard work.",
+  "next_task": "One bounded docs revision R1, two findings: F8 loaded/in-flight proof scope and F5 per-version clocks."
+}

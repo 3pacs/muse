@@ -1,0 +1,129 @@
+{
+  "source_commit": "29817f052543f91bf1a978daa1f60439bd2df298",
+  "prior_review_source": "1509ec2a98bd71d20b83c330c8752c6d570b010d",
+  "scope": "New evidence/hash/reference verification only. No repeated source tests, browser execution, provider calls or runtime verification.",
+  "source_byte_identical": {
+    "server/src/actions.ts": false,
+    "client/src/App.tsx": true,
+    "server/src/schema.ts": true,
+    "drizzle/0002_snapshots_table.sql": true,
+    "drizzle/0003_snapshot_instant.sql": true
+  },
+  "package": {
+    "files": 160,
+    "checksums": 158,
+    "failures": []
+  },
+  "owner_receipt": {
+    "reported_summary": {
+      "cases": 13,
+      "pass": 13,
+      "fail": 0
+    },
+    "hash_bindings": [
+      {
+        "path": "server/src/actions.ts",
+        "match": true
+      },
+      {
+        "path": "server/src/schema.ts",
+        "match": true
+      },
+      {
+        "path": "client/src/App.tsx",
+        "match": true
+      },
+      {
+        "path": "drizzle/0002_snapshots_table.sql",
+        "match": true
+      },
+      {
+        "path": "drizzle/0003_snapshot_instant.sql",
+        "match": true
+      },
+      {
+        "path": "offline/snapshot-audit-c07-entry.ts",
+        "match": true
+      },
+      {
+        "path": "offline/snapshot-audit-c07.mjs",
+        "match": true
+      }
+    ],
+    "execution": "OWNER-RUN only; not re-executed locally"
+  },
+  "ssr_manifest": {
+    "inputs": 36,
+    "input_failures": [],
+    "outputs": 54,
+    "matched": 50,
+    "failures": [],
+    "unavailable": [
+      "client/index.html",
+      "client/main.css",
+      "client/main.js",
+      "server/actions.js"
+    ]
+  },
+  "ssr_payload_and_html": {
+    "feed_down": true,
+    "coherent_older_frame": true,
+    "earlier_note": true,
+    "no_live_claim": true,
+    "synthetic_labeled": true
+  },
+  "browser_manifest": {
+    "inputs": 44,
+    "input_failures": [],
+    "fixtures": 10,
+    "fixture_failures": [],
+    "available_outputs": 38,
+    "failures": [],
+    "unavailable": [
+      "assets/app.css",
+      "assets/app.js"
+    ],
+    "screenshot_references": 19,
+    "reference_failures": []
+  },
+  "MAIN_ACK_source_bindings": [
+    {
+      "path": "implementation/pipeline/interpreter.py",
+      "asserted_live_sha256": "b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e",
+      "supplied_sha256": "e4f347860ef976ab15b6edb5fc66db1e781cbc427b1a5629de2a09d9323e862d",
+      "match": false
+    },
+    {
+      "path": "implementation/pipeline/indicator_tracker.py",
+      "asserted_live_sha256": "8f50ab4a681c6c81cad5fe80c81c32a2474837a0396773fbe1ec8d54fa09d2f2",
+      "supplied_sha256": "8f50ab4a681c6c81cad5fe80c81c32a2474837a0396773fbe1ec8d54fa09d2f2",
+      "match": true
+    },
+    {
+      "path": "implementation/pipeline/tape_db.py",
+      "asserted_live_sha256": "9031b67d59b7e05c88a43f0bcc3b590b0925bb91e27278c3bbd01ecbe4e21036",
+      "supplied_sha256": "9031b67d59b7e05c88a43f0bcc3b590b0925bb91e27278c3bbd01ecbe4e21036",
+      "match": true
+    },
+    {
+      "path": "implementation/pipeline/maxpain_log.py",
+      "asserted_live_sha256": "0b34acc40b3c520f6d40e14604417ccc00ee17e50e77998318bed3d04c5ef834",
+      "supplied_sha256": "0b34acc40b3c520f6d40e14604417ccc00ee17e50e77998318bed3d04c5ef834",
+      "match": true
+    }
+  ],
+  "ACK_limit": "Live interpreter source b95d... and complete machine-readable healthy/down captures/schema are not supplied by the ACK comment. Three matching helper files corroborate their source identity only; live deployment and prose session facts remain owner assertions.",
+  "independent_source_proof": {
+    "pass": 15,
+    "total": 15,
+    "receipt": "c07-independent-receipt.json",
+    "mode": "Separate exact-source SQLite replay, disclosed type erasure/query facade, in-memory feed stub; no provider access"
+  },
+  "native_provider_calls": 0,
+  "full_local_owner_stack": "UNRUN",
+  "artifact_integrity_pass": true,
+  "source_delta_as_expected": true,
+  "independent_proof_receipt_pass": true,
+  "C07_closed_for_finite_acceptance": true,
+  "helper_sha256": "e4018b0aebf95e6f20b47187e156aae5518315c8e4c42a4f0d164f8d88feb82c"
+}

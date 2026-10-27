@@ -1,0 +1,23 @@
+{
+ "revision": "muse-main-producer-20261020-rev2",
+ "corrects": {
+  "packet_commit": "6c8eabbee034699b8c58cfb9e697c9460cf47edf",
+  "folder": "docs/muse-main-producer-20261020/",
+  "superseded_schema_sha256": "19513e2067245b2b3bc99c0b50eebb56b86e45117828b62441eb2dfd50f067da",
+  "review": "docs ed91cb7c372732aa354ce4db755ad35b58431345"
+ },
+ "producer_pin_unchanged": "b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e",
+ "files": {
+  "feed_all.schema.json": "eac803a2562efb74fb1126ee8ef02c2492fce2c537ec09d3e9ada6839f3e44a0",
+  "prove_schema.py": "c351b71e52f14a0b467ea8672f350be73b3915b1b3a03f358dbc0ad3deb7a09e",
+  "schema-check-receipt.json": "eee9420e1004d8b0cb3ab7a37b7c2da8ad786bcf3419ba728cf80c13bc5fb1dc",
+  "envelope-ok-afterclose-20261020.json": "53f0f4c6e5a91ac7592b7338fbef353e7ec06e90914d82f247c478009d173380",
+  "healthy-session-record-20261020.json": "0a9862d6dbbd191dcb8825238dc4fd3cc1e07102e1d2742d6d2ba4f19b2b854c",
+  "README.md": "2bd3bd22a5cdc797f8e85a0af3e1eaf0bc08c4231446cdc2456bd75b0980d2df"
+ },
+ "checks": {
+  "passed": 15,
+  "total": 15,
+  "receipt": "schema-check-receipt.json"
+ }
+}

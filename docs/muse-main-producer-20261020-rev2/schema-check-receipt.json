@@ -1,0 +1,89 @@
+{
+ "packet": "muse-main-producer-20261020-rev2",
+ "producer_pin": "b95d1c3c73f720fe71fa139a7964af118fa139dea344fbdb7fa42dbd4619406e",
+ "inputs": {
+  "feed_all.schema.json": "eac803a2562efb74fb1126ee8ef02c2492fce2c537ec09d3e9ada6839f3e44a0",
+  "envelope-ok-afterclose-20261020.json": "53f0f4c6e5a91ac7592b7338fbef353e7ec06e90914d82f247c478009d173380"
+ },
+ "checks": [
+  {
+   "check": "meta_schema_valid",
+   "pass": true,
+   "detail": "Draft202012Validator.check_schema passed"
+  },
+  {
+   "check": "captured_ok_validates",
+   "pass": true,
+   "detail": "retained after-close envelope (status ok, market_open false)"
+  },
+  {
+   "check": "captured_ok_admitted",
+   "pass": true,
+   "detail": "status == ok -> admitted (session-closed data, not a live read)"
+  },
+  {
+   "check": "synthetic_sparse_timeout_error_validates",
+   "pass": true,
+   "detail": "SYNTHETIC source-derived shape from pinned source text \u2014 not a market capture"
+  },
+  {
+   "check": "synthetic_sparse_timeout_error_withheld",
+   "pass": true,
+   "detail": "non-ok status -> no interpretation admitted"
+  },
+  {
+   "check": "synthetic_no_quote_error_validates",
+   "pass": true,
+   "detail": "SYNTHETIC source-derived shape from pinned source text \u2014 not a market capture"
+  },
+  {
+   "check": "synthetic_no_quote_error_withheld",
+   "pass": true,
+   "detail": "non-ok status -> no interpretation admitted"
+  },
+  {
+   "check": "synthetic_quarantined_validates",
+   "pass": true,
+   "detail": "SYNTHETIC source-derived shape from pinned source text \u2014 not a market capture"
+  },
+  {
+   "check": "synthetic_quarantined_withheld",
+   "pass": true,
+   "detail": "non-ok status -> no interpretation admitted"
+  },
+  {
+   "check": "synthetic_starting_validates",
+   "pass": true,
+   "detail": "SYNTHETIC source-derived shape from pinned source text \u2014 not a market capture"
+  },
+  {
+   "check": "synthetic_starting_withheld",
+   "pass": true,
+   "detail": "non-ok status -> no interpretation admitted"
+  },
+  {
+   "check": "walls_numeric_validate",
+   "pass": true,
+   "detail": "call_wall/put_wall as numbers"
+  },
+  {
+   "check": "walls_null_validate",
+   "pass": true,
+   "detail": "walls/flip/max_pain as null (number-or-null)"
+  },
+  {
+   "check": "unknown_status_rejected",
+   "pass": true,
+   "detail": "no variant admits an unlisted status"
+  },
+  {
+   "check": "relabeled_error_withheld",
+   "pass": true,
+   "detail": "gate is on status, not body shape"
+  }
+ ],
+ "summary": {
+  "passed": 15,
+  "total": 15
+ }
+}
